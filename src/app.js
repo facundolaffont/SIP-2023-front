@@ -9,7 +9,9 @@ import { HomePage } from "./pages/home-page";
 import { NotFoundPage } from "./pages/not-found-page";
 import { ProfilePage } from "./pages/profile-page";
 import { ProtectedPage } from "./pages/protected-page";
-import { PublicPage } from "./pages/public-page";
+//import { PublicPage } from "./pages/public-page";
+import { AltaDocente } from "./pages/alta-docente";
+import { BuscarDocente } from "./pages/buscar-docente";
 
 export const App = () => {
   const { isLoading } = useAuth0();
@@ -25,11 +27,13 @@ export const App = () => {
   return (
     <Switch>
       <Route path="/" exact component={HomePage} />
+      <Route path="/callback" component={CallbackPage} />
       <ProtectedRoute path="/profile" component={ProfilePage} />
-      <Route path="/public" component={PublicPage} />
+      <ProtectedRoute path="/alta-docente" component={AltaDocente} />
+      <ProtectedRoute path="/buscar-docente" component={BuscarDocente} />
       <ProtectedRoute path="/protected" component={ProtectedPage} />
       <ProtectedRoute path="/admin" component={AdminPage} />
-      <Route path="/callback" component={CallbackPage} />
+      
       <Route path="*" component={NotFoundPage} />
     </Switch>
   );

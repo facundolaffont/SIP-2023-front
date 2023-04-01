@@ -7,10 +7,10 @@ export const NavBarBrand = () => {
       <NavLink to="/" exact>
         <img
           className="nav-bar__logo"
-          src="https://cdn.auth0.com/blog/hub/code-samples/hello-world/auth0-logo.svg"
-          alt="Auth0 shield logo"
-          width="122"
-          height="36"
+          src="https://www.unlu.edu.ar/imagenes/logo.png"
+          alt="Logo de la UNLu"
+          //width="150"
+          //height="150"
         />
       </NavLink>
     </div>
