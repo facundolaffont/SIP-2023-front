@@ -1,14 +1,4 @@
 import React from "react";
-<<<<<<< HEAD
-
-export const PageFooter = () => {
-  return (
-    <footer className="page-footer">
-      <div className="page-footer-grid">        
-            <p className="page-footer-message__headline">
-              This is some random footer content  
-            </p>              
-=======
 import { PageFooterHyperlink } from "./page-footer-hyperlink";
 
 export const PageFooter = () => {
@@ -90,7 +80,6 @@ export const PageFooter = () => {
             </PageFooterHyperlink>
           </div>
         </div>
->>>>>>> auth0-facu
       </div>
     </footer>
   );

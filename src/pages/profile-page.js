@@ -1,47 +1,10 @@
 import { useAuth0 } from "@auth0/auth0-react";
-<<<<<<< HEAD
-import React, { useEffect } from "react";
-import { CodeSnippet } from "../components/code-snippet";
-import { PageLayout } from "../components/page-layout";
-import { useState } from "react";
-
-import jwt from 'jwt-decode'
-
-export const ProfilePage = () => {
-  const { user, getAccessTokenSilently } = useAuth0();
-
-  const [userPermissions, setUserPermissions] = useState([])
-
-  useEffect(() => {
-    let isMounted = true;
-
-    const getPermissions = async () => {
-      const accessToken = await getAccessTokenSilently();
-      const permissions = jwt(accessToken).permissions;
-
-      if (!isMounted) {
-        return;
-      }
-
-      if (permissions) {
-        setUserPermissions(permissions);
-      }
-    };
-
-    getPermissions();
-
-    return () => {
-      isMounted = false;
-    };
-  }, [getAccessTokenSilently]);
-=======
 import React from "react";
 import { CodeSnippet } from "../components/code-snippet";
 import { PageLayout } from "../components/page-layout";
 
 export const ProfilePage = () => {
   const { user } = useAuth0();
->>>>>>> auth0-facu
 
   if (!user) {
     return null;
@@ -73,21 +36,13 @@ export const ProfilePage = () => {
               <div className="profile__headline">
                 <h2 className="profile__title">{user.name}</h2>
                 <span className="profile__description">{user.email}</span>
-<<<<<<< HEAD
-                {userPermissions}
-=======
->>>>>>> auth0-facu
               </div>
             </div>
             <div className="profile__details">
               <CodeSnippet
                 title="Decoded ID Token"
                 code={JSON.stringify(user, null, 2)}
-<<<<<<< HEAD
-              />              
-=======
               />
->>>>>>> auth0-facu
             </div>
           </div>
         </div>
