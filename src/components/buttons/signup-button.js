@@ -18,7 +18,11 @@ export const SignupButton = () => {
 
   return (
     <button className="button__sign-up" onClick={handleSignUp}>
+<<<<<<< HEAD
       Sign Up
+=======
+      Registrarse
+>>>>>>> auth0-facu
     </button>
   );
 };

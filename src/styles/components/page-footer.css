@@ -98,6 +98,22 @@
   margin-right: 12px;
 }
 
+<<<<<<< HEAD
+=======
+.page-footer__hyperlink {
+  letter-spacing: 0.001rem;
+}
+
+.page-footer__hyperlink,
+.page-footer__hyperlink:active,
+.page-footer__hyperlink:visited {
+  color: var(--white);
+}
+
+.page-footer__hyperlink:hover {
+  color: var(--aluminium);
+}
+>>>>>>> auth0-facu
 
 @media only screen and (max-width: 960px) {
   .page-footer {

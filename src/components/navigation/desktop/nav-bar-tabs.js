@@ -7,6 +7,7 @@ export const NavBarTabs = () => {
 
   return (
     <div className="nav-bar__tabs">
+<<<<<<< HEAD
       <NavBarTab path="/profile" label="Profile" />
       <NavBarTab path="/public" label="Public" />
       {isAuthenticated && (
@@ -16,6 +17,18 @@ export const NavBarTabs = () => {
         </>
       )}
       
+=======
+      {/* <NavBarTab path="/profile" label="Perfil" /> */} 
+      {/* <NavBarTab path="/public" label="Public" /> */}
+      {isAuthenticated && (
+        <>
+          {/* <NavBarTab path="/protected" label="Protected" /> */}
+          <NavBarTab path="/profile" label="Perfil" />
+          <NavBarTab path="/buscar-docente" label="Buscar docente" />
+          <NavBarTab path="/alta-docente" label="Alta de docente" />
+        </>
+      )}
+>>>>>>> auth0-facu
     </div>
   );
 };

@@ -17,7 +17,11 @@ export const LoginButton = () => {
 
   return (
     <button className="button__login" onClick={handleLogin}>
+<<<<<<< HEAD
       Log In
+=======
+      Ingresar
+>>>>>>> auth0-facu
     </button>
   );
 };

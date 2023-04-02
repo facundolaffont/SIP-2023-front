@@ -8,7 +8,11 @@ export const HeroBanner = () => {
       <div className="hero-banner__logo">
         <img className="hero-banner__image" src={logo} alt="React logo" />
       </div>
+<<<<<<< HEAD
       <h1 className="hero-banner__headline">Hello World!</h1>
+=======
+      <h1 className="hero-banner__headline">Hello, React World!</h1>
+>>>>>>> auth0-facu
       <p className="hero-banner__description">
         This is a sample application that demonstrates the authentication flow
         for React apps using <strong>Auth0</strong>.
@@ -17,7 +21,11 @@ export const HeroBanner = () => {
         id="code-sample-link"
         target="_blank"
         rel="noopener noreferrer"
+<<<<<<< HEAD
         href="https://developer.auth0.com/resources/code-samples/spa/react/basic-authentication"
+=======
+        href="https://developer.auth0.com/resources/code-samples/spa/react/basic-authentication/v17-javascript-react-router-5"
+>>>>>>> auth0-facu
         className="button button--secondary"
       >
         Check out the React code sample →
