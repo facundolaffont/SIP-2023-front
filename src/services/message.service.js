@@ -19,6 +19,7 @@ export const getPublicResource = async () => {
   };
 };
 
+/*
 export const getProtectedResource = async (accessToken) => {
   const config = {
     url: `${apiServerUrl}/api/messages/protected`,
@@ -36,6 +37,7 @@ export const getProtectedResource = async (accessToken) => {
     error,
   };
 };
+*/
 
 export const getAdminResource = async (accessToken) => {
   const config = {
