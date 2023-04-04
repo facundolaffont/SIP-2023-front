@@ -17,7 +17,7 @@ export const HeroBanner = () => {
         id="code-sample-link"
         target="_blank"
         rel="noopener noreferrer"
-        href="https://developer.auth0.com/resources/code-samples/spa/react/basic-authentication/v17-javascript-react-router-5"
+        href="https://developer.auth0.com/resources/code-samples/spa/react/basic-authentication"
         className="button button--secondary"
       >
         Check out the React code sample →

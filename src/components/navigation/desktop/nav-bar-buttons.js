@@ -11,7 +11,7 @@ export const NavBarButtons = () => {
     <div className="nav-bar__buttons">
       {!isAuthenticated && (
         <>
-          {/* <SignupButton /> */}
+          <SignupButton />
           <LoginButton />
         </>
       )}

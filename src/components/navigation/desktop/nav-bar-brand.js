@@ -4,13 +4,13 @@ import { NavLink } from "react-router-dom";
 export const NavBarBrand = () => {
   return (
     <div className="nav-bar__brand">
-      <NavLink to="/" exact>
+      <NavLink to="/">
         <img
           className="nav-bar__logo"
-          src="https://www.unlu.edu.ar/imagenes/logo.png"
-          alt="Logo de la UNLu"
-          //width="150"
-          //height="150"
+          src="https://cdn.auth0.com/blog/hub/code-samples/hello-world/auth0-logo.svg"
+          alt="Auth0 shield logo"
+          width="122"
+          height="36"
         />
       </NavLink>
     </div>
