@@ -14,16 +14,12 @@ export const ProfilePage = () => {
     <PageLayout>
       <div className="content-layout">
         <h1 id="page-title" className="content__title">
-          Profile Page
+          Perfil
         </h1>
         <div className="content__body">
           <p id="page-description">
             <span>
-              You can use the <strong>ID Token</strong> to get the profile
-              information of an authenticated user.
-            </span>
-            <span>
-              <strong>Only authenticated users can access this page.</strong>
+              Se puede utilizar el <strong>Token ID</strong> para obtener información del perfil de un usuario.
             </span>
           </p>
           <div className="profile-grid">
@@ -40,7 +36,7 @@ export const ProfilePage = () => {
             </div>
             <div className="profile__details">
               <CodeSnippet
-                title="Decoded ID Token"
+                title="Token ID decodificado"
                 code={JSON.stringify(user, null, 2)}
               />
             </div>

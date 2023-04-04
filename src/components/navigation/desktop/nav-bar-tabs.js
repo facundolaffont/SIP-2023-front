@@ -7,12 +7,12 @@ export const NavBarTabs = () => {
 
   return (
     <div className="nav-bar__tabs">
-      <NavBarTab path="/profile" label="Perfil" />
       {/* <NavBarTab path="/public" label="Public" /> */}
       {isAuthenticated && (
         <>
           {/* <NavBarTab path="/protected" label="Protected" /> */}
-          <NavBarTab path="/admin" label="Administrador" />
+          <NavBarTab path="/profile" label="Perfil" />
+          <NavBarTab path="/create-user" label="Alta de usuario" />
         </>
       )}
     </div>
