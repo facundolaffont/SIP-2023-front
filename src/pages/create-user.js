@@ -4,7 +4,7 @@ import { CodeSnippet } from "../components/code-snippet";
 import { PageLayout } from "../components/page-layout";
 import { getAdminResource } from "../services/message.service";
 
-export const AdminPage = () => {
+export const CreateUserPage = () => {
   const [message, setMessage] = useState("");
 
   const { getAccessTokenSilently } = useAuth0();
@@ -40,23 +40,14 @@ export const AdminPage = () => {
     <PageLayout>
       <div className="content-layout">
         <h1 id="page-title" className="content__title">
-          Admin Page
+          Alta de usuario
         </h1>
         <div className="content__body">
           <p id="page-description">
             <span>
-              This page retrieves an <strong>admin message</strong> from an
-              external API.
-            </span>
-            <span>
-              <strong>
-                Only authenticated users with the{" "}
-                <code>read:admin-messages</code> permission should access this
-                page.
-              </strong>
+              Esta página se utiliza para crear nuevos usuarios del sistema.
             </span>
           </p>
-          <CodeSnippet title="Admin Message" code={message} />
         </div>
       </div>
     </PageLayout>
