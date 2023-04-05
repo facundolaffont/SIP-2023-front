@@ -12,9 +12,8 @@
       const checkAdminRole = async () => {
         if (isAuthenticated) {
          const idTokenClaims = await getIdTokenClaims();
-          const user_metadata = idTokenClaims['https://hello-world.example.com'];
-          console.log(user_metadata);
-          if (user_metadata && user_metadata.includes("admin")) {
+          const user_metadata = idTokenClaims['https://hello-world.example.com/user_metadata'];
+          if (user_metadata && user_metadata.role === "admin") {
             setIsAdmin(true);
           }
         }
@@ -28,8 +27,12 @@
           <>        
             <NavBarTab path="/perfil" label="Mi perfil" />
             <NavBarTab path="/cambiar-password" label="Cambiar Contraseña" />
+            {isAdmin && (
+            <>
             <NavBarTab path="/buscar-docente" label="Buscar docente" />
             <NavBarTab path="/alta-docente" label="Alta de docente" />
+            </>
+            )}
           </>
         )}
       </div>

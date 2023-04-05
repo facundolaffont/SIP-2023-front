@@ -1,6 +1,7 @@
 //import { useAuth0 } from '@auth0/auth0-react';
 import { useState } from 'react';
 import auth0 from 'auth0-js';
+import { PageLayout } from "../components/page-layout";
 
 export function AltaDocente() {
  // const { getAccessTokenSilently } = useAuth0();
@@ -72,6 +73,7 @@ export function AltaDocente() {
   };
 
   return (
+    <PageLayout>
     <form onSubmit={handleSubmit}>
       <label htmlFor="email">Correo electrónico</label>
       <input
@@ -111,6 +113,7 @@ export function AltaDocente() {
 
       <button type="submit">Registrarse</button>
     </form>
+    </PageLayout>
   );
 }
 
