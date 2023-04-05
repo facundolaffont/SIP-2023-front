@@ -1,64 +1,117 @@
-import { useAuth0 } from "@auth0/auth0-react";
-import React, { useEffect, useState } from "react";
-import { CodeSnippet } from "../components/code-snippet";
-import { PageLayout } from "../components/page-layout";
-import { getAdminResource } from "../services/message.service";
+//import { useAuth0 } from '@auth0/auth0-react';
+import { useState } from 'react';
+import auth0 from 'auth0-js';
 
-export const AltaDocente = () => {
-  const [message, setMessage] = useState("");
+export function AltaDocente() {
+ // const { getAccessTokenSilently } = useAuth0();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [role, setRole] = useState('');
+  const [username, setUsername] = useState('');
 
-  const { getAccessTokenSilently } = useAuth0();
+  const auth0Client = new auth0.WebAuth({
+  domain: process.env.REACT_APP_AUTH0_DOMAIN,
+  clientID: process.env.REACT_APP_AUTH0_CLIENT_ID,
+});
 
-  useEffect(() => {
-    let isMounted = true;
+ /* const handleSubmit = async (event) => {
+    event.preventDefault();
 
-    const getMessage = async () => {
-      const accessToken = await getAccessTokenSilently();
-      const { data, error } = await getAdminResource(accessToken);
+    try {
+      const accessToken = await getAccessTokenSilently({
+        audience: 'https://hello-world.example.com',
+        scope: 'create:users'
+      });
+      console.log(accessToken);
+      const response = await fetch(
+        `https://dev-jhurd8vkuqfbvs4g.auth0.com/api/v2/users`,
+        {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            email,
+            password, 
+            app_metadata: {
+              roles: [role],
+            },
+          }),
+        }
+      );
 
-      if (!isMounted) {
-        return;
+      const data = await response.json();
+
+      console.log(data);
+    } catch (error) {
+      console.error(error);
+    }
+  }; */
+
+    const handleSubmit = (event) => {
+    event.preventDefault();
+    auth0Client.signup(
+      {
+        connection: 'Username-Password-Authentication',
+        email,
+        password,
+        username,
+        user_metadata: {
+          role: role,
+        },
+      },
+      (err) => {
+        if (err) {
+          console.error(err);
+          return;
+        }
+        console.log('Usuario creado exitosamente');
       }
-
-      if (data) {
-        setMessage(JSON.stringify(data, null, 2));
-      }
-
-      if (error) {
-        setMessage(JSON.stringify(error, null, 2));
-      }
-    };
-
-    getMessage();
-
-    return () => {
-      isMounted = false;
-    };
-  }, [getAccessTokenSilently]);
+    );
+  };
 
   return (
-    <PageLayout>
-      <div className="content-layout">
-        <h1 id="page-title" className="content__title">
-          Alta de docente
-        </h1>
-        <div className="content__body">
-          <p id="page-description">
-            <span>
-              This page retrieves an <strong>admin message</strong> from an
-              external API.
-            </span>
-            <span>
-              <strong>
-                Only authenticated users with the{" "}
-                <code>read:admin-messages</code> permission should access this
-                page.
-              </strong>
-            </span>
-          </p>
-          <CodeSnippet title="Alta de docente" code={message} />
-        </div>
-      </div>
-    </PageLayout>
+    <form onSubmit={handleSubmit}>
+      <label htmlFor="email">Correo electrónico</label>
+      <input
+        type="email"
+        id="email"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+        required
+      />
+
+      <label htmlFor="password">Contraseña</label>
+      <input
+        type="password"
+        id="password"
+        value={password}
+        onChange={(e) => setPassword(e.target.value)}
+        required
+      />
+
+      <label htmlFor="role">Rol</label>
+      <input
+        type="text"
+        id="role"
+        value={role}
+        onChange={(e) => setRole(e.target.value)}
+        required
+      />
+
+    <label htmlFor="username">Username</label>
+      <input
+        type="text"
+        id="username"
+        value={username}
+        onChange={(e) => setUsername(e.target.value)}
+        required
+      />
+
+      <button type="submit">Registrarse</button>
+    </form>
   );
-};
+}
+
+export default AltaDocente;

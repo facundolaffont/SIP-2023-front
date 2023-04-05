@@ -12,6 +12,7 @@ import { ProtectedPage } from "./pages/protected-page";
 //import { PublicPage } from "./pages/public-page";
 import { AltaDocente } from "./pages/alta-docente";
 import { BuscarDocente } from "./pages/buscar-docente";
+import { ChangePasswordForm } from "./pages/cambiar-password";
 
 export const App = () => {
   const { isLoading } = useAuth0();
@@ -33,7 +34,7 @@ export const App = () => {
       <ProtectedRoute path="/buscar-docente" component={BuscarDocente} />
       <ProtectedRoute path="/protected" component={ProtectedPage} />
       <ProtectedRoute path="/admin" component={AdminPage} />
-      
+      <ProtectedRoute path="/cambiar-password" component={ChangePasswordForm} />
       <Route path="*" component={NotFoundPage} />
     </Switch>
   );
