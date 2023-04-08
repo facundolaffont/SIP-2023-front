@@ -21,7 +21,7 @@ export const App = () => {
       if (isAuthenticated) {
         const idTokenClaims = await getIdTokenClaims();
         const user_metadata = idTokenClaims['https://hello-world.example.com/user_metadata'];
-        if (user_metadata && user_metadata.role === "admin") {
+        if (user_metadata && user_metadata.role === "admin") {          
           setIsAdmin(true);
         }
       }
@@ -37,19 +37,25 @@ export const App = () => {
     );
   }
 
+  const ShowAdminRoutes = () => {
+    if(isAdmin)
+      return (
+        <>
+        <ProtectedRoute path="/create-professor" component={CreateProfessor} />
+        <ProtectedRoute path="/search-professor" component={SearchProfessor} />
+        </>
+      );
+  }
+
   return (
     <Switch>
       <Route path="/" exact component={HomePage} />
       <Route path="/callback" component={CallbackPage} />
       <ProtectedRoute path="/profile" component={ProfilePage} />
-      {isAdmin && (
-        <>
-        <ProtectedRoute path="/create-professor" component={CreateProfessor} />
-        <ProtectedRoute path="/search-professor" component={SearchProfessor} />
-        </>
-      )}
       <ProtectedRoute path="/change-password" component={ChangePasswordForm} />
-      <Route path="*" component={NotFoundPage} />
+      <ShowAdminRoutes />
+      <Route path="*" component={NotFoundPage} /> {/* TODO: no lo muestra, porque está bloqueado
+                                                      por <ShowAdminRoutes /> */}
     </Switch>
   );
 };
