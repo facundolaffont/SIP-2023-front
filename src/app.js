@@ -3,7 +3,6 @@ import React,  {useState, useEffect } from "react";
 import { Route, Switch } from "react-router-dom";
 import { PageLoader } from "./components/page-loader";
 import { ProtectedRoute } from "./components/protected-route";
-import { AdminPage } from "./pages/admin-page";
 import { CallbackPage } from "./pages/callback-page";
 import { HomePage } from "./pages/home-page";
 import { NotFoundPage } from "./pages/not-found-page";
@@ -30,16 +29,6 @@ export const App = () => {
     checkAdminRole();
   }, [isAuthenticated, getIdTokenClaims]);
 
-  const AdminRoutes = function renderIfItsAllowed() {
-    if (isAdmin) return (
-      <>
-      <ProtectedRoute path="/create-professor" component={CreateProfessor} />
-      <ProtectedRoute path="/search-professor" component={SearchProfessor} />
-      <ProtectedRoute path="/admin" component={AdminPage} />
-      </>
-    )
-  }
-
   if (isLoading) {
     return (
       <div className="page-layout">
@@ -53,7 +42,12 @@ export const App = () => {
       <Route path="/" exact component={HomePage} />
       <Route path="/callback" component={CallbackPage} />
       <ProtectedRoute path="/profile" component={ProfilePage} />
-      <AdminRoutes/>
+      {isAdmin && (
+        <>
+        <ProtectedRoute path="/create-professor" component={CreateProfessor} />
+        <ProtectedRoute path="/search-professor" component={SearchProfessor} />
+        </>
+      )}
       <ProtectedRoute path="/change-password" component={ChangePasswordForm} />
       <Route path="*" component={NotFoundPage} />
     </Switch>

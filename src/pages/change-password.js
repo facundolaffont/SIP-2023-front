@@ -40,7 +40,7 @@ export const ChangePasswordForm = () => {
   }
 
   return (
-    <PageLayout>  
+    <PageLayout>
     <form onSubmit={handleSubmit}>
       <label>
         Contraseña actual:
