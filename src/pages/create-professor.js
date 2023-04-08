@@ -3,7 +3,7 @@ import { useState } from 'react';
 import auth0 from 'auth0-js';
 import { PageLayout } from "../components/page-layout";
 
-export function AltaDocente() {
+export function CreateProfessor() {
  // const { getAccessTokenSilently } = useAuth0();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -102,7 +102,7 @@ export function AltaDocente() {
         required
       />
 
-    <label htmlFor="username">Username</label>
+    <label htmlFor="username">Usuario</label>
       <input
         type="text"
         id="username"
@@ -117,4 +117,4 @@ export function AltaDocente() {
   );
 }
 
-export default AltaDocente;
+export default CreateProfessor;

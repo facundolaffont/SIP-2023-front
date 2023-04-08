@@ -1,5 +1,5 @@
 import { useAuth0 } from "@auth0/auth0-react";
-import React from "react";
+import React,  {useState, useEffect } from "react";
 import { Route, Switch } from "react-router-dom";
 import { PageLoader } from "./components/page-loader";
 import { ProtectedRoute } from "./components/protected-route";
@@ -8,14 +8,37 @@ import { CallbackPage } from "./pages/callback-page";
 import { HomePage } from "./pages/home-page";
 import { NotFoundPage } from "./pages/not-found-page";
 import { ProfilePage } from "./pages/profile-page";
-import { ProtectedPage } from "./pages/protected-page";
-//import { PublicPage } from "./pages/public-page";
-import { AltaDocente } from "./pages/alta-docente";
-import { BuscarDocente } from "./pages/buscar-docente";
-import { ChangePasswordForm } from "./pages/cambiar-password";
+import { CreateProfessor } from "./pages/create-professor";
+import { SearchProfessor } from "./pages/search-professor";
+import { ChangePasswordForm } from "./pages/change-password";
 
 export const App = () => {
   const { isLoading } = useAuth0();
+  const { isAuthenticated, getIdTokenClaims } = useAuth0();
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    const checkAdminRole = async () => {
+      if (isAuthenticated) {
+        const idTokenClaims = await getIdTokenClaims();
+        const user_metadata = idTokenClaims['https://hello-world.example.com/user_metadata'];
+        if (user_metadata && user_metadata.role === "admin") {
+          setIsAdmin(true);
+        }
+      }
+    };
+    checkAdminRole();
+  }, [isAuthenticated, getIdTokenClaims]);
+
+  const AdminRoutes = function renderIfItsAllowed() {
+    if (isAdmin) return (
+      <>
+      <ProtectedRoute path="/create-professor" component={CreateProfessor} />
+      <ProtectedRoute path="/search-professor" component={SearchProfessor} />
+      <ProtectedRoute path="/admin" component={AdminPage} />
+      </>
+    )
+  }
 
   if (isLoading) {
     return (
@@ -30,11 +53,8 @@ export const App = () => {
       <Route path="/" exact component={HomePage} />
       <Route path="/callback" component={CallbackPage} />
       <ProtectedRoute path="/profile" component={ProfilePage} />
-      <ProtectedRoute path="/alta-docente" component={AltaDocente} />
-      <ProtectedRoute path="/buscar-docente" component={BuscarDocente} />
-      <ProtectedRoute path="/protected" component={ProtectedPage} />
-      <ProtectedRoute path="/admin" component={AdminPage} />
-      <ProtectedRoute path="/cambiar-password" component={ChangePasswordForm} />
+      <AdminRoutes/>
+      <ProtectedRoute path="/change-password" component={ChangePasswordForm} />
       <Route path="*" component={NotFoundPage} />
     </Switch>
   );

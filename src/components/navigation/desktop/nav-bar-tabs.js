@@ -4,11 +4,10 @@
 
 
   export const NavBarTabs = () => {
-    const { isAuthenticated, getIdTokenClaims} = useAuth0();
+    const { isAuthenticated, getIdTokenClaims } = useAuth0();
     const [isAdmin, setIsAdmin] = useState(false);
 
-    
-   useEffect(() => {
+    useEffect(() => {
       const checkAdminRole = async () => {
         if (isAuthenticated) {
          const idTokenClaims = await getIdTokenClaims();
@@ -25,12 +24,12 @@
       <div className="nav-bar__tabs">
         {isAuthenticated && (
           <>        
-            <NavBarTab path="/perfil" label="Mi perfil" />
-            <NavBarTab path="/cambiar-password" label="Cambiar Contraseña" />
+            <NavBarTab path="/profile" label="Mi perfil" />
+            <NavBarTab path="/change-password" label="Cambiar Contraseña" />
             {isAdmin && (
             <>
-            <NavBarTab path="/buscar-docente" label="Buscar docente" />
-            <NavBarTab path="/alta-docente" label="Alta de docente" />
+            <NavBarTab path="/search-professor" label="Buscar docente" />
+            <NavBarTab path="/create-professor" label="Alta de docente" />
             </>
             )}
           </>

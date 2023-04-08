@@ -1,10 +1,9 @@
 import { useAuth0 } from "@auth0/auth0-react";
 import React, { useEffect, useState } from "react";
-import { CodeSnippet } from "../components/code-snippet";
 import { PageLayout } from "../components/page-layout";
 import { getAdminResource } from "../services/message.service";
 
-export const BuscarDocente = () => {
+export const SearchProfessor = () => {
   const [message, setMessage] = useState("");
 
   const { getAccessTokenSilently } = useAuth0();
@@ -42,22 +41,6 @@ export const BuscarDocente = () => {
         <h1 id="page-title" className="content__title">
           Buscar docente
         </h1>
-        <div className="content__body">
-          <p id="page-description">
-            <span>
-              This page retrieves an <strong>admin message</strong> from an
-              external API.
-            </span>
-            <span>
-              <strong>
-                Only authenticated users with the{" "}
-                <code>read:admin-messages</code> permission should access this
-                page.
-              </strong>
-            </span>
-          </p>
-          <CodeSnippet title="Buscar docente" code={message} />
-        </div>
       </div>
     </PageLayout>
   );
