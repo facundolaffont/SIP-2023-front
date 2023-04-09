@@ -1,63 +1,87 @@
-import axios from 'axios';
-import { useAuth0 } from '@auth0/auth0-react';
-import React, { useState } from 'react';
-import { PageLayout } from '../components/page-layout';
+import auth0 from "auth0-js";
+import { useAuth0 } from "@auth0/auth0-react";
+import React, { useState } from "react";
+import { PageLayout } from "../components/page-layout";
+import { useEffect } from "react/cjs/react.development";
 
 export const ChangePasswordForm = () => {
-  const { getAccessTokenSilently } = useAuth0();
+  // Se obtienen tres parámetros de un objeto que implementa la interfaz
+  // Auth0ContextInterface<TUser>:
+  // * La propiedad user es opcional, y contiene información sobre el usuario.
+  // * isAuthenticated determina si se logueó o no el usuario.
+  // * getIdTokenClaims permite obtener, si existe, el token ID del usuario actual.
+  const { user, isAuthenticated, getIdTokenClaims } = useAuth0();
 
-  const [currentPassword, setCurrentPassword] = useState('');
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [error, setError] = useState(null);
-  const [success, setSuccess] = useState(false);
+  // La variable email será actualizada con el mail del usuario, si se pudo obtener,
+  // a través de la función setEmail.
+  const [email, setEmail] = useState(null);
 
-  const handleSubmit = async (event) => {
+  // Se utiliza finalMessage para generar tags HTML que informen al usuario de los
+  // resultados del procesamiento.
+  const [finalMessage, setFinalMessage] = useState("");
+
+  useEffect(() => {
+    const getUserMail = () => {
+
+      // Si el usuario está logueado y se pudieron obtener sus datos,
+      // se actualiza la variable email.
+      debugger;
+      if (isAuthenticated && typeof user.email !== "undefined") {
+        debugger;
+        setEmail(user.email);
+      }
+
+      // Función de limpieza.
+      return () => {
+        debugger;
+        setEmail(null);
+      };
+
+    };
+    getUserMail();
+  }, [user, isAuthenticated, setEmail]);
+
+  // Obtiene el manejador que permitirá enviar la petición de
+  // cambio de mail a Auth0.
+  const auth0WebAuth = new auth0.WebAuth({
+    domain: process.env.REACT_APP_AUTH0_DOMAIN,
+    clientID: process.env.REACT_APP_AUTH0_CLIENT_ID,
+  });
+
+  // Intenta realizar el envío del mail, a la casilla del usuario, para que pueda
+  // realizar el cambio de mail, y actualiza el contenido del sitio, ya sea si se pudo
+  // enviar el mail o no.
+  const processSubmit = async (event) => {
     event.preventDefault();
-    if (newPassword !== confirmPassword) {
-      setError('Las nuevas contraseñas no coinciden');
-      return;
-    }
-    const token = await getAccessTokenSilently();
-    axios.put('/api/change-password', {
-      currentPassword,
-      newPassword,
-    }, {
-      headers: {
-        Authorization: `Bearer ${token}`,
+    debugger;
+    auth0WebAuth.changePassword(
+      {
+        client_id: process.env.REACT_APP_AUTH0_CLIENT_ID,
+        email: email,
+        connection: process.env.REACT_APP_DB_CONNECTION,
       },
-    })
-      .then(() => {
-        setSuccess(true);
-        setError(null);
-        setCurrentPassword('');
-        setNewPassword('');
-        setConfirmPassword('');
-      })
-      .catch((error) => {
-        setError(error.response.data.message);
-      });
-  }
+      (err, resp) => {
+        if (err) {
+          console.log(err.message);
+          setFinalMessage(
+            "No se pudo enviar el mail. Intente nuevamente más tarde, o contáctese con su administrador."
+          );
+        } else {
+          console.log(resp);
+          setFinalMessage(
+            "Se envío el mail para el cambio de contraseña a su casilla. Por favor, verifíquela."
+          );
+        }
+      }
+    );
+  };
 
   return (
     <PageLayout>
-    <form onSubmit={handleSubmit}>
-      <label>
-        Contraseña actual:
-        <input type="password" value={currentPassword} onChange={(event) => setCurrentPassword(event.target.value)} />
-      </label>
-      <label>
-        Nueva contraseña:
-        <input type="password" value={newPassword} onChange={(event) => setNewPassword(event.target.value)} />
-      </label>
-      <label>
-        Confirmar nueva contraseña:
-        <input type="password" value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)} />
-      </label>
-      {error && <div>{error}</div>}
-      {success && <div>Contraseña actualizada correctamente</div>}
-      <button type="submit">Cambiar contraseña</button>
-    </form>
+      <form onSubmit={processSubmit}>
+        <button type="submit">Solicitar cambio de contraseña</button>
+      </form>
+      {<p>{finalMessage}</p>}
     </PageLayout>
   );
-}
+};
