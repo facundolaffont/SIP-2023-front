@@ -92,15 +92,14 @@ export function CreateProfessor() {
         onChange={(e) => setPassword(e.target.value)}
         required
       />
+      
+    <label htmlFor="role">Rol</label>
+      <select id="role" value={role} onChange={(e) => setRole(e.target.value)} required>
+        <option value="">Seleccione un rol</option>
+        <option value="admin">admin</option>
+        <option value="user">user</option>
+      </select> 
 
-      <label htmlFor="role">Rol</label>
-      <input
-        type="text"
-        id="role"
-        value={role}
-        onChange={(e) => setRole(e.target.value)}
-        required
-      />
 
     <label htmlFor="username">Usuario</label>
       <input
