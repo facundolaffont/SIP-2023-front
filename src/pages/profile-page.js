@@ -6,34 +6,31 @@ import { PageLayout } from "../components/page-layout";
 export const ProfilePage = () => {
   const { user } = useAuth0();
 
+  debugger
   if (!user) {
     return null;
   }
 
   return (
-
-  <PageLayout>
-  <div class="bienvenida">
-  <div class="profile__header">
-    <img src={user.picture} alt="Profile" class="profile__avatar" />
-  </div>
-  <div class="content-layout">
-    <h1 id="page-title" class="content__title">Bienvenido, {user.name}!</h1>
-    <div class="profile__info">
-      <h2>Mis datos</h2>
-      <p>Correo electrónico: {user.email}</p>
-    </div>
-  </div>
-</div>
-
-
-
-
+    <PageLayout>
+      <div class="welcome">
+        <div class="profile__header">
+          <img src={user.picture} alt="Profile" class="profile__avatar" />
+        </div>
+        <div class="content-layout">
+          <h1 id="page-title" class="content__title">
+            Bienvenido, {user.nickname}!
+          </h1>
+          <div class="profile__info">
+            <h2>Mis datos</h2>
+            <p>Correo electrónico: {user.email}</p>
+            <p>Rol: {user["https://hello-world.example.com/user_metadata"].role}</p>
+          </div>
+        </div>
+      </div>
     </PageLayout>
 
-
-
-   /* <PageLayout>
+    /* <PageLayout>
       <div className="content-layout">
         <h1 id="page-title" className="content__title">
           Mi perfil

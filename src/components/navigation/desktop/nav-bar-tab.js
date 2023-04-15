@@ -10,6 +10,6 @@ export const NavBarTab = ({ path, label }) => {
       activeClassName="nav-bar__tab--active"
     >
       {label}
-    </NavLink>
+    </>
   );
 };
