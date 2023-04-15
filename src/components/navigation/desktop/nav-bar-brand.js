@@ -5,13 +5,13 @@ export const NavBarBrand = () => {
   return (
     <div className="nav-bar__brand">
       <NavLink to="/" exact>
-        <img
+    {/*    <img
           className="nav-bar__logo"
           src="https://www.unlu.edu.ar/imagenes/logo.png"
           alt="Logo de la UNLu"
-          //width="150"
-          //height="150"
-        />
+          width="150"
+          height="150"
+  />      */}
       </NavLink>
     </div>
   );

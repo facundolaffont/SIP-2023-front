@@ -28,8 +28,9 @@
             <NavBarTab path="/change-password" label="Cambiar Contraseña" />
             {isAdmin && (
             <>
-            <NavBarTab path="/search-professor" label="Buscar docente" />
+          {/*  <NavBarTab path="/search-professor" label="Buscar docente" /> */}
             <NavBarTab path="/create-professor" label="Alta de docente" />
+            <NavBarTab path="/down-user" label="Baja de docente"/>
             </>
             )}
           </>

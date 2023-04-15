@@ -10,6 +10,7 @@ import { ProfilePage } from "./pages/profile-page";
 import { CreateProfessor } from "./pages/create-professor";
 import { SearchProfessor } from "./pages/search-professor";
 import { ChangePasswordForm } from "./pages/change-password";
+import { DownUser } from "./pages/down-user";
 
 export const App = () => {
   const { isLoading } = useAuth0();
@@ -43,8 +44,9 @@ export const App = () => {
         <>
         <ProtectedRoute path="/create-professor" component={CreateProfessor} />
         <ProtectedRoute path="/search-professor" component={SearchProfessor} />
+        <ProtectedRoute path="/down-user" component={DownUser} />
         </>
-      );
+      ); else return null;
   }
 
   return (
