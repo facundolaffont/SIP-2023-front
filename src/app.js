@@ -38,24 +38,17 @@ export const App = () => {
     );
   }
 
-  const ShowAdminRoutes = () => {
-    if(isAdmin)
-      return (
-        <>
-        <ProtectedRoute path="/create-professor" component={CreateProfessor} />
-        <ProtectedRoute path="/search-professor" component={SearchProfessor} />
-        <ProtectedRoute path="/down-user" component={DownUser} />
-        </>
-      ); else return null;
-  }
-
   return (
     <Switch>
       <Route path="/" exact component={HomePage} />
       <Route path="/callback" component={CallbackPage} />
       <ProtectedRoute path="/profile" component={ProfilePage} />
       <ProtectedRoute path="/change-password" component={ChangePasswordForm} />
-      <ShowAdminRoutes />
+      {isAdmin && <>
+        <ProtectedRoute path="/create-professor" component={CreateProfessor} />
+        <ProtectedRoute path="/search-professor" component={SearchProfessor} />
+        <ProtectedRoute path="/down-user" component={DownUser} />
+      </> }
       <Route path="*" component={NotFoundPage} /> {/* TODO: no lo muestra, porque está bloqueado
                                                       por <ShowAdminRoutes /> */}
     </Switch>

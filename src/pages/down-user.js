@@ -4,6 +4,7 @@ import { PageLayout } from "../components/page-layout";
 
 export function DownUser() {
   const [email, setEmail] = useState('');
+  const [result, setResult] = useState('');
   
   const ObtenerAccessToken = async () => {
   const client_id = "ZrJFK8q1bRMnQxjsapmVn5LNZPgWVsFs";
@@ -80,7 +81,11 @@ export function DownUser() {
    const handleSubmit = (event) => {
     event.preventDefault();
     console.log(email);
-    actualizarBlocked(email);
+    actualizarBlocked(email).then(
+      function() {
+      setResult("Usuario eliminado exitosamente");
+      }
+    )
   }
   
   return (
@@ -95,7 +100,8 @@ export function DownUser() {
       onChange={(e) => setEmail(e.target.value)}
       required
     />
-    <button type="submit">Bloquear usuario</button>
+    <button type="submit" class="delete">Eliminar usuario</button>
+    <p>{result}</p>
     </form>
     </PageLayout>
   );

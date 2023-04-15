@@ -33,6 +33,14 @@ button[type="submit"] {
   transition: background-color 0.3s ease;
 }
 
+button[type="submit"].delete{
+  background-color: rgb(207, 60, 60);
+}
+
+button[type="submit"].delete:hover{
+  background-color: #712507;
+}
+
 button[type="submit"]:hover {
   background-color: #3e8e41;
 }
@@ -84,11 +92,12 @@ select option:focus {
   font-weight: bold;
 }
 
-form p {
-  font-style: italic;
-  color: #666;
-  margin-top: 5px;
-}
+  form p {
+    font-style: italic;
+    color: #666;
+    margin-top: 10px;
+    font-size: 16px;
+  }
 
 p {
   font-style: italic;

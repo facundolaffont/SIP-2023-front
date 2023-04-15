@@ -9,6 +9,7 @@ export function CreateProfessor() {
   const [password, setPassword] = useState('');
   const [role, setRole] = useState('');
   const [error, setError] = useState(null);
+  const [result, setResult] = useState('');
 
   const ObtenerAccessToken = async () => {
     const client_id = "ZrJFK8q1bRMnQxjsapmVn5LNZPgWVsFs";
@@ -83,6 +84,7 @@ export function CreateProfessor() {
         role: role
       }
   });
+    setResult('Usuario creado exitosamente');
     console.log(newUser);
 
 
@@ -198,8 +200,9 @@ export function CreateProfessor() {
         required
       />
 
-      <label for="password"><p>Contraseña</p></label>
+      <label htmlFor="password"><p>Contraseña</p></label>
       <input
+        id="password"
         type="password"
         value={password}
         onInput={validatePassword}
@@ -238,6 +241,7 @@ export function CreateProfessor() {
       <p>{getError(error)}</p>
       </div>
       )}
+      <p>{result}</p>
     </form>
     </PageLayout>
   );
