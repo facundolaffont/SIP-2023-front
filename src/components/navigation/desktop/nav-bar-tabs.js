@@ -30,6 +30,7 @@
             <>
             <NavBarTab path="/search-professor" label="Buscar docente" />
             <NavBarTab path="/create-professor" label="Alta de docente" />
+            <NavBarTab path="/down-user" label="Baja de usuario"/>
             </>
             )}
           </>
