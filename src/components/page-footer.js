@@ -22,7 +22,8 @@ export const PageFooter = () => {
   ];
 
   return (
-    <footer className="page-footer">
+    <p></p>
+  /*  <footer className="page-footer">
       <div className="page-footer-grid">
         <div className="page-footer-grid__info">
           <div className="page-footer-info__message">
@@ -80,7 +81,7 @@ export const PageFooter = () => {
             </PageFooterHyperlink>
           </div>
         </div>
-      </div>
-    </footer>
+      </div> 
+    </footer> */
   );
 };

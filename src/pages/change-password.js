@@ -78,6 +78,7 @@ export const ChangePasswordForm = () => {
 
   return (
     <PageLayout>
+      <h1 id="page-title" className="content__title">Cambio de contraseña </h1>
       <form onSubmit={processSubmit}>
         <button type="submit">Solicitar cambio de contraseña</button>
       </form>

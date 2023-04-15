@@ -11,7 +11,29 @@ export const ProfilePage = () => {
   }
 
   return (
-    <PageLayout>
+
+  <PageLayout>
+  <div class="bienvenida">
+  <div class="profile__header">
+    <img src={user.picture} alt="Profile" class="profile__avatar" />
+  </div>
+  <div class="content-layout">
+    <h1 id="page-title" class="content__title">Bienvenido, {user.name}!</h1>
+    <div class="profile__info">
+      <h2>Mis datos</h2>
+      <p>Correo electrónico: {user.email}</p>
+    </div>
+  </div>
+</div>
+
+
+
+
+    </PageLayout>
+
+
+
+   /* <PageLayout>
       <div className="content-layout">
         <h1 id="page-title" className="content__title">
           Mi perfil
@@ -38,6 +60,6 @@ export const ProfilePage = () => {
           </div>
         </div>
       </div>
-    </PageLayout>
+    </PageLayout> */
   );
 };

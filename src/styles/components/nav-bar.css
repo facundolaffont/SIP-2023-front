@@ -45,7 +45,7 @@
 }
 
 .nav-bar__logo {
-  height: 3.2rem;
+  height: 79px;
 }
 
 .nav-bar__tabs {
@@ -164,12 +164,12 @@
   .nav-bar__brand {
     display: flex;
     align-items: center;
-
+    
     margin-right: 1.6rem;
   }
 
   .nav-bar__logo {
-    height: 2.8rem;
+    height: 3.5rem;
   }
 
   .nav-bar__tab--active {

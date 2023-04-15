@@ -49,6 +49,7 @@ export function CreateProfessor() {
       },
       body: JSON.stringify(user)
     };
+    debugger
     const response = await fetch(url, options);
     const data = await response.json();
     if (data.error) {
@@ -188,7 +189,7 @@ export function CreateProfessor() {
     <PageLayout>
     <h1 id="page-title" className="content__title">Alta de usuario </h1>
     <form onSubmit={handleSubmit}>
-      <label htmlFor="email">Correo electrónico</label>
+      <label for="email"><p>Correo electrónico</p></label>
       <input
         type="email"
         id="email"
@@ -197,10 +198,9 @@ export function CreateProfessor() {
         required
       />
 
-      <label htmlFor="password">Contraseña</label>
+      <label for="password"><p>Contraseña</p></label>
       <input
         type="password"
-        id="password"
         value={password}
         onInput={validatePassword}
         onChange={(e) => setPassword(e.target.value)}
@@ -215,23 +215,23 @@ export function CreateProfessor() {
       </div>
 
       
-    <label htmlFor="role">Rol</label>
-      <select id="role" value={role} onChange={(e) => setRole(e.target.value)} required>
+    <label htmlFor="role"><p>Rol</p></label>
+      <select value={role} onChange={(e) => setRole(e.target.value)} required>
         <option value="">Seleccione un rol</option>
         <option value="admin">admin</option>
         <option value="user">user</option>
       </select> 
 
-    <label htmlFor="nombre">Nombre</label>
+    <label htmlFor="nombre"><p>Nombre</p></label>
       <input type="text"/>
 
-    <label htmlFor="nombre">Apellido</label>
+    <label htmlFor="apellido"><p>Apellido</p></label>
       <input type="text"/>
 
-    <label htmlFor="nombre">Legajo</label>
+    <label htmlFor="legajo"><p>Legajo</p></label>
     <input type="text"/>
 
-      <button type="submit">Registrarse</button>
+      <button type="submit">Registrar</button>
       {error && (
       <div>
       <p>Error al crear usuario:</p>

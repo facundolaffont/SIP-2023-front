@@ -5,7 +5,7 @@ import { PageLayout } from "../components/page-layout";
 
 export const HomePage = () => (
   <PageLayout>
-    <HeroBanner />
-    <Auth0Features />
+   {/* <HeroBanner />
+    <Auth0Features /> */}
   </PageLayout>
 );

@@ -85,9 +85,9 @@ export function DownUser() {
   
   return (
     <PageLayout>
-    <h1 id="page-title" className="content__title">Baja de usuario</h1>
+    <h1 id="page-title" className="content__title">Baja de docente</h1>
     <form onSubmit={handleSubmit}>
-    <label htmlFor="email">Correo electrónico</label>
+    <label htmlFor="email"><p>Correo electrónico</p></label>
     <input
       type="email"
       id="email"
