@@ -31,10 +31,15 @@
   align-items: center;
 
   height: 100%;
+}
 
-  /* responsive */
-
-  margin-right: 64px;
+.nav-bar__brand p {
+  color: var(--white);
+  margin: 10px 0 10px 24px;
+  font-weight: 500;
+  font-size: 16px;
+  line-height: 16px;
+  font-style: normal;
 }
 
 .nav-bar__link {
@@ -45,7 +50,7 @@
 }
 
 .nav-bar__logo {
-  height: 79px;
+  height: 50px;
 }
 
 .nav-bar__tabs {
