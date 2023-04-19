@@ -20,9 +20,11 @@ export const App = () => {
   useEffect(() => {
     const checkAdminRole = async () => {
       if (isAuthenticated) {
-        const idTokenClaims = await getIdTokenClaims();
-        const user_metadata = idTokenClaims['https://hello-world.example.com/user_metadata'];
-        if (user_metadata && user_metadata.role === "admin") {          
+       const idTokenClaims = await getIdTokenClaims();
+       console.log(idTokenClaims);
+       const roles = idTokenClaims['http://hello-world.example.com/roles'];
+       console.log(roles);
+        if (roles && roles[0] === "Administrador") {
           setIsAdmin(true);
         }
       }

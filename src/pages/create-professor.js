@@ -1,6 +1,4 @@
-//import { useAuth0 } from '@auth0/auth0-react';
 import { useState } from 'react';
-// import auth0 from 'auth0-js';
 import axios from 'axios';
 import { PageLayout } from "../components/page-layout";
 
@@ -39,9 +37,17 @@ export function CreateProfessor() {
     }
   }
 
-  async function createUser(user) {
+  async function createUser() {
+
+    // Obtengo Token de Acceso
+
     const token = await ObtenerAccessToken();
-    const url = `https://${process.env.REACT_APP_AUTH0_DOMAIN}/api/v2/users`;
+    const user = {
+        email: email,
+        password: password,
+        connection: 'Username-Password-Authentication',
+      }
+    let url = `https://${process.env.REACT_APP_AUTH0_DOMAIN}/api/v2/users`;
     const options = {
       method: 'POST',
       headers: {
@@ -50,68 +56,82 @@ export function CreateProfessor() {
       },
       body: JSON.stringify(user)
     };
-    debugger
+    
     const response = await fetch(url, options);
     const data = await response.json();
     if (data.error) {
       setError(data);
+    } else {
+      setResult('Usuario creado exitosamente');
+      console.log(data);
     }
-    return data; 
+    // Usuario creado
+
+    // Obtengo el user_id del usuario creado
+    const USER_ID = data.user_id;
+    
+    // Obtengo el id del rol
+
+    const urlRol = `https://${process.env.REACT_APP_AUTH0_DOMAIN}/api/v2/roles`;
+    const roleName = role;
+    const optionsRol = {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    };
+    
+    fetch(urlRol, optionsRol)
+      .then(response => {
+        if (response.ok) {
+          return response.json();
+        } else {
+          throw new Error('Error al obtener la lista de roles');
+        }
+      })
+      .then(data => {
+        const rol = data.find(rol => rol.name === roleName);
+        if (rol) {
+          console.log(`El ID del rol ${roleName} es: ${rol.id}`);
+        } else {
+          console.log(`El rol ${roleName} no existe en tu tenant de Auth0`);
+        }
+
+        // Asigno rol al usuario
+        const url = `https://${process.env.REACT_APP_AUTH0_DOMAIN}/api/v2/roles/${rol.id}/users`;
+
+        const idUsuario = {
+        users: [USER_ID]
+        };
+
+        const options = {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(idUsuario)
+        };
+
+        fetch(url, options)
+          .then(data => {
+          console.log('Roles agregados al usuario:', data);
+          })
+          .catch(error => {
+          console.error('Error:', error);
+          });
+
+      })
+      .catch(error => {
+        console.error('Error:', error);
+      });
   }
 
 
-
- // const { getAccessTokenSilently } = useAuth0();
- /* const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [role, setRole] = useState('');
-  const [username, setUsername] = useState('');
-  const [error, setError] = useState(null);
-
-  const auth0Client = new auth0.WebAuth({
-  domain: process.env.REACT_APP_AUTH0_DOMAIN,
-  clientID: process.env.REACT_APP_AUTH0_CLIENT_ID, 
-}); */
-
     const handleSubmit = async (event) => {
       event.preventDefault();
-    
-    const newUser = await createUser({
-      email: email,
-      password: password,
-      connection: 'Username-Password-Authentication',
-      user_metadata: {
-        role: role
-      }
-  });
-    setResult('Usuario creado exitosamente');
-    console.log(newUser);
-
-
-  
-
- /*   event.preventDefault();
-    auth0Client.signup(
-      {
-        connection: 'Username-Password-Authentication',
-        email,
-        password,
-        username,
-        user_metadata: {
-          role: role,
-          blocked : '0'
-        },
-      },
-      (err) => {
-        if (err) {
-          console.error(err);
-          setError(err.description);
-          return;
-        }
-        console.log('Usuario creado exitosamente');
-      }
-    ); */
-  };
+      createUser();  
+    };
 
   function getError(error) {
     switch (error.message) {
@@ -158,35 +178,6 @@ export function CreateProfessor() {
     }
   }
 
- /* function getErrorMessage(rule) {
-      switch (rule.code) {
-        case "lengthAtLeast":
-          return `La contraseña debe tener al menos ${rule.format[0]} caracteres`;
-        case "containsAtLeast":
-          const characterTypes = getCharacterTypes(rule.items);
-          return `La contraseña debe contener al menos ${rule.format[0]} de los siguientes tipos de caracteres: ${characterTypes}`;
-        default:
-          return rule.message;
-      }
-    }
-
-    function getCharacterTypes(items) {
-      const types = {
-          lowerCase: "letras minúsculas",
-          upperCase: "letras mayúsculas",
-          numbers: "números",
-          specialCharacters: "caracteres especiales",
-        };
-
-        // Filtra los elementos verificados y asigna a sus tipos de caracteres correspondientes
-      const requiredTypes = items
-       // .filter((item) => item.verified)
-        .map((item) => types[item.code]);
-
-        // Devuelve una cadena separada por comas de los tipos de caracteres requeridos
-        return requiredTypes.join(", ");
-    }  */
-
   return (
     <PageLayout>
     <h1 id="page-title" className="content__title">Alta de usuario </h1>
@@ -221,8 +212,8 @@ export function CreateProfessor() {
     <label htmlFor="role"><p>Rol</p></label>
       <select value={role} onChange={(e) => setRole(e.target.value)} required>
         <option value="">Seleccione un rol</option>
-        <option value="admin">admin</option>
-        <option value="user">user</option>
+        <option value="Administrador">Administrador</option>
+        <option value="Docente">Docente</option>
       </select> 
 
     <label htmlFor="nombre"><p>Nombre</p></label>
