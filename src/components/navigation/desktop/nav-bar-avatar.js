@@ -18,7 +18,7 @@ export const NavBarAvatar = () => {
       </NavLink>
         <div>
           <p>{user.nickname}</p>
-          <p>({user["https://hello-world.example.com/user_metadata"].role})</p>
+          <p style={{ fontSize: 14, fontWeight: 300 }}>({user[process.env.REACT_APP_AUTH0_AUDIENCE + "/roles"][0]})</p>
         </div>
     </div>
   );
