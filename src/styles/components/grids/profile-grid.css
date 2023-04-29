@@ -39,14 +39,15 @@
 }
 
 .profile__avatar {
-  border: solid 2px var(--aqua);
+  border: solid 2px var(--white);
   border-radius: 50%;
 
   object-fit: cover;
+
   /* responsive */
 
-  height: 80px;
-  width: 80px;
+  height: 55px;
+  width: 55px;
 }
 
 .profile__headline {

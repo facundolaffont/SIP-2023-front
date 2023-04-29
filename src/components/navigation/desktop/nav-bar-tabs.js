@@ -4,16 +4,14 @@
 
 
   export const NavBarTabs = () => {
-    const { isAuthenticated, getIdTokenClaims} = useAuth0();
+    const { isAuthenticated, getIdTokenClaims } = useAuth0();
     const [isAdmin, setIsAdmin] = useState(false);
 
     useEffect(() => {
       const checkAdminRole = async () => {
         if (isAuthenticated) {
-         const idTokenClaims = await getIdTokenClaims();
-         console.log(idTokenClaims);
-         const roles = idTokenClaims['http://hello-world.example.com/roles'];
-         console.log(roles);
+          const idTokenClaims = await getIdTokenClaims();
+          const roles = idTokenClaims[`${process.env.REACT_APP_AUTH0_AUDIENCE}/roles`];
           if (roles && roles[0] === "Administrador") {
             setIsAdmin(true);
           }
@@ -29,11 +27,12 @@
             <NavBarTab path="/profile" label="Mi perfil" />
             <NavBarTab path="/change-password" label="Cambiar Contraseña" />
             {isAdmin && (
-            <>
-          {/*  <NavBarTab path="/search-professor" label="Buscar docente" /> */}
-            <NavBarTab path="/create-professor" label="Alta de docente" />
-            <NavBarTab path="/down-user" label="Baja de docente"/>
-            </>
+              <>
+                <NavBarTab path="/search-professor" label="Buscar docente" />
+                <NavBarTab path="/create-professor" label="Alta de docente" />
+                <NavBarTab path="/assign-role" label="Asignar rol" />
+                <NavBarTab path="/down-user" label="Baja de docente"/>
+              </>
             )}
           </>
         )}

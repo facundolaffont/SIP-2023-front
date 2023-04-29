@@ -73,6 +73,7 @@ select {
   background-position: right center;
   font-family: Arial, sans-serif;
   font-size: 16px;
+  padding-right: 2rem;
 }
 
 select option {
@@ -121,7 +122,7 @@ label[for="password"]::before {
   margin-right: 5px;
 }
 
-.bienvenida {
+.welcome {
   display: flex;
   justify-content: center;
   align-items: center;

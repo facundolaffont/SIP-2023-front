@@ -10,7 +10,7 @@ export const ChangePasswordForm = () => {
   // * La propiedad user es opcional, y contiene información sobre el usuario.
   // * isAuthenticated determina si se logueó o no el usuario.
   // * getIdTokenClaims permite obtener, si existe, el token ID del usuario actual.
-  const { user, isAuthenticated} = useAuth0();
+  const { user, isAuthenticated } = useAuth0();
 
   // La variable email será actualizada con el mail del usuario, si se pudo obtener,
   // a través de la función setEmail.
@@ -83,7 +83,6 @@ export const ChangePasswordForm = () => {
         <button type="submit">Solicitar cambio de contraseña</button>
         {<p>{finalMessage}</p>}
       </form>
-      
     </PageLayout>
   );
 };

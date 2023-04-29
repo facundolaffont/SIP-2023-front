@@ -11,19 +11,17 @@ import { CreateProfessor } from "./pages/create-professor";
 import { SearchProfessor } from "./pages/search-professor";
 import { ChangePasswordForm } from "./pages/change-password";
 import { DownUser } from "./pages/down-user";
+import { AssignRole } from "./pages/assign-role";
 
 export const App = () => {
-  const { isLoading } = useAuth0();
-  const { isAuthenticated, getIdTokenClaims } = useAuth0();
+  const { isLoading, isAuthenticated, getIdTokenClaims } = useAuth0();
   const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
     const checkAdminRole = async () => {
       if (isAuthenticated) {
-       const idTokenClaims = await getIdTokenClaims();
-       console.log(idTokenClaims);
-       const roles = idTokenClaims['http://hello-world.example.com/roles'];
-       console.log(roles);
+        const idTokenClaims = await getIdTokenClaims();
+        const roles = idTokenClaims[`${process.env.REACT_APP_AUTH0_AUDIENCE}/roles`];
         if (roles && roles[0] === "Administrador") {
           setIsAdmin(true);
         }
@@ -46,13 +44,11 @@ export const App = () => {
       <Route path="/callback" component={CallbackPage} />
       <ProtectedRoute path="/profile" component={ProfilePage} />
       <ProtectedRoute path="/change-password" component={ChangePasswordForm} />
-      {isAdmin && <>
-        <ProtectedRoute path="/create-professor" component={CreateProfessor} />
-        <ProtectedRoute path="/search-professor" component={SearchProfessor} />
-        <ProtectedRoute path="/down-user" component={DownUser} />
-      </> }
-      <Route path="*" component={NotFoundPage} /> {/* TODO: no lo muestra, porque está bloqueado
-                                                      por <ShowAdminRoutes /> */}
+      {isAdmin && <ProtectedRoute path="/create-professor" component={CreateProfessor} />}
+      {isAdmin && <ProtectedRoute path="/assign-role" component={AssignRole} />}
+      {isAdmin && <ProtectedRoute path="/search-professor" component={SearchProfessor} />}
+      {isAdmin && <ProtectedRoute path="/down-user" component={DownUser} />}
+      <Route path="*" component={NotFoundPage} />
     </Switch>
   );
 };

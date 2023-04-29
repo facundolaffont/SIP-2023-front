@@ -5,21 +5,19 @@ import { PageLayout } from "../components/page-layout";
 export function DownUser() {
   const [email, setEmail] = useState('');
   const [result, setResult] = useState('');
-  
   const ObtenerAccessToken = async () => {
-  const client_id = "ZrJFK8q1bRMnQxjsapmVn5LNZPgWVsFs";
-  const client_secret = "qLV2dwEEtmacS1jpzoC97uhHd5G1QoggWL67THWxyt2dQwYT1-gx2wkBn42kU_ez";
-  const audience = "https://dev-jhurd8vkuqfbvs4g.us.auth0.com/api/v2/";
-
+  const client_id = process.env.API_EXPLORER_CLIENT_ID;
+  const client_secret = process.env.API_EXPLORER_CLIENT_SECRET;
+  const audience = `https://${process.env.REACT_APP_AUTH0_DOMAIN}/api/v2/`;
   const data = {
     client_id: client_id,
     client_secret: client_secret,
     audience: audience,
     grant_type: "client_credentials"
-  };  
+  };
 
   try {
-    const response = await axios.post('https://dev-jhurd8vkuqfbvs4g.us.auth0.com/oauth/token', data, {
+    const response = await axios.post(`https://${process.env.REACT_APP_AUTH0_DOMAIN}/oauth/token`, data, {
       headers: {
         'content-type': 'application/json'
       }
@@ -58,7 +56,7 @@ export function DownUser() {
 }
 
    function bloquearUsuario(user_id, token) {
-    const url = `https://dev-jhurd8vkuqfbvs4g.us.auth0.com/api/v2/users/${user_id}`;
+    const url = `https://${process.env.REACT_APP_AUTH0_DOMAIN}/api/v2/users/${user_id}`;
 
     axios({
       method: 'patch',

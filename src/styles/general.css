@@ -119,6 +119,11 @@ textarea {
   line-height: inherit;
 }
 
+button {
+  display: block;
+  margin-top: 2rem;
+}
+
 a {
   color: var(--white);
   text-decoration: none;

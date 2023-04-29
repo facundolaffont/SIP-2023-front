@@ -13,12 +13,10 @@ export function CreateProfessor() {
   const [error, setError] = useState(null);
   const [result, setResult] = useState('');
 
-  const apiServerUrl = process.env.REACT_APP_API_SERVER_URL;
-
- /* const ObtenerAccessToken = async () => {
-    const client_id = "ZrJFK8q1bRMnQxjsapmVn5LNZPgWVsFs";
-    const client_secret = "qLV2dwEEtmacS1jpzoC97uhHd5G1QoggWL67THWxyt2dQwYT1-gx2wkBn42kU_ez";
-    const audience = "https://dev-jhurd8vkuqfbvs4g.us.auth0.com/api/v2/";
+  const ObtenerAccessToken = async () => {
+    const client_id = process.env.API_EXPLORER_CLIENT_ID;
+    const client_secret = process.env.API_EXPLORER_CLIENT_SECRET;
+    const audience = `https://${process.env.REACT_APP_AUTH0_DOMAIN}/api/v2/`;
   
     const data = {
       client_id: client_id,
@@ -28,16 +26,20 @@ export function CreateProfessor() {
     };  
   
     try {
-      const response = await axios.post('https://dev-jhurd8vkuqfbvs4g.us.auth0.com/oauth/token', data, {
-        headers: {
-          'content-type': 'application/json'
+      const response = await axios.post(
+        `https://${process.env.REACT_APP_AUTH0_DOMAIN}/oauth/token`,
+        data, {
+          headers: {
+            'content-type': 'application/json'
+          }
         }
-      });
+      );
   
       const token = response.data.access_token;
       console.log('Token obtenido', token);
       return token;
-    } catch (error) {
+    }
+    catch (error) {
       console.log('Error al obtener el token', error);
       throw error;
     }
@@ -46,14 +48,16 @@ export function CreateProfessor() {
   async function createUser() {
 
     // Obtengo Token de Acceso
-
     const token = await ObtenerAccessToken();
+    
+    // Construye el cuerpo del POST.
     const user = {
-        email: email,
-        password: password,
-        connection: 'Username-Password-Authentication',
-      }
-    let url = `https://${process.env.REACT_APP_AUTH0_DOMAIN}/api/v2/users`;
+      email: email,
+      password: password,
+      connection: 'Username-Password-Authentication',
+    }
+
+    // Guarda el método, los headers y el cuerpo.
     const options = {
       method: 'POST',
       headers: {
@@ -63,21 +67,23 @@ export function CreateProfessor() {
       body: JSON.stringify(user)
     };
     
+    // Registra la URL del endpoint.
+    let url = `https://${process.env.REACT_APP_AUTH0_DOMAIN}/api/v2/users`;
+
+    //  Envía la petición y espera hasta obtener la respuesta.
     const response = await fetch(url, options);
     const data = await response.json();
-    if (data.error) {
-      setError(data);
-    } else {
-      setResult('Usuario creado exitosamente');
+
+    if (data.error) setError(data);
+    else {
+      setResult('Usuario creado exitosamente.');
       console.log(data);
     }
-    // Usuario creado
 
     // Obtengo el user_id del usuario creado
     const USER_ID = data.user_id;
     
     // Obtengo el id del rol
-
     const urlRol = `https://${process.env.REACT_APP_AUTH0_DOMAIN}/api/v2/roles`;
     const roleName = role;
     const optionsRol = {
@@ -86,52 +92,45 @@ export function CreateProfessor() {
         'Authorization': `Bearer ${token}`
       }
     };
-    
     fetch(urlRol, optionsRol)
       .then(response => {
-        if (response.ok) {
-          return response.json();
-        } else {
-          throw new Error('Error al obtener la lista de roles');
-        }
+        if (response.ok) return response.json();
+        else throw new Error('Error al obtener la lista de roles');
       })
       .then(data => {
         const rol = data.find(rol => rol.name === roleName);
-        if (rol) {
-          console.log(`El ID del rol ${roleName} es: ${rol.id}`);
-        } else {
-          console.log(`El rol ${roleName} no existe en tu tenant de Auth0`);
-        }
+        if (rol) console.log(`El ID del rol ${roleName} es: ${rol.id}`);
+        else console.log(`El rol ${roleName} no existe en tu tenant de Auth0`);
 
         // Asigno rol al usuario
         const url = `https://${process.env.REACT_APP_AUTH0_DOMAIN}/api/v2/roles/${rol.id}/users`;
 
         const idUsuario = {
-        users: [USER_ID]
+          users: [USER_ID]
         };
 
         const options = {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify(idUsuario)
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify(idUsuario)
         };
 
         fetch(url, options)
           .then(data => {
-          console.log('Roles agregados al usuario:', data);
+            console.log('Roles agregados al usuario:', data);
           })
           .catch(error => {
-          console.error('Error:', error);
+            console.error('Error:', error);
           });
 
       })
       .catch(error => {
         console.error('Error:', error);
       });
-  } */
+  }
 
 
     const handleSubmit = async (event) => {
