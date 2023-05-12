@@ -1,15 +1,21 @@
 import { useState } from 'react';
 import axios from 'axios';
+import { callExternalApi } from "../services/external-api.service";
 import { PageLayout } from "../components/page-layout";
 
 export function CreateProfessor() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [role, setRole] = useState('');
+  const [nombre, setNombre] = useState('');
+  const [apellido, setApellido] = useState('');
+  const [legajo, setLegajo] = useState('');
   const [error, setError] = useState(null);
   const [result, setResult] = useState('');
 
-  const ObtenerAccessToken = async () => {
+  const apiServerUrl = process.env.REACT_APP_API_SERVER_URL;
+
+ /* const ObtenerAccessToken = async () => {
     const client_id = "ZrJFK8q1bRMnQxjsapmVn5LNZPgWVsFs";
     const client_secret = "qLV2dwEEtmacS1jpzoC97uhHd5G1QoggWL67THWxyt2dQwYT1-gx2wkBn42kU_ez";
     const audience = "https://dev-jhurd8vkuqfbvs4g.us.auth0.com/api/v2/";
@@ -125,13 +131,37 @@ export function CreateProfessor() {
       .catch(error => {
         console.error('Error:', error);
       });
-  }
+  } */
 
 
     const handleSubmit = async (event) => {
       event.preventDefault();
-      createUser();  
-    };
+      //createUser();
+      //const token = await ObtenerAccessToken();
+      const data = {
+        email: email,
+        password: password,
+        rol: role,
+        nombre: nombre,
+        apellido: apellido,
+        legajo: legajo
+      };
+      fetch(
+        `${apiServerUrl}/api/v1/professors/add`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            //Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(data)
+        }
+      )
+        .then(response => response.json())
+        .then(data => console.log(data))
+        .catch(error => console.error(error)); 
+        };
+  
 
   function getError(error) {
     switch (error.message) {
@@ -217,13 +247,31 @@ export function CreateProfessor() {
       </select> 
 
     <label htmlFor="nombre"><p>Nombre</p></label>
-      <input type="text"/>
+      <input 
+        type="text"
+        id="nombre"
+        value={nombre}
+        onChange={(e) => setNombre(e.target.value)}
+        required
+      />
 
     <label htmlFor="apellido"><p>Apellido</p></label>
-      <input type="text"/>
+      <input 
+        type="text"
+        id="apellido"
+        value={apellido}
+        onChange={(e) => setApellido(e.target.value)}
+        required
+      />
 
     <label htmlFor="legajo"><p>Legajo</p></label>
-    <input type="text"/>
+      <input 
+        type="text"
+        id="legajo"
+        value={legajo}
+        onChange={(e) => setLegajo(e.target.value)}
+        required
+      />
 
       <button type="submit">Registrar</button>
       {error && (
