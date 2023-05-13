@@ -1,9 +1,8 @@
 import { useState } from 'react';
 import axios from 'axios';
-import { callExternalApi } from "../services/external-api.service";
 import { PageLayout } from "../components/page-layout";
 
-export function CreateProfessor() {
+export function CreateUser() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [role, setRole] = useState('');
@@ -13,7 +12,7 @@ export function CreateProfessor() {
   const [error, setError] = useState(null);
   const [result, setResult] = useState('');
 
-  const ObtenerAccessToken = async () => {
+  const getAccessToken = async () => {
     const client_id = process.env.API_EXPLORER_CLIENT_ID;
     const client_secret = process.env.API_EXPLORER_CLIENT_SECRET;
     const audience = `https://${process.env.REACT_APP_AUTH0_DOMAIN}/api/v2/`;
@@ -48,7 +47,7 @@ export function CreateProfessor() {
   async function createUser() {
 
     // Obtengo Token de Acceso
-    const token = await ObtenerAccessToken();
+    const token = await getAccessToken();
     
     // Construye el cuerpo del POST.
     const user = {
@@ -136,7 +135,7 @@ export function CreateProfessor() {
     const handleSubmit = async (event) => {
       event.preventDefault();
       //createUser();
-      //const token = await ObtenerAccessToken();
+      //const token = await getAccessToken();
       const data = {
         email: email,
         password: password,
@@ -146,7 +145,7 @@ export function CreateProfessor() {
         legajo: legajo
       };
       fetch(
-        `${process.env.REACT_APP_API_SERVER_URL}/api/v1/professors/add`,
+        `${process.env.REACT_APP_API_SERVER_URL}/api/v1/users/add`,
         {
           method: 'POST',
           headers: {
@@ -179,32 +178,28 @@ export function CreateProfessor() {
     const passwordDigitRequirement = document.getElementById('password-digit');
     
     // Validar longitud
-    if (passwordInput.value.length >= 8) {
-      passwordLengthRequirement.style.color = 'green';
-    } else {
-      passwordLengthRequirement.style.color = 'red';
-    }
+    passwordLengthRequirement.style.color =
+      passwordInput.value.length >= 8
+      ? 'green'
+      : 'red';
     
     // Validar mayúsculas
-    if (passwordInput.value.match(/[A-Z]/)) {
-      passwordUppercaseRequirement.style.color = 'green';
-    } else {
-      passwordUppercaseRequirement.style.color = 'red';
-    }
+    passwordUppercaseRequirement.style.color =
+      passwordInput.value.match(/[A-Z]/)
+      ? 'green'
+      : 'red';
 
     // Validar mayúsculas
-    if (passwordInput.value.match(/[a-z]/)) {
-      passwordLowercaseRequirement.style.color = 'green';
-    } else {
-      passwordLowercaseRequirement.style.color = 'red';
-    }
+    passwordLowercaseRequirement.style.color =
+      passwordInput.value.match(/[a-z]/)
+      ? 'green'
+      : 'red';
     
     // Validar números
-    if (passwordInput.value.match(/\d/)) {
-      passwordDigitRequirement.style.color = 'green';
-    } else {
-      passwordDigitRequirement.style.color = 'red';
-    }
+    passwordDigitRequirement.style.color =
+      passwordInput.value.match(/\d/)
+      ? 'green'
+      : 'red';
   }
 
   return (
@@ -285,5 +280,5 @@ export function CreateProfessor() {
   );
 }
 
-export default CreateProfessor;
+export default CreateUser;
 

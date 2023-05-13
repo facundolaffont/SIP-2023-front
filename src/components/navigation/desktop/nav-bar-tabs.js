@@ -29,9 +29,10 @@
             {isAdmin && (
               <>
                 <NavBarTab path="/search-professor" label="Buscar docente" />
-                <NavBarTab path="/create-professor" label="Alta de docente" />
-                <NavBarTab path="/assign-role" label="Asignar rol" />
+                <NavBarTab path="/create-user" label="Alta de usuario" />
+                {/* <NavBarTab path="/assign-role" label="Asignar rol" /> */}
                 <NavBarTab path="/down-user" label="Baja de docente"/>
+                <NavBarTab path="/register-attendance" label="Registrar asistencia" />
               </>
             )}
           </>

@@ -7,11 +7,12 @@ import { CallbackPage } from "./pages/callback-page";
 import { HomePage } from "./pages/home-page";
 import { NotFoundPage } from "./pages/not-found-page";
 import { ProfilePage } from "./pages/profile-page";
-import { CreateProfessor } from "./pages/create-professor";
+import { CreateUser } from "./pages/create-user";
 import { SearchProfessor } from "./pages/search-professor";
 import { ChangePasswordForm } from "./pages/change-password";
 import { DownUser } from "./pages/down-user";
 import { AssignRole } from "./pages/assign-role";
+import { AttendanceRegistering } from "./pages/register-attendance";
 
 export const App = () => {
   const { isLoading, isAuthenticated, getIdTokenClaims } = useAuth0();
@@ -44,7 +45,8 @@ export const App = () => {
       <Route path="/callback" component={CallbackPage} />
       <ProtectedRoute path="/profile" component={ProfilePage} />
       <ProtectedRoute path="/change-password" component={ChangePasswordForm} />
-      {isAdmin && <ProtectedRoute path="/create-professor" component={CreateProfessor} />}
+      <ProtectedRoute path="/register-attendance" component={AttendanceRegistering} />
+      {isAdmin && <ProtectedRoute path="/create-user" component={CreateUser} />}
       {isAdmin && <ProtectedRoute path="/assign-role" component={AssignRole} />}
       {isAdmin && <ProtectedRoute path="/search-professor" component={SearchProfessor} />}
       {isAdmin && <ProtectedRoute path="/down-user" component={DownUser} />}
