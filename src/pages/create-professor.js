@@ -146,7 +146,7 @@ export function CreateProfessor() {
         legajo: legajo
       };
       fetch(
-        `${apiServerUrl}/api/v1/professors/add`,
+        `${process.env.REACT_APP_API_SERVER_URL}/api/v1/professors/add`,
         {
           method: 'POST',
           headers: {
