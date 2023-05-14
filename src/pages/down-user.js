@@ -98,7 +98,7 @@ export function DownUser() {
       onChange={(e) => setEmail(e.target.value)}
       required
     />
-    <button type="submit" class="delete">Bloquear usuario</button>
+    <button type="submit" className="delete">Bloquear usuario</button>
     <p>{result}</p>
     </form>
     </PageLayout>

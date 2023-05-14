@@ -22,7 +22,13 @@ form {
   border-radius: 5px;
 } 
 
-button[type="submit"] {
+input[type="file"] {
+  font-size: 16px;
+}
+
+button,
+button[type="submit"]
+{
   background-color: #4CAF50;
   color: #fff;
   border: none;
@@ -33,18 +39,21 @@ button[type="submit"] {
   transition: background-color 0.3s ease;
 }
 
-button[type="submit"].delete{
+button[type="submit"].delete {
   background-color: rgb(207, 60, 60);
 }
 
-button[type="submit"].delete:hover{
+button[type="submit"].delete:hover {
   background-color: #712507;
 }
 
-button[type="submit"]:hover {
+button:hover,
+button[type="submit"]:hover
+{
   background-color: #3e8e41;
 }
 
+input[type="date"],
 input[type="email"],
 input[type="text"],
 input[type="password"],
@@ -57,6 +66,7 @@ textarea {
   margin-bottom: 10px;
 }
 
+input[type="date"]:focus,
 input[type="email"]:focus,
 input[type="text"]:focus,
 input[type="password"]:focus,

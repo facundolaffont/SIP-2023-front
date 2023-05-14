@@ -1,21 +1,16 @@
 import { useState } from "react";
 import { PageLayout } from "../components/page-layout";
 import * as XLSX from 'xlsx';
+import getAccessToken from '../services/access-token-service';
+
+import '../styles/register-attendance.css';
 
 export function AttendanceRegistering() {
   const [fileName, setFileName] = useState('');
   const [fileHandler, setFileHandler] = useState('');
   const [sheetNameValue, setSheetNameValue] = useState('');
   const [cellRangeName, setCellRangeName] = useState('');
-
-  const handleFileSelection = (event) => {
-    console.debug("handleFileSelection(...)");
-
-    // Obtiene el nombre del archivo.
-    const file = event.target.files[0];
-    setFileName(file.name);
-    setFileHandler(file);
-  }
+  const [attendanceDate, setAttendanceDate] = useState('');
 
   const loadFile = (event) => {
     console.debug("loadFile(...)");
@@ -52,14 +47,12 @@ export function AttendanceRegistering() {
           r: R, c: SheetJSRangeCells.s.c
         });
         const SheetJSDossierCell = sheet[A1DossierCellAddress];
-        const A1DossierColumnName = XLSX.utils.encode_col(SheetJSRangeCells.s.c);
 
         // Obtiene los datos de la celda de la asistencia.
         const A1AttendanceCellAddress = XLSX.utils.encode_cell({
           r: R, c: SheetJSRangeCells.e.c
         });
         const SheetJSAttendanceCell = sheet[A1AttendanceCellAddress];
-        const A1AttendanceColumnName = XLSX.utils.encode_col(SheetJSRangeCells.e.c);
 
         // Guarda la celda, si tiene datos.
         const row = {};
@@ -70,14 +63,58 @@ export function AttendanceRegistering() {
         }
       }
 
+      debugger
       // Muestro los legajos y asistencias.
       console.debug("Rango leído:");
       console.debug(subrange);
+
+      debugger
+      // Obtiene el elemento de la tabla en el que se van a agregar los registros
+      // de legajo y asistencia.
+      let attendanceTableBody = document
+        .getElementById("attendance-table-body");
+
+      debugger
+      // Agrega los elementos a la tabla, y la muestra.
+      for (let register = 0; register < subrange.length; register++) {
+        let tableRow = document.createElement("tr")
+        let dossierRegister = document.createElement("td");
+        let attendanceRegister = document.createElement("td");
+        let dossier = subrange[register].Legajo;
+        let attendance = subrange[register].Asistencia;
+        dossierRegister.innerHTML = dossier;
+        attendanceRegister.innerHTML = attendance;
+        tableRow.appendChild(dossierRegister);
+        tableRow.appendChild(attendanceRegister);
+        attendanceTableBody.appendChild(tableRow);
+      }
+      debugger
+      document
+        .getElementsByClassName("attendance-table")[0]
+        .style.display = "table";
+      
     }
+
+    // TODO: Pregunta al back si hay algún evento ese día, para indicarle
+    // al usuario que la asistencia va a cargarse ese día.
 
     // Lee el archivo.
     console.debug("Cargando archivo...");
     reader.readAsArrayBuffer(fileHandler);
+
+  }
+
+  // TODO: obtiene, si existe, el evento de cursada establecido
+  // en un día para una comisión.
+  const getClassEventByDateAndCommission = async (event) => {};
+
+  const handleFileSelection = (event) => {
+    console.debug("handleFileSelection(...)");
+
+    // Obtiene el nombre del archivo.
+    const file = event.target.files[0];
+    setFileName(file.name);
+    setFileHandler(file);
   }
 
   const handleSheetNameValueChange = (event) => {
@@ -86,6 +123,12 @@ export function AttendanceRegistering() {
 
   const handleCellRangeName = (event) => {
     setCellRangeName(event.target.value);
+  }
+
+  const handleAttendanceDate = (event) => {
+    setAttendanceDate(
+      event.target.value
+    );
   }
 
   return (
@@ -114,8 +157,29 @@ export function AttendanceRegistering() {
             onChange={handleCellRangeName}
             required
           />
-        <button type="submit" className="loadButton">Cargar archivo</button>
+          <label htmlFor="attendance-date"><p>Fecha de asistencia</p></label>
+          <input
+            type="date"
+            id="attendance-date"
+            onChange={handleAttendanceDate}
+            required
+          />
+        <button type="submit" className="load-button">Cargar archivo</button>
+        <button type="button" className="register-attendance-button">Registrar asistencia</button>
       </form>
+      <table className="attendance-table">
+        <thead>
+          <tr>
+            <td colspan="2">{attendanceDate}</td>
+          </tr>
+          <tr>
+            <td>Legajo</td>
+            <td>Asistencia</td>
+          </tr>
+        </thead>
+        <tbody id="attendance-table-body">
+        </tbody>
+      </table>
     </PageLayout>
   );
 }
