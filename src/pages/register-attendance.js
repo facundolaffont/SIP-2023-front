@@ -104,7 +104,6 @@ export function AttendanceRegistering() {
           <input
             type="text"
             id="sheet-name"
-            value={sheetNameValue}
             onChange={handleSheetNameValueChange}
             required
           />
@@ -112,7 +111,6 @@ export function AttendanceRegistering() {
           <input
             type="text"
             id="cell-range"
-            value={cellRangeName}
             onChange={handleCellRangeName}
             required
           />
