@@ -1,15 +1,15 @@
 import { useState } from "react";
 
 import { PageLayout } from "../components/page-layout";
-import '../styles/register-attendance.css';
+import '../styles/register-califications.css';
 import SpreadsheetManipulator from "../services/spreadsheet-manipulator.service";
 
-export function AttendanceRegistering() {
+export function CalificationRegistering() {
   const [fileName, setFileName] = useState('');
   const [fileHandler, setFileHandler] = useState('');
   const [sheetNameValue, setSheetNameValue] = useState('');
   const [cellRangeName, setCellRangeName] = useState('');
-  const [attendanceDate, setAttendanceDate] = useState('');
+  const [calificationDate, setCalificationDate] = useState('');
 
   const loadFile = (event) => {
     // Evita que se ejecute la llamada del submit.
@@ -24,11 +24,11 @@ export function AttendanceRegistering() {
 
   const finishedLoading = (spreadsheetManipulator) => {
     // Lee un rango de celdas.
-    spreadsheetManipulator.loadRange(sheetNameValue, cellRangeName, "Legajo", "Asistencia");
+    spreadsheetManipulator.loadRange(sheetNameValue, cellRangeName, "Legajo", "Calificación");
     
     // Muestra los resultados en la tabla.
-    let calificationsTable = document.getElementsByClassName("attendance-table")[0];
-    spreadsheetManipulator.insertDataIntoTable(calificationsTable, attendanceDate);
+    let calificationsTable = document.getElementsByClassName("calification-table")[0];
+    spreadsheetManipulator.insertDataIntoTable(calificationsTable, calificationDate);
     calificationsTable.classList.remove("not-displayed");
   }
 
@@ -39,7 +39,7 @@ export function AttendanceRegistering() {
   const handleFileSelection = (event) => {
     console.debug("handleFileSelection(...)");
 
-    // Obtiene el nombre y objeto File del archivo.
+    // Obtiene el nombre del archivo.
     const file = event.target.files[0];
     setFileName(file.name);
     setFileHandler(file);
@@ -54,17 +54,17 @@ export function AttendanceRegistering() {
     setCellRangeName(event.target.value);
   }
 
-  const handleAttendanceDate = (event) => {
-    setAttendanceDate(
+  const handleCalificationDate = (event) => {
+    setCalificationDate(
       event.target.value
     );
   }
 
   return (
     <PageLayout>
-      <h1 id="page-title" className="content__title">Registro de asistencias</h1>
+      <h1 id="page-title" className="content__title">Registro de calificaciones</h1>
       <form onSubmit={loadFile}>
-        <label htmlFor="file"><p>Seleccionar archivo de asistencias</p></label>
+        <label htmlFor="file"><p>Seleccionar archivo de calificaciones</p></label>
           <input
             type="file"
             id="file"
@@ -86,17 +86,17 @@ export function AttendanceRegistering() {
             onChange={handleCellRangeName}
             required
           />
-          <label htmlFor="attendance-date"><p>Fecha de asistencia</p></label>
+          <label htmlFor="calification-date"><p>Fecha de la instancia de evaluación</p></label>
           <input
             type="date"
-            id="attendance-date"
-            onChange={handleAttendanceDate}
+            id="calification-date"
+            onChange={handleCalificationDate}
             required
           />
         <button type="submit" className="load-button">Cargar archivo</button>
-        <button type="button" className="register-attendance-button">Registrar asistencia</button>
+        <button type="button" className="register-calification-button">Registrar calificaciones</button>
       </form>
-      <table className="attendance-table not-displayed">
+      <table className="calification-table not-displayed">
       </table>
     </PageLayout>
   );
