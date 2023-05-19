@@ -32,6 +32,7 @@
                 {/* <NavBarTab path="/assign-role" label="Asignar rol" /> */}
                 <NavBarTab path="/down-user" label="Baja de docente"/>
                 <NavBarTab path="/register-attendance" label="Registrar asistencia" />
+                <NavBarTab path="/create-criterion" label="Alta de criterio" />
               </>
             )}
           </>

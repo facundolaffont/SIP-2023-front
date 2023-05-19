@@ -13,6 +13,7 @@ import { ChangePasswordForm } from "./pages/change-password";
 import { DownUser } from "./pages/down-user";
 import { AssignRole } from "./pages/assign-role";
 import { AttendanceRegistering } from "./pages/register-attendance";
+import { CreateCriterion } from "./pages/create-criterion";
 
 export const App = () => {
   const { isLoading, isAuthenticated, getIdTokenClaims } = useAuth0();
@@ -50,6 +51,7 @@ export const App = () => {
       {isAdmin && <ProtectedRoute path="/assign-role" component={AssignRole} />}
       {isAdmin && <ProtectedRoute path="/search-professor" component={SearchProfessor} />}
       {isAdmin && <ProtectedRoute path="/down-user" component={DownUser} />}
+      {isAdmin && <ProtectedRoute path="/create-criterion" component={CreateCriterion} />}
       <Route path="*" component={NotFoundPage} />
     </Switch>
   );

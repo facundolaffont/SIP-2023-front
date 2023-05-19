@@ -57,6 +57,7 @@ input[type="date"],
 input[type="email"],
 input[type="text"],
 input[type="password"],
+input[type="number"],
 textarea {
   border: 1px solid #ccc;
   box-shadow: 0 1px 1px rgba(0, 0, 0, 0.075) inset;
