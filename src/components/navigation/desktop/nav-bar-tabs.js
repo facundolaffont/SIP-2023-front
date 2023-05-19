@@ -23,8 +23,7 @@
     return (
       <div className="nav-bar__tabs">
         {isAuthenticated && (
-          <>        
-            <NavBarTab path="/profile" label="Mi perfil" />
+          <>
             <NavBarTab path="/change-password" label="Cambiar Contraseña" />
             {isAdmin && (
               <>

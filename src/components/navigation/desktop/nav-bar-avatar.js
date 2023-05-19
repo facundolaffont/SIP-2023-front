@@ -11,15 +11,17 @@ export const NavBarAvatar = () => {
   return (
     <div className="nav-bar__brand">
       <NavLink to="/" exact>
-          <img className="profile__avatar"
-              src={user.picture}
-              alt="Avatar"
-          />     
+        <img className="profile__avatar"
+            src={user.picture}
+            alt="Avatar"
+        />
       </NavLink>
+      <NavLink to="/" exact>
         <div>
           <p>{user.nickname}</p>
           <p style={{ fontSize: 14, fontWeight: 300 }}>({user[`${process.env.REACT_APP_AUTH0_AUDIENCE}/roles`][0]})</p>
         </div>
+      </NavLink>
     </div>
   );
 };
