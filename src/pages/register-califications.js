@@ -28,13 +28,9 @@ export function CalificationRegistering() {
     
     // Muestra los resultados en la tabla.
     let calificationsTable = document.getElementsByClassName("calification-table")[0];
-    spreadsheetManipulator.insertDataIntoTable(calificationsTable, calificationDate);
+    spreadsheetManipulator.insertDataIntoTable(calificationsTable, "Tabla de calificaciones");
     calificationsTable.classList.remove("not-displayed");
   }
-
-  // TODO: obtiene, si existe, el evento de cursada establecido
-  // en un día para una comisión.
-  const getClassEventByDateAndCommission = async (event) => {};
 
   const handleFileSelection = (event) => {
     console.debug("handleFileSelection(...)");
@@ -58,6 +54,10 @@ export function CalificationRegistering() {
     setCalificationDate(
       event.target.value
     );
+  }
+
+  const handleRegistering = (event) => {
+    // Construir JSON y enviarlo al back a la API
   }
 
   return (
@@ -94,7 +94,11 @@ export function CalificationRegistering() {
             required
           />
         <button type="submit" className="load-button">Cargar archivo</button>
-        <button type="button" className="register-calification-button">Registrar calificaciones</button>
+        <button
+          type="button"
+          className="register-calification-button"
+          onClick={handleRegistering}
+        >Registrar calificaciones</button>
       </form>
       <table className="calification-table not-displayed">
       </table>

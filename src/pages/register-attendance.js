@@ -28,7 +28,7 @@ export function AttendanceRegistering() {
     
     // Muestra los resultados en la tabla.
     let calificationsTable = document.getElementsByClassName("attendance-table")[0];
-    spreadsheetManipulator.insertDataIntoTable(calificationsTable, attendanceDate);
+    spreadsheetManipulator.insertDataIntoTable(calificationsTable, "Tabla de asistencias");
     calificationsTable.classList.remove("not-displayed");
   }
 
