@@ -20,7 +20,6 @@ import { CreateCriterion } from "./pages/create-criterion";
 export const App = () => {
   const {isLoading, isAuthenticated, getIdTokenClaims } = useAuth0();
   const [isAdmin, setIsAdmin] = useState(false);
-  const [isProfessor, setIsProfessor] = useState(false);
   const [isDocente, setIsDocente] = useState(false);
 
 
