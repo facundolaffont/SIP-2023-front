@@ -6,7 +6,8 @@ import { ProtectedRoute } from "./components/protected-route";
 import { CallbackPage } from "./pages/callback-page";
 import { HomePage } from "./pages/home-page";
 import { NotFoundPage } from "./pages/not-found-page";
-import { ProfilePage } from "./pages/profile-page";
+import { HomePageProffesor } from "./pages/home-page-proffesor";
+import { HomePageAdmin } from "./pages/home-page-admin";
 import { CreateUser } from "./pages/create-user";
 import { SearchProfessor } from "./pages/search-professor";
 import { ChangePasswordForm } from "./pages/change-password";
@@ -16,20 +17,25 @@ import { AttendanceRegistering } from "./pages/register-attendance";
 import { CreateCriterion } from "./pages/create-criterion";
 
 export const App = () => {
-  const { isLoading, isAuthenticated, getIdTokenClaims } = useAuth0();
+  const {isLoading, isAuthenticated, getIdTokenClaims } = useAuth0();
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isDocente, setIsDocente] = useState(false);
+
 
   useEffect(() => {
-    const checkAdminRole = async () => {
+    const checkRole = async () => {
       if (isAuthenticated) {
         const idTokenClaims = await getIdTokenClaims();
         const roles = idTokenClaims[`${process.env.REACT_APP_AUTH0_AUDIENCE}/roles`];
         if (roles && roles[0] === "Administrador") {
           setIsAdmin(true);
         }
+        if (roles && roles[0] === "Docente") {
+          setIsDocente(true);
+        }
       }
     };
-    checkAdminRole();
+    checkRole();
   }, [isAuthenticated, getIdTokenClaims]);
 
   if (isLoading) {
@@ -44,7 +50,8 @@ export const App = () => {
     <Switch>
       <Route path="/" exact component={HomePage} />
       <Route path="/callback" component={CallbackPage} />
-      <ProtectedRoute path="/profile" component={ProfilePage} />
+      {isDocente && <ProtectedRoute path="/profile" component={HomePageProffesor} />}
+      {isAdmin && <ProtectedRoute path="/profile" component={HomePageAdmin} />}
       <ProtectedRoute path="/change-password" component={ChangePasswordForm} />
       <ProtectedRoute path="/register-attendance" component={AttendanceRegistering} />
       {isAdmin && <ProtectedRoute path="/create-user" component={CreateUser} />}
