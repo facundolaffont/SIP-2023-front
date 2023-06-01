@@ -25,16 +25,15 @@
         {isAuthenticated && (
           <>
             <NavBarTab path="/change-password" label="Cambiar Contraseña" />
-            {isAdmin && (
-              <>
-                <NavBarTab path="/search-professor" label="Buscar docente" />
-                <NavBarTab path="/create-user" label="Alta de usuario" />
-                {/* <NavBarTab path="/assign-role" label="Asignar rol" /> */}
-                <NavBarTab path="/down-user" label="Baja de docente"/>
-                <NavBarTab path="/register-attendance" label="Registrar asistencia" />
-                <NavBarTab path="/create-criterion" label="Alta de criterio" />
-              </>
-            )}
+
+            {/* TODO: las próximas rutas deberían poder accederse como docente, solamente. */}
+            <NavBarTab path="/register-attendance" label="Registrar asistencia" />
+            <NavBarTab path="/register-califications" label="Registrar calificaciones" />
+            <NavBarTab path="/create-criterion" label="Alta de criterio" />
+
+            {isAdmin && <NavBarTab path="/search-professor" label="Buscar docente" /> }
+            {isAdmin && <NavBarTab path="/create-user" label="Alta de usuario" /> }
+            {isAdmin && <NavBarTab path="/down-user" label="Baja de docente"/> }
           </>
         )}
       </div>

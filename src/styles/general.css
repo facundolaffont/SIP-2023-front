@@ -156,3 +156,7 @@ code {
     overflow: hidden;
   }
 }
+
+.not-displayed {
+  display: none;
+}

@@ -1,9 +1,9 @@
-.attendance-table {
+.calification-table {
     width: 20rem;
     margin: 3rem auto 3rem auto;
 }
 
-.attendance-table td {
+.calification-table td {
     text-align: center;
     font-size: 16px;
 }
@@ -12,7 +12,7 @@ form button {
     display: inline;
 }
 
-.register-attendance-button {
+.register-calification-button {
     margin-left: 2rem;
 }
 
