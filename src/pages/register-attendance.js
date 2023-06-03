@@ -1,5 +1,5 @@
 import { useState } from "react";
-
+import { useAuth0 } from '@auth0/auth0-react';
 import { PageLayout } from "../components/page-layout";
 import '../styles/register-attendance.css';
 import SpreadsheetManipulator from "../services/spreadsheet-manipulator.service";
@@ -10,6 +10,10 @@ export function AttendanceRegistering() {
   const [sheetNameValue, setSheetNameValue] = useState('');
   const [cellRangeName, setCellRangeName] = useState('');
   const [attendanceDate, setAttendanceDate] = useState('');
+  const [spreadsheetManipulator, setSpreadSheet] = useState('');
+  const [firstColumn, setFirstColumn] = useState('Legajo');
+  const [lastColumn, setLastColumn] = useState('Asistencia');
+  const [selectedEventId, setSelectedEventId] = useState(null); // Estado para almacenar el ID del evento seleccionado
 
   const loadFile = (event) => {
     // Evita que se ejecute la llamada del submit.
@@ -30,6 +34,7 @@ export function AttendanceRegistering() {
     let calificationsTable = document.getElementsByClassName("attendance-table")[0];
     spreadsheetManipulator.insertDataIntoTable(calificationsTable, "Tabla de asistencias");
     calificationsTable.classList.remove("not-displayed");
+    setSpreadSheet(spreadsheetManipulator);
   }
 
   // TODO: obtiene, si existe, el evento de cursada establecido
@@ -55,10 +60,125 @@ export function AttendanceRegistering() {
   }
 
   const handleAttendanceDate = (event) => {
-    setAttendanceDate(
-      event.target.value
-    );
+    const selectedDate = event.target.value;
+    setAttendanceDate(selectedDate);
+    
+    fetch(`${process.env.REACT_APP_API_SERVER_URL}/api/v1/events/get?date=${selectedDate}`, {
+      method: 'GET',
+    })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("Error al obtener los eventos de la cursada");
+        }
+        return response.json();
+      })
+      .then((classEvents) => {
+        // Realiza las operaciones necesarias con los eventos de la cursada obtenidos
+        console.log(classEvents); // Ejemplo: muestra los eventos en la consola
+        const eventosContainer = document.getElementById('eventos-container');
+        const tituloContainer = document.createElement('h2');
+        tituloContainer.textContent = 'Eventos para la fecha';
+        eventosContainer.innerHTML = '';
+  
+        // Iterar sobre las cursadas y crear un cuadro para cada una
+        classEvents.forEach((evento, index) => {
+          const cuadroEvento = document.createElement('div');
+          cuadroEvento.classList.add('cuadro-cursada');
+          // Agregar un atributo de datos para almacenar el índice de la cursada
+          cuadroEvento.setAttribute('data-index', index);
+
+          // Mostrar los detalles de la cursada dentro del cuadro
+          const nombreEvento = document.createElement('h3');
+          nombreEvento.textContent = `Tipo de evento: ` + evento.tipoEvento.nombre;
+
+          const detallesEvento = document.createElement('p');
+          detallesEvento.textContent = `Fecha de Inicio: ${formatDateTime(evento.fechaHoraInicio)}, Fecha de Fin: ${formatDateTime(evento.fechaHoraFin)}`;
+
+          cuadroEvento.appendChild(nombreEvento);
+          cuadroEvento.appendChild(detallesEvento);
+
+          // Agregar un evento de clic al cuadro de la cursada
+          cuadroEvento.addEventListener('click', () => {
+            const selectedIndex = parseInt(cuadroEvento.getAttribute('data-index'), 10);
+            const clickedEventId = classEvents[selectedIndex].id;
+          
+            // Verificar si el evento ya está seleccionado
+            if (selectedEventId === clickedEventId) {
+              // Si es el evento ya seleccionado, se quita la selección
+              setSelectedEventId(null);
+              cuadroEvento.classList.remove('selected');
+            } else {
+              // Si es un evento diferente al seleccionado, se actualiza la selección
+              setSelectedEventId(selectedEventId);
+            
+              // Resalto visualmente el evento seleccionado y quito la selección de los demás
+              const cuadrosEventos = document.getElementsByClassName('cuadro-cursada');
+              for (let i = 0; i < cuadrosEventos.length; i++) {
+                cuadrosEventos[i].classList.remove('selected');
+              }
+              cuadroEvento.classList.add('selected');
+            }
+          });
+          eventosContainer.appendChild(cuadroEvento);
+        });
+      })
+      .catch((error) => {
+        // Maneja los errores de la solicitud
+        console.error(error);
+      });
   }
+    
+  const formatDateTime = (dateTimeString) => {
+    const dateTime = new Date(dateTimeString);
+    const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: 'numeric', minute: 'numeric' };
+    return dateTime.toLocaleString('es-ES', options);
+  };
+
+  const handleRegisterAttendance = () => {
+    // Verificar si se ha seleccionado un evento
+    if (selectedEventId) {
+      // Obtener la lista de calificaciones
+      //const calificaciones = obtenerListaDeCalificaciones(); // Debes implementar esta función según tus necesidades
+      const attendanceData = spreadsheetManipulator.get().data.map((item) => {
+        return {
+          studentDossier: item[firstColumn], // Utiliza el valor de 'Legajo' como studentDossier
+          attendance: item[lastColumn], // Utiliza el valor de 'Asistencia' como attendance
+        };
+      });
+      console.log(attendanceData);
+      // Crear el objeto de datos a enviar al endpoint
+      const data = {
+        courseEventId: selectedEventId,
+        attendance: attendanceData
+      };
+      // Realizar la solicitud al endpoint para registrar la asistencia
+      fetch(`${process.env.REACT_APP_API_SERVER_URL}/api/v1/events/add-attendance-on-event`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+      })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("Error al registrar la asistencia");
+        }
+        return response.json();
+      })
+      .then((result) => {
+        // Realizar las operaciones necesarias con el resultado de la solicitud
+        console.log(result);
+      })
+      .catch((error) => {
+        // Manejar los errores de la solicitud
+        console.error(error);
+      });
+    } else {
+      // Mostrar un mensaje de error o realizar alguna acción en caso de no haber seleccionado un evento
+      console.error("No se ha seleccionado un evento");
+    }
+  }
+
 
   return (
     <PageLayout>
@@ -93,8 +213,9 @@ export function AttendanceRegistering() {
             onChange={handleAttendanceDate}
             required
           />
+        <div id="eventos-container"></div>
         <button type="submit" className="load-button">Cargar archivo</button>
-        <button type="button" className="register-attendance-button">Registrar asistencia</button>
+        <button type="button" className="register-attendance-button" onClick={handleRegisterAttendance}>Registrar asistencia</button>
       </form>
       <table className="attendance-table not-displayed">
       </table>

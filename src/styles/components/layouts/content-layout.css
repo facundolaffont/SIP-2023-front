@@ -190,6 +190,9 @@ label[for="password"]::before {
   color: #666;
 }
 
+.selected {
+  background-color: rgb(244, 222, 180); /* Puedes ajustar el color de fondo según tus necesidades */
+}
 
 @media only screen and (max-width: 480px) {
   .content-layout {

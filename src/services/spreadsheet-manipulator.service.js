@@ -147,6 +147,9 @@ class SpreadsheetManipulator {
         }
     }
 
+    get() {
+        return this.#lastRangeRead;
+    }
 
     /* Private */
 
