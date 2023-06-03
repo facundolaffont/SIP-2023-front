@@ -99,25 +99,19 @@ export function AttendanceRegistering() {
 
           // Agregar un evento de clic al cuadro de la cursada
           cuadroEvento.addEventListener('click', () => {
+            // Obtener el índice de la cursada seleccionada
             const selectedIndex = parseInt(cuadroEvento.getAttribute('data-index'), 10);
-            const clickedEventId = classEvents[selectedIndex].id;
-          
-            // Verificar si el evento ya está seleccionado
-            if (selectedEventId === clickedEventId) {
-              // Si es el evento ya seleccionado, se quita la selección
-              setSelectedEventId(null);
-              cuadroEvento.classList.remove('selected');
-            } else {
-              // Si es un evento diferente al seleccionado, se actualiza la selección
-              setSelectedEventId(selectedEventId);
-            
-              // Resalto visualmente el evento seleccionado y quito la selección de los demás
-              const cuadrosEventos = document.getElementsByClassName('cuadro-cursada');
-              for (let i = 0; i < cuadrosEventos.length; i++) {
-                cuadrosEventos[i].classList.remove('selected');
-              }
-              cuadroEvento.classList.add('selected');
+
+            const selectedEventId = classEvents[selectedIndex].id;
+            // Seteo el evento seleccionado
+            setSelectedEventId(selectedEventId);
+
+            // Resalto visualmente el evento seleccionado
+            const cuadrosEventos = document.getElementsByClassName('cuadro-cursada');
+            for (let i = 0; i < cuadrosEventos.length; i++) {
+              cuadrosEventos[i].classList.remove('selected');
             }
+            cuadroEvento.classList.add('selected');
           });
           eventosContainer.appendChild(cuadroEvento);
         });
