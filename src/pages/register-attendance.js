@@ -28,7 +28,7 @@ export function AttendanceRegistering() {
 
   const finishedLoading = (spreadsheetManipulator) => {
     // Lee un rango de celdas.
-    spreadsheetManipulator.loadRange(sheetNameValue, cellRangeName, "Legajo", "Asistencia");
+    spreadsheetManipulator.loadRangeSides(sheetNameValue, cellRangeName, ["Legajo", "Asistencia"]);
     
     // Muestra los resultados en la tabla.
     let calificationsTable = document.getElementsByClassName("attendance-table")[0];

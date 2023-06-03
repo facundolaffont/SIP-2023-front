@@ -29,10 +29,11 @@ export function CalificationRegistering() {
 
   const finishedLoading = (spreadsheetManipulator) => {
     // Lee un rango de celdas.
-    spreadsheetManipulator.loadRange(sheetNameValue, cellRangeName, "Legajo", "Calificación");
+    spreadsheetManipulator.loadRangeSides(sheetNameValue, cellRangeName, ["Legajo", "Calificación"]);
     
     // Muestra los resultados en la tabla.
     let calificationsTable = document.getElementsByClassName("calification-table")[0];
+    debugger
     spreadsheetManipulator.insertDataIntoTable(calificationsTable, "Tabla de calificaciones");
     calificationsTable.classList.remove("not-displayed");
     setSpreadSheet(spreadsheetManipulator);

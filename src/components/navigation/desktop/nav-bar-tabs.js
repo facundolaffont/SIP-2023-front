@@ -29,6 +29,7 @@
             {/* TODO: las próximas rutas deberían poder accederse como docente, solamente. */}
             <NavBarTab path="/register-attendance" label="Registrar asistencia" />
             <NavBarTab path="/register-califications" label="Registrar calificaciones" />
+            <NavBarTab path="/register-students" label="Registrar estudiantes" />
             <NavBarTab path="/create-criterion" label="Alta de criterio" />
 
             {isAdmin && <NavBarTab path="/search-professor" label="Buscar docente" /> }

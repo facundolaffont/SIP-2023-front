@@ -1,0 +1,29 @@
+.student-table {
+    width: 20rem;
+    margin: 3rem auto 3rem auto;
+}
+
+.student-table td {
+    font-size: 16px;
+    text-wrap: nowrap;
+}
+
+.student-table thead td {
+    text-align: center;
+}
+
+.student-table tbody td {
+    text-align: left;
+}
+
+form button {
+    display: inline;
+}
+
+.register-student-button {
+    margin-left: 2rem;
+}
+
+input[type="date"] {
+    display: block;
+}
