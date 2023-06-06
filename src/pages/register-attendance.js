@@ -103,15 +103,24 @@ export function AttendanceRegistering() {
             const selectedIndex = parseInt(cuadroEvento.getAttribute('data-index'), 10);
 
             const selectedEventId = classEvents[selectedIndex].id;
-            // Seteo el evento seleccionado
-            setSelectedEventId(selectedEventId);
 
-            // Resalto visualmente el evento seleccionado
+            // Verificar si el cuadro ya está seleccionado
+            const isAlreadySelected = cuadroEvento.classList.contains('selected');
+
+            // Resalto visualmente el evento seleccionado o lo deselecciono
             const cuadrosEventos = document.getElementsByClassName('cuadro-cursada');
             for (let i = 0; i < cuadrosEventos.length; i++) {
               cuadrosEventos[i].classList.remove('selected');
             }
-            cuadroEvento.classList.add('selected');
+
+            if (!isAlreadySelected) {
+              // Seteo el evento seleccionado
+              setSelectedEventId(selectedEventId);
+              cuadroEvento.classList.add('selected');
+            } else {
+              // Deseleccionar el evento
+              setSelectedEventId(null);
+            }
           });
           eventosContainer.appendChild(cuadroEvento);
         });
