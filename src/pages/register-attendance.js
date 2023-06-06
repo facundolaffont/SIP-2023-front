@@ -73,21 +73,24 @@ export function AttendanceRegistering() {
         return response.json();
       })
       .then((classEvents) => {
-        // Realiza las operaciones necesarias con los eventos de la cursada obtenidos
-        console.log(classEvents); // Ejemplo: muestra los eventos en la consola
+        // Aca vamos armando los elementos necesarios para mostrar los eventos
+        console.log(classEvents);
         const eventosContainer = document.getElementById('eventos-container');
         const tituloContainer = document.createElement('h2');
+
         tituloContainer.textContent = 'Eventos para la fecha';
         eventosContainer.innerHTML = '';
   
-        // Iterar sobre las cursadas y crear un cuadro para cada una
+        // Iterar sobre los eventos y crear un cuadro para cada uno
         classEvents.forEach((evento, index) => {
+
           const cuadroEvento = document.createElement('div');
           cuadroEvento.classList.add('cuadro-cursada');
-          // Agregar un atributo de datos para almacenar el índice de la cursada
+
+          // Agregar un atributo de datos para almacenar el índice del evento
           cuadroEvento.setAttribute('data-index', index);
 
-          // Mostrar los detalles de la cursada dentro del cuadro
+          // Mostrar los detalles del evento dentro del cuadro
           const nombreEvento = document.createElement('h3');
           nombreEvento.textContent = `Tipo de evento: ` + evento.tipoEvento.nombre;
 
@@ -97,9 +100,10 @@ export function AttendanceRegistering() {
           cuadroEvento.appendChild(nombreEvento);
           cuadroEvento.appendChild(detallesEvento);
 
-          // Agregar un evento de clic al cuadro de la cursada
+          // Agregar un evento de clic al cuadro del evento
           cuadroEvento.addEventListener('click', () => {
-            // Obtener el índice de la cursada seleccionada
+
+            // Obtener el índice del evento seleccionado
             const selectedIndex = parseInt(cuadroEvento.getAttribute('data-index'), 10);
 
             const selectedEventId = classEvents[selectedIndex].id;
@@ -138,22 +142,26 @@ export function AttendanceRegistering() {
   };
 
   const handleRegisterAttendance = () => {
+
     // Verificar si se ha seleccionado un evento
     if (selectedEventId) {
-      // Obtener la lista de calificaciones
-      //const calificaciones = obtenerListaDeCalificaciones(); // Debes implementar esta función según tus necesidades
+
+      // Obtener la lista de asistencia
       const attendanceData = spreadsheetManipulator.get().data.map((item) => {
         return {
           studentDossier: item[firstColumn], // Utiliza el valor de 'Legajo' como studentDossier
           attendance: item[lastColumn], // Utiliza el valor de 'Asistencia' como attendance
         };
       });
+
       console.log(attendanceData);
+
       // Crear el objeto de datos a enviar al endpoint
       const data = {
         courseEventId: selectedEventId,
         attendance: attendanceData
       };
+
       // Realizar la solicitud al endpoint para registrar la asistencia
       fetch(`${process.env.REACT_APP_API_SERVER_URL}/api/v1/events/add-attendance-on-event`, {
         method: 'POST',
@@ -181,7 +189,6 @@ export function AttendanceRegistering() {
       console.error("No se ha seleccionado un evento");
     }
   }
-
 
   return (
     <PageLayout>
