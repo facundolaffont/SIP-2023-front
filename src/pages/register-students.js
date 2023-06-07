@@ -9,6 +9,7 @@ export function StudentRegistering() {
   const [fileHandler, setFileHandler] = useState('');
   const [sheetNameValue, setSheetNameValue] = useState('');
   const [cellRangeName, setCellRangeName] = useState('');
+  const [spreadsheetManipulator, setSpreadsheetManipulator] = useState(new SpreadsheetManipulator());
 
   const loadFile = (event) => {
 
@@ -19,7 +20,6 @@ export function StudentRegistering() {
 
     // Carga el archivo Excel y establece la función callback que se llamará al
     // finalizar la carga.
-    let spreadsheetManipulator = new SpreadsheetManipulator();
     spreadsheetManipulator.loadFile(fileHandler, loadRange);
     
   }
@@ -27,10 +27,8 @@ export function StudentRegistering() {
   /**
    * Carga el rango obtenido desde el formulario, e inserta los datos en la
    * tabla.
-   * 
-   * @param {File} spreadsheetManipulator 
    */
-  const loadRange = (spreadsheetManipulator) => {
+  const loadRange = () => {
 
     // debugger // Ya se cargó el archivo.
 
@@ -66,52 +64,49 @@ export function StudentRegistering() {
     setCellRangeName(event.target.value);
   }
 
-  // const handleRegistering = (event) => {
-  //   const handleRegisterAttendance = () => {
-  //     // Verificar si se ha seleccionado un evento
-  //     if (selectedEventId) {
-  //       // Obtener la lista de calificaciones
-  //       //const calificaciones = obtenerListaDeCalificaciones(); // Debes implementar esta función según tus necesidades
-  //       const attendanceData = spreadsheetManipulator.get().data.map((item) => {
-  //         return {
-  //           studentDossier: item[firstColumn], // Utiliza el valor de 'Legajo' como studentDossier
-  //           attendance: item[lastColumn], // Utiliza el valor de 'Asistencia' como attendance
-  //         };
-  //       });
-  //       console.log(attendanceData);
-  //       // Crear el objeto de datos a enviar al endpoint
-  //       const data = {
-  //         courseEventId: selectedEventId,
-  //         attendance: attendanceData
-  //       };
-  //       // Realizar la solicitud al endpoint para registrar la asistencia
-  //       fetch(`${process.env.REACT_APP_API_SERVER_URL}/api/v1/events/add-attendance-on-event`, {
-  //         method: 'POST',
-  //         headers: {
-  //           'Content-Type': 'application/json'
-  //         },
-  //         body: JSON.stringify(data)
-  //       })
-  //       .then((response) => {
-  //         if (!response.ok) {
-  //           throw new Error("Error al registrar la asistencia");
-  //         }
-  //         return response.json();
-  //       })
-  //       .then((result) => {
-  //         // Realizar las operaciones necesarias con el resultado de la solicitud
-  //         console.log(result);
-  //       })
-  //       .catch((error) => {
-  //         // Manejar los errores de la solicitud
-  //         console.error(error);
-  //       });
-  //     } else {
-  //       // Mostrar un mensaje de error o realizar alguna acción en caso de no haber seleccionado un evento
-  //       console.error("No se ha seleccionado un evento");
-  //     }
-  //   }
-  // }
+  const handleRegistering = () => {
+
+    debugger
+    // Obtiene la lista de estudiantes.
+    const studentsRequest =
+      spreadsheetManipulator
+      .getLastReadRange()
+      .data
+      .map((item) => {
+        console.debug(`spreadsheetManipulator.getLastReadRange() = ${spreadsheetManipulator.getLastReadRange()}`);
+        return {
+          legajo: item["Legajo"],
+          dni: item["DNI"],
+          nombre: item["Apellido"],
+          apellido: item["Nombre"],
+          email: item["Email"],
+        };
+      });
+
+    console.debug(`studentsRequest = ${studentsRequest}`);
+
+    // Realiza la solicitud al endpoint para registrar la calificación.
+    fetch(`${process.env.REACT_APP_API_SERVER_URL}/api/v1/students/create`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(studentsRequest)
+    })
+    .then((response) => {
+      if (!response.ok) { throw new Error("Error al registrar los estudiantes."); }
+      return response.json();
+    })
+    .then((response) => {
+      // TODO: realiza las operaciones necesarias con el resultado de la solicitud.
+      console.debug(response);
+    })
+    .catch((error) => {
+      // TODO: maneja los errores de la solicitud.
+      console.error(error);
+    });
+
+  }
 
   return (
     <PageLayout>
@@ -143,7 +138,7 @@ export function StudentRegistering() {
         <button
           type="button"
           className="register-student-button"
-          // onClick={handleRegistering}
+          onClick={handleRegistering}
         >Registrar estudiantes</button>
       </form>
       <table className="student-table not-displayed">

@@ -7,7 +7,6 @@ class SpreadsheetManipulator {
 
     /**
      * @callback onFileLoadCallback Función callback que se llamará cuando se termine de cargar la planilla.
-     * @param {File} spreadsheetManipulator El manejador del archivo de plantilla.
      * @return {void}
      */
 
@@ -37,7 +36,7 @@ class SpreadsheetManipulator {
             // debugger // Ya se cargó el archivo.
 
             // Habilita el uso del resto de los métodos y llama a la función callback.
-            onFileLoad(this);
+            onFileLoad();
 
         };
 
@@ -104,6 +103,7 @@ class SpreadsheetManipulator {
                 }
             }
 
+            debugger
             console.info("Rango leído.");
             console.debug(`this.#lastReadRange = ${this.#lastReadRange}`);
         }
@@ -159,13 +159,12 @@ class SpreadsheetManipulator {
                     const sheetJSColumnCell = sheet[a1ColumnCellAddress];
 
                     // Guarda la celda, si tiene datos.
-                    debugger
+                    // debugger
                     if (sheetJSColumnCell) {
                         row[columnNames.at(columnNamesArrayIndex++)] = sheetJSColumnCell.v; // TODO: Cambiar 'C' por el nombre de la columna.
                     }
 
                 }
-
                 
                 this.#lastReadRange.data.push(row);
 
@@ -173,6 +172,7 @@ class SpreadsheetManipulator {
 
             }
 
+            debugger
             console.info("Rango leído.");
             console.debug(`this.#lastReadRange = ${this.#lastReadRange}`);
 
@@ -260,7 +260,7 @@ class SpreadsheetManipulator {
 
                 let tableRow = document.createElement("tr");
 
-                debugger
+                // debugger
                 for (let columnIndex = 0; columnIndex < this.#lastReadRange.columnNames.length; columnIndex++) {
 
                     let columnDataTag = document.createElement("td");
@@ -273,7 +273,7 @@ class SpreadsheetManipulator {
                 }
 
                 tableBody.appendChild(tableRow);
-                debugger
+                // debugger
 
             }
 
