@@ -91,7 +91,7 @@ export function StudentRegistering() {
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify(studentsRequest)
+      body: JSON.stringify({students:studentsRequest})
     })
     .then((response) => {
       if (!response.ok) { throw new Error("Error al registrar los estudiantes."); }
