@@ -1,9 +1,12 @@
 import React from "react";
 import { PageLayout } from "../components/page-layout";
 import { useAuth0 } from '@auth0/auth0-react';
+import CourseDTO from "../contexts/course/course-d-t-o";
+import { useSelectedCourse } from "../contexts/course/course-provider";
 
 export const HomePageProffesor = () => {
-  
+  const [, changeCourse] = useSelectedCourse(true);
+
   const { getIdTokenClaims } = useAuth0();
   // Obtener las cursadas del usuario logueado desde el backend
   getIdTokenClaims()
@@ -51,7 +54,8 @@ export const HomePageProffesor = () => {
             // Realizar alguna acción con la cursada seleccionada
             // Por ejemplo, puedes mostrar una alerta con el nombre de la cursada
             const selectedCursada = data[selectedIndex];
-            alert(`Cursada seleccionada: ${selectedCursada[0]}`);
+//            alert(`Cursada seleccionada: ${selectedCursada[0]}`);
+            changeCourse(CourseDTO.createFrom(selectedCursada));
           });
           cursadasContainer.appendChild(cuadroCursada);
         });
