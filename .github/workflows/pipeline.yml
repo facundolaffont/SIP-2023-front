@@ -90,10 +90,17 @@ jobs:
         if [[ -z $FRONT_SECRETS_OBJ ]]
         then
           echo "Se crean los secretos del front..."
+
           kubectl create secret generic front-secrets \
-            --from-literal=POSTGRES_URL=${{ secrets.POSTGRES_URL }} \
-            --from-literal=POSTGRES_USER=${{ secrets.POSTGRES_USER }} \
-            --from-literal=POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}
+          --from-literal=REACT_APP_AUTH0_DOMAIN=${{ secrets.REACT_APP_AUTH0_DOMAIN }} \
+          --from-literal=REACT_APP_AUTH0_CLIENT_ID=${{ secrets.REACT_APP_AUTH0_CLIENT_ID }} \
+          --from-literal=REACT_APP_AUTH0_CALLBACK_URL=${{ secrets.REACT_APP_AUTH0_CALLBACK_URL }} \
+          --from-literal=REACT_APP_API_SERVER_URL=${{ secrets.REACT_APP_API_SERVER_URL }} \
+          --from-literal=REACT_APP_AUTH0_AUDIENCE=${{ secrets.REACT_APP_AUTH0_AUDIENCE }} \
+          --from-literal=REACT_APP_DB_CONNECTION=${{ secrets.REACT_APP_DB_CONNECTION }} \
+          --from-literal=API_EXPLORER_CLIENT_ID=${{ secrets.API_EXPLORER_CLIENT_ID }} \
+          --from-literal=API_EXPLORER_CLIENT_SECRET=${{ secrets.API_EXPLORER_CLIENT_SECRET }}
+
           echo "Secretos del front creados."
         fi
 
