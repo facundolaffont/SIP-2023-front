@@ -35,48 +35,48 @@ spec:
       - name: front-container
         image: facundol/sip-frontend:latest
         env:
-        - name: "PORT"
-          value: "4040"
+        - name: PORT
+          value: 4040
         - name: POSTGRES_USER
           valueFrom:
             secretKeyRef:
-              name: front-secrets
+              key: front-secrets
         - name: POSTGRES_PASSWORD
           valueFrom:
             secretKeyRef:
-              name: front-secrets
+              key: front-secrets
         - name: POSTGRES_DB
           valueFrom:
             secretKeyRef:
-              name: front-secrets
+              key: front-secrets
         - name: CLIENT_ORIGIN_URL
           valueFrom:
             secretKeyRef:
-              name: front-secrets
+              key: front-secrets
         - name: AUTH0_DOMAIN
           valueFrom:
             secretKeyRef:
-              name: front-secrets
+              key: front-secrets
         - name: AUTH0_AUDIENCE
           valueFrom:
             secretKeyRef:
-              name: front-secrets
+              key: front-secrets
         - name: AUTH0_APP_CLIENT_ID
           valueFrom:
             secretKeyRef:
-              name: front-secrets
+              key: front-secrets
         - name: AUTH0_APP_SECRET
           valueFrom:
             secretKeyRef:
-              name: front-secrets
+              key: front-secrets
         - name: AUTH0_DB_CONNECTION
           valueFrom:
             secretKeyRef:
-              name: front-secrets
+              key: front-secrets
         - name: AUTH0_ROLID_DOCENTE
           valueFrom:
             secretKeyRef:
-              name: front-secrets
+              key: front-secrets
 
       # https://kubernetes.io/docs/concepts/scheduling-eviction/taint-and-toleration/
       # https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/pod-v1/#scheduling
