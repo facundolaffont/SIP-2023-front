@@ -256,7 +256,7 @@ jobs:
 
       # Destruye la infraestructura en la nube.
       - name: Terraform destroy gke/state
-        working-directory: src/terraform
+        working-directory: src/terraform/00-base
         env:
           GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
         run: |
