@@ -65,13 +65,17 @@ jobs:
     # Despliega los objectos en la nube.
     - name: Kubernetes deploy
       working-directory: src/k8s
+      env:
+        TLS_CERTIFICATE: ${{ secrets.TLS_CERTIFICATE }}
+        TLS_PRIVATE_KEY: ${{ secrets.TLS_PRIVATE_KEY }}
       run: |
         ls -lah
 
         set -e
 
-        # Crea el objeto de los secretos, si no existe.
+        # Crea los objetos de los secretos, si no existen.
         FRONT_SECRETS_OBJ=$(kubectl get secret front-secrets --ignore-not-found)
+        TLS_SECRETS_OBJ=$(kubectl get secret tls-secrets --ignore-not-found)
         if [[ -z $FRONT_SECRETS_OBJ ]]
         then
           echo "Se crean los secretos del front..."
@@ -87,6 +91,16 @@ jobs:
           --from-literal=API_EXPLORER_CLIENT_SECRET=${{ secrets.API_EXPLORER_CLIENT_SECRET }}
 
           echo "Secretos del front creados."
+        fi
+        if [[ -z $TLS_SECRETS_OBJ ]]
+        then
+          echo "Se crean los secretos del certificado..."
+
+          echo $TLS_CERTIFICATE > certificate.crt
+          echo $TLS_PRIVATE_KEY > private.key
+          kubectl create secret tls front-lb-tls-cert --cert=certificate.crt --key=private.key
+
+          echo "Secretos del certificado creados."
         fi
 
         # Aplica los cambios de todos los archivos de configuración.
