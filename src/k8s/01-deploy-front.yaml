@@ -40,42 +40,52 @@ spec:
         - name: POSTGRES_USER
           valueFrom:
             secretKeyRef:
+              name: front-secrets
               key: front-secrets
         - name: POSTGRES_PASSWORD
           valueFrom:
             secretKeyRef:
+              name: front-secrets
               key: front-secrets
         - name: POSTGRES_DB
           valueFrom:
             secretKeyRef:
+              name: front-secrets
               key: front-secrets
         - name: CLIENT_ORIGIN_URL
           valueFrom:
             secretKeyRef:
+              name: front-secrets
               key: front-secrets
         - name: AUTH0_DOMAIN
           valueFrom:
             secretKeyRef:
+              name: front-secrets
               key: front-secrets
         - name: AUTH0_AUDIENCE
           valueFrom:
             secretKeyRef:
+              name: front-secrets
               key: front-secrets
         - name: AUTH0_APP_CLIENT_ID
           valueFrom:
             secretKeyRef:
+              name: front-secrets
               key: front-secrets
         - name: AUTH0_APP_SECRET
           valueFrom:
             secretKeyRef:
+              name: front-secrets
               key: front-secrets
         - name: AUTH0_DB_CONNECTION
           valueFrom:
             secretKeyRef:
+              name: front-secrets
               key: front-secrets
         - name: AUTH0_ROLID_DOCENTE
           valueFrom:
             secretKeyRef:
+              name: front-secrets
               key: front-secrets
 
       # https://kubernetes.io/docs/concepts/scheduling-eviction/taint-and-toleration/
