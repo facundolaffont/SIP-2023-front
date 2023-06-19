@@ -39,24 +39,6 @@ spec:
         - name: PORT
           value: "4040"
 
-        - name: POSTGRES_USER
-          valueFrom:
-            secretKeyRef:
-              name: front-secrets
-              key: POSTGRES_USER
-
-        - name: POSTGRES_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              name: front-secrets
-              key: POSTGRES_PASSWORD
-
-        - name: POSTGRES_DB
-          valueFrom:
-            secretKeyRef:
-              name: front-secrets
-              key: POSTGRES_DB
-
         - name: CLIENT_ORIGIN_URL
           valueFrom:
             secretKeyRef:
