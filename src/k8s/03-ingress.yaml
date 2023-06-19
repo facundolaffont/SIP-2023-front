@@ -1,4 +1,5 @@
 # https://kubernetes.io/docs/concepts/services-networking/ingress/
+# https://kubernetes.io/docs/reference/kubernetes-api/service-resources/ingress-v1/
 
 # apiVersion: networking.k8s.io/v1
 # kind: Ingress
@@ -25,9 +26,30 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: main-ingress
+  namespace: default
 spec:
-  defaultBackend:
-    service:
-      name: front-service
-      port:
-        number: 80
+
+  # # https://kubernetes.io/docs/reference/kubernetes-api/service-resources/ingress-v1/#IngressBackend
+  # defaultBackend:
+  #   service:
+  #     name: front-service
+  #     port:
+  #       number: 80
+
+  rules:
+    - host: fl.com.ar
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+
+            # https://kubernetes.io/docs/reference/kubernetes-api/service-resources/ingress-v1/#IngressBackend
+            backend:
+              service:
+                name: front-service
+                port:
+                  number: 80
+
+            # allowedMethods:
+            #   - POST # Allow POST requests for this path
+            #   - GET
