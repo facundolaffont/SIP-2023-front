@@ -44,7 +44,7 @@ jobs:
 
         terraform apply -lock=false --auto-approve
 
-  front-up: # [FRONT-UP] 
+  front-up: # [FRONT-UP]
     name: Front and DNS up
     if: startsWith(github.event.head_commit.message, '[FRONT-UP]')
     runs-on: ubuntu-latest
@@ -162,7 +162,7 @@ jobs:
 
         terraform apply -lock=false --auto-approve
   
-  down: # [FRONT-DOWN]
+  front-down: # [FRONT-DOWN]
     name: Front and DNS down
     if: startsWith(github.event.head_commit.message, '[FRONT-DOWN]')
     runs-on: ubuntu-latest
@@ -214,6 +214,57 @@ jobs:
           export TF_VAR_CLOUDFLARE_EMAIL=${{ secrets.CF_API_EMAIL }}
           export TF_VAR_CLOUDFLARE_API_KEY=${{ secrets.CF_API_KEY }}
           export TF_VAR_LOADBALANCER_IP=$LOADBALANCER_IP
+
+          terraform init --reconfigure \
+          --backend-config bucket=$bucket_name \
+          --backend-config prefix=$prefix
+
+          terraform destroy -lock=false --auto-approve
+
+  base-down: # [BASE-DOWN]
+    name: Front and DNS down
+    if: startsWith(github.event.head_commit.message, '[BASE-DOWN]')
+    runs-on: ubuntu-latest
+    environment: front
+    steps:
+
+      # Checkout de la rama.
+      - name: Checkout code 
+        uses: actions/checkout@v3
+
+      # Instala y configura Terraform CLI.
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+
+      # Configura Google Cloud.
+      - name: Google Cloud authentication
+        uses: google-github-actions/auth@v1
+        with:
+          credentials_json: ${{ secrets.GOOGLE_CREDENTIALS }}
+      - name: Google Cloud SDK setup
+        uses: google-github-actions/setup-gcloud@v1
+        with:
+          version: '>= 363.0.0'
+          install_components: 'kubectl'
+      - name: GCloud config
+        run: |
+          gcloud info
+
+          gcloud components list
+
+          gcloud container clusters get-credentials primary --region=us-central1-a
+
+      # Destruye la infraestructura en la nube.
+      - name: Terraform destroy gke/state
+        working-directory: src/terraform
+        env:
+          GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
+        run: |
+          ls -lah
+
+          bucket_name="spgda-bucket"
+
+          prefix="gke/state"
 
           terraform init --reconfigure \
           --backend-config bucket=$bucket_name \
