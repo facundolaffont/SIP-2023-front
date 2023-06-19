@@ -79,7 +79,7 @@ jobs:
   
     # Despliega los objectos en la nube.
     - name: Kubernetes deploy
-      working-directory: src/terraform
+      working-directory: src/k8s
       run: |
         ls -lah
 
