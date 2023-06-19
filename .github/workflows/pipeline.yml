@@ -221,7 +221,7 @@ jobs:
 
           terraform destroy -lock=false --auto-approve
 
-  base-down: # [BASE-DOWN]
+  base-down: # [BASE-DOWN] 
     name: Front and DNS down
     if: startsWith(github.event.head_commit.message, '[BASE-DOWN]')
     runs-on: ubuntu-latest
