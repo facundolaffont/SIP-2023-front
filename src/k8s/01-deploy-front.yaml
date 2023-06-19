@@ -36,7 +36,7 @@ spec:
         image: facundol/sip-frontend:latest
         env:
         - name: PORT
-          value: 4040
+          value: "4040"
         - name: POSTGRES_USER
           valueFrom:
             secretKeyRef:
