@@ -4,7 +4,7 @@ resource "google_compute_managed_ssl_certificate" "load_balancer_cert" {
   name     = "front-lb-ssl-cert"
 
   managed {
-    domains = [data.cloudflare_zone.spgda]
+    domains = [data.cloudflare_zone.spgda.name]
   }
 
 }
