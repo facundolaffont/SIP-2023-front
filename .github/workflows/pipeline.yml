@@ -30,7 +30,7 @@ jobs:
       run: |
         ls -lah
 
-        bucket_name="unlu-tf"
+        bucket_name="spgda-bucket"
 
         prefix="gke/state"
 
@@ -112,7 +112,7 @@ jobs:
       run: |
         ls -lah
 
-        bucket_name="unlu-tf"
+        bucket_name="spgda-bucket"
 
         prefix="gke-dns/state"
 
@@ -196,7 +196,7 @@ jobs:
         run: |
           ls -lah
 
-          bucket_name="unlu-tf"
+          bucket_name="spgda-bucket"
 
           prefix="gke-dns/state"
 
