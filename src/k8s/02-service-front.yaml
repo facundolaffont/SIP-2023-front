@@ -14,8 +14,6 @@ spec:
   - protocol: TCP
     port: 80
     targetPort: 80
-  - name: HTTPS
-    port: 443
-    targetPort: 80
-  tls:
-    - secretName: front-lb-tls-cert
+  # - name: HTTPS
+  #   port: 443
+  #   targetPort: 80
