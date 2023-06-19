@@ -96,8 +96,8 @@ jobs:
         then
           echo "Se crean los secretos del certificado..."
 
-          echo $TLS_CERTIFICATE > certificate.pem
-          echo $TLS_PRIVATE_KEY > private.pem
+          echo "$TLS_CERTIFICATE" > certificate.pem
+          echo "$TLS_PRIVATE_KEY" > private.pem
           kubectl create secret tls front-lb-tls-cert --cert=certificate.pem --key=private.pem
 
           echo "Secretos del certificado creados."
