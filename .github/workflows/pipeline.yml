@@ -7,11 +7,11 @@ on:
       - cloud
 
 jobs:
-  up: # [BASE-UP]
+  base-up: # [BASE-UP]
     name: Base infra up
     if: startsWith(github.event.head_commit.message, '[BASE-UP]')
     runs-on: ubuntu-latest
-    environment: pipeline-actions
+    environment: front
     steps:
 
     # Checkout de la rama.
@@ -44,11 +44,11 @@ jobs:
 
         terraform apply -lock=false --auto-approve
 
-  up: # [FRONT-UP]
+  front-up: # [FRONT-UP]
     name: Front and DNS up
     if: startsWith(github.event.head_commit.message, '[FRONT-UP]')
     runs-on: ubuntu-latest
-    environment: pipeline-actions
+    environment: front
     steps:
 
     # Checkout de la rama.
@@ -159,7 +159,7 @@ jobs:
     name: Front and DNS down
     if: startsWith(github.event.head_commit.message, '[FRONT-DOWN]')
     runs-on: ubuntu-latest
-    environment: pipeline-actions
+    environment: front
     steps:
 
       # Checkout de la rama.
