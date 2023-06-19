@@ -103,6 +103,9 @@ jobs:
         #   echo "Secretos del certificado creados."
         # fi
 
+        # Create the Ingress Controller.
+        kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.8.0/deploy/static/provider/cloud/deploy.yaml
+
         # Aplica los cambios de todos los archivos de configuración.
         files=""
         for file in 0*.yaml; do
