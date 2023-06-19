@@ -412,7 +412,7 @@ jobs:
 
           terraform destroy -lock=false --auto-approve
    
-  front-down: # [ALL-DOWN]
+  all-down: # [ALL-DOWN]
     name: Front, DNS and base infrastructure down
     if: startsWith(github.event.head_commit.message, '[ALL-DOWN]')
     runs-on: ubuntu-latest
