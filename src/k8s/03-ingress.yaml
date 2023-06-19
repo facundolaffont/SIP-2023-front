@@ -26,7 +26,8 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: main-ingress
-  namespace: default
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
 spec:
 
   # # https://kubernetes.io/docs/reference/kubernetes-api/service-resources/ingress-v1/#IngressBackend
@@ -49,7 +50,3 @@ spec:
                 name: front-service
                 port:
                   number: 80
-
-            # allowedMethods:
-            #   - POST # Allow POST requests for this path
-            #   - GET
