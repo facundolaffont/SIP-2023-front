@@ -39,47 +39,53 @@ spec:
         - name: PORT
           value: "4040"
 
-        - name: CLIENT_ORIGIN_URL
+        - name: REACT_APP_AUTH0_DOMAIN
           valueFrom:
             secretKeyRef:
               name: front-secrets
-              key: CLIENT_ORIGIN_URL
+              key: REACT_APP_AUTH0_DOMAIN
 
-        - name: AUTH0_DOMAIN
+        - name: REACT_APP_AUTH0_CLIENT_ID
           valueFrom:
             secretKeyRef:
               name: front-secrets
-              key: AUTH0_DOMAIN
+              key: REACT_APP_AUTH0_CLIENT_ID
 
-        - name: AUTH0_AUDIENCE
+        - name: REACT_APP_AUTH0_CALLBACK_URL
           valueFrom:
             secretKeyRef:
               name: front-secrets
-              key: AUTH0_AUDIENCE
+              key: REACT_APP_AUTH0_CALLBACK_URL
 
-        - name: AUTH0_APP_CLIENT_ID
+        - name: REACT_APP_API_SERVER_URL
           valueFrom:
             secretKeyRef:
               name: front-secrets
-              key: AUTH0_APP_CLIENT_ID
+              key: REACT_APP_API_SERVER_URL
 
-        - name: AUTH0_APP_SECRET
+        - name: REACT_APP_AUTH0_AUDIENCE
           valueFrom:
             secretKeyRef:
               name: front-secrets
-              key: AUTH0_APP_SECRET
+              key: REACT_APP_AUTH0_AUDIENCE
 
-        - name: AUTH0_DB_CONNECTION
+        - name: REACT_APP_DB_CONNECTION
           valueFrom:
             secretKeyRef:
               name: front-secrets
-              key: AUTH0_DB_CONNECTION
+              key: REACT_APP_DB_CONNECTION
 
-        - name: AUTH0_ROLID_DOCENTE
+        - name: API_EXPLORER_CLIENT_ID
           valueFrom:
             secretKeyRef:
               name: front-secrets
-              key: AUTH0_ROLID_DOCENTE
+              key: API_EXPLORER_CLIENT_ID
+
+        - name: API_EXPLORER_CLIENT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: front-secrets
+              key: API_EXPLORER_CLIENT_SECRET
 
       # https://kubernetes.io/docs/concepts/scheduling-eviction/taint-and-toleration/
       # https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/pod-v1/#scheduling
