@@ -30,7 +30,7 @@ metadata:
     nginx.ingress.kubernetes.io/rewrite-target: /
 spec:
 
-  # # https://kubernetes.io/docs/reference/kubernetes-api/service-resources/ingress-v1/#IngressBackend
+  # # https://kubernetes.io/docs/reference/kubernetes-api/service-resources/ingress-v1/#IngressBackend 
   # defaultBackend:
   #   service:
   #     name: front-service
