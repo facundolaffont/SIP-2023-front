@@ -44,7 +44,7 @@ jobs:
 
         terraform apply -lock=false --auto-approve
 
-  front-up: # [FRONT-UP]
+  front-up: # [FRONT-UP] 
     name: Front and DNS up
     if: startsWith(github.event.head_commit.message, '[FRONT-UP]')
     runs-on: ubuntu-latest
