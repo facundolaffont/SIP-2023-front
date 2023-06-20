@@ -121,7 +121,7 @@ jobs:
         echo "Controlador Ingress listo."
 
         echo "Se aplicarán los cambios de ingress.yaml..."
-        kubectl apply ingress.yaml
+        kubectl apply -f ingress.yaml
         echo "Cambios aplicados."
 
     # # Configura los servidores de nombre de dominio.
