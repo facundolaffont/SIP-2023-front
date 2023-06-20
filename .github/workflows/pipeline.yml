@@ -101,10 +101,16 @@ jobs:
         #   kubectl create secret tls front-lb-tls-cert --cert=certificate.pem --key=private.pem
 
         #   echo "Secretos del certificado creados."
-        # fi
+        # fi        
 
-        # Crea el controlador nginx [https://kubernetes.github.io/ingress-nginx/deploy/#quick-start].
-        kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.8.0/deploy/static/provider/cloud/deploy.yaml
+        # Aplica los cambios de todos los archivos de configuración.
+        echo "Se aplicarán los cambios de todos los archivos de configuración Kubernetes..."
+        files=""
+        for file in 0*.yaml; do
+          files=$files" -f $(echo $file)"
+        done
+        eval "kubectl apply"$files
+        echo "Cambios aplicados."
 
         # Espera hasta que el controlador esté listo [https://kubernetes.github.io/ingress-nginx/deploy/#pre-flight-check].
         echo "Verifica que el controlador Ingress esté listo..."
@@ -114,13 +120,8 @@ jobs:
           --timeout=120s
         echo "Controlador Ingress listo."
 
-        # Aplica los cambios de todos los archivos de configuración.
-        echo "Se aplicarán los cambios de todos los archivos de configuración Kubernetes..."
-        files=""
-        for file in 0*.yaml; do
-          files=$files" -f $(echo $file)"
-        done
-        eval "kubectl apply"$files
+        echo "Se aplicarán los cambios de ingress.yaml..."
+        kubectl apply ingress.yaml
         echo "Cambios aplicados."
 
     # # Configura los servidores de nombre de dominio.

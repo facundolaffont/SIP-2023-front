@@ -9,11 +9,6 @@ terraform {
       version = "~> 4.0"
     }
 
-    # kubernetes = {
-    #   source  = "hashicorp/kubernetes"
-    #   version = "~> 2.21.1"
-    # }
-
     cloudflare = {
       source  = "cloudflare/cloudflare"
       version = ">= 4.8.0"

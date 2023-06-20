@@ -4,7 +4,7 @@ resource "cloudflare_record" "app_loadbalancer" {
   zone_id = data.cloudflare_zone.spgda.zone_id
   name    = "spgda"
   type    = "A"
-  value   = var.LOADBALANCER_IP
+  value   = var.LOADBALANCER_IP # Ahora tiene que ser el del Ingress.
   ttl     = 300
   proxied = false
 }

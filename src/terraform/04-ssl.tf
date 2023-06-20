@@ -6,5 +6,4 @@ resource "google_compute_managed_ssl_certificate" "load_balancer_cert" {
   managed {
     domains = [data.cloudflare_zone.spgda.name]
   }
-
 }
