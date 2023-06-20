@@ -7,6 +7,35 @@ on:
       - cloud
 
 jobs:
+  debug: # [DEBUG]
+    name: debug
+    if: startsWith(github.event.head_commit.message, '[DEBUG]')
+    runs-on: ubuntu-latest
+    environment: front
+    env:
+      TLS_CERTIFICATE: ${{ secrets.TLS_CERTIFICATE }}
+      TLS_PRIVATE_KEY: ${{ secrets.TLS_PRIVATE_KEY }}
+    steps:
+
+    - name: debug
+    run: |
+      echo "$TLS_CERTIFICATE" > certificate.pem
+      echo "$TLS_PRIVATE_KEY" > private.pem
+
+      cat <<EOF > tls-secrets.yaml
+        apiVersion: v1
+        kind: Secret
+        metadata:
+          name: tls-secrets
+          namespace: nginx-ingress
+        type: kubernetes.io/tls
+        data:
+          tls.crt: $(base64 certificate.pem)
+          tls.key: $(base64 private.pem)
+      EOF
+
+      ls -la
+
   all-up: # [ALL-UP] 
     name: Base + DNS infra up
     if: startsWith(github.event.head_commit.message, '[ALL-UP]')
