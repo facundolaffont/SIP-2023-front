@@ -136,12 +136,12 @@ jobs:
 
         # Crea los secretos para el certificado TLS, si no existen.
         TLS_SECRETS_OBJ=$(kubectl get secret tls-secrets --ignore-not-found)
-        if [[ -z $TLS_SECRETS_OBJ ]]
-        then
-          echo "Se crearán los secretos para el certificado TLS..."
+        if [[ -z $TLS_SECRETS_OBJ ]]; then
+        
+        echo "Se crearán los secretos para el certificado TLS..."
 
-          echo "$TLS_CERTIFICATE" > certificate.pem
-          echo "$TLS_PRIVATE_KEY" > private.pem
+        echo "$TLS_CERTIFICATE" > certificate.pem
+        echo "$TLS_PRIVATE_KEY" > private.pem
 
         cat <<EOF > tls-secrets.yaml
           apiVersion: v1
@@ -155,9 +155,10 @@ jobs:
             tls.key: $(base64 private.pem)
         EOF
 
-          kubectl apply -f tls-secrets.yaml
+        kubectl apply -f tls-secrets.yaml
 
-          echo "Secretos creados."
+        echo "Secretos creados."
+        
         fi
 
         echo "Se aplicarán los cambios del Ingress..."
