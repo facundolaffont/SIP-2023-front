@@ -502,7 +502,7 @@ jobs:
 
           sudo apt-get install jq
         
-          LOADBALANCER_IP=$(kubectl get -o json service front-service | jq -r .status.loadBalancer.ingress\[0\].ip)
+          LOADBALANCER_IP=$(kubectl get -o json service ingress-nginx-lb | jq -r .status.loadBalancer.ingress\[0\].ip)
 
           export TF_VAR_CLOUDFLARE_EMAIL=${{ secrets.CF_API_EMAIL }}
           export TF_VAR_CLOUDFLARE_API_KEY=${{ secrets.CF_API_KEY }}
