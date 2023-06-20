@@ -107,17 +107,21 @@ jobs:
         kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.8.0/deploy/static/provider/cloud/deploy.yaml
 
         # Espera hasta que el controlador esté listo [https://kubernetes.github.io/ingress-nginx/deploy/#pre-flight-check].
+        echo "Verifica que el controlador Ingress esté listo..."
         kubectl wait --namespace ingress-nginx \
           --for=condition=ready pod \
           --selector=app.kubernetes.io/component=controller \
           --timeout=120s
+        echo "Controlador Ingress listo."
 
         # Aplica los cambios de todos los archivos de configuración.
+        echo "Se aplicarán los cambios de todos los archivos de configuración Kubernetes..."
         files=""
         for file in 0*.yaml; do
           files=$files" -f $(echo $file)"
         done
         eval "kubectl apply"$files
+        echo "Cambios aplicados."
 
     # # Configura los servidores de nombre de dominio.
     # - name: Terraform DNS config
