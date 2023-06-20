@@ -37,7 +37,7 @@ spec:
         env:
 
         - name: PORT
-          value: "4040"
+          value: "80"
 
         - name: REACT_APP_AUTH0_DOMAIN
           valueFrom:

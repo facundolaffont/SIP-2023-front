@@ -7,34 +7,6 @@ on:
       - cloud
 
 jobs:
-  debug: # [DEBUG]
-    name: debug
-    if: startsWith(github.event.head_commit.message, '[DEBUG]')
-    runs-on: ubuntu-latest
-    environment: front
-    env:
-      TLS_CERTIFICATE: ${{ secrets.TLS_CERTIFICATE }}
-      TLS_PRIVATE_KEY: ${{ secrets.TLS_PRIVATE_KEY }}
-    steps:
-
-    - name: debug
-      run: |
-        echo "$TLS_CERTIFICATE" > certificate.pem
-        echo "$TLS_PRIVATE_KEY" > private.pem
-
-        cat <<EOF > tls-secrets.yaml
-          apiVersion: v1
-          kind: Secret
-          metadata:
-            name: tls-secrets
-            namespace: nginx-ingress
-          type: kubernetes.io/tls
-          data:
-            tls.crt: $(base64 certificate.pem)
-            tls.key: $(base64 private.pem)
-        EOF
-
-        ls -la
 
   all-up: # [ALL-UP] 
     name: Base + DNS infra up
@@ -96,8 +68,6 @@ jobs:
       working-directory: src/k8s
       env:
         TLS_SECRET_YAML: ${{ secrets.TLS_SECRET_YAML }}
-        # TLS_CERTIFICATE: ${{ secrets.TLS_CERTIFICATE }}
-        # TLS_PRIVATE_KEY: ${{ secrets.TLS_PRIVATE_KEY }}
       run: |
         ls -lah
 
@@ -124,14 +94,10 @@ jobs:
 
         # Aplica los cambios de todos los archivos de configuración.
         echo "Se aplicarán los cambios de todos los archivos de configuración Kubernetes..."
-        files=""
-        for file in 0*.yaml; do
-          files=$files" -f $(echo $file)"
-        done
-        eval "kubectl apply"$files
-        echo "Cambios aplicados."
 
         kubectl apply \
+          -f 01-deploy-front.yaml \
+          -f 02-service-front.yaml \
           -f 03-nginx-ingress/common/ns-and-sa.yaml \
           -f 03-nginx-ingress/rbac/rbac.yaml
 
@@ -139,28 +105,12 @@ jobs:
         TLS_SECRETS_OBJ=$(kubectl get secret tls-secrets --ignore-not-found)
         if [[ -z $TLS_SECRETS_OBJ ]]; then
         
-        echo "Se crearán los secretos para el certificado TLS..."
+          echo "Se crearán los secretos para el certificado TLS..."
 
-        echo "$TLS_SECRET_YAML" > tls-secrets.yaml
-        
-        # echo "$TLS_CERTIFICATE" > certificate.pem
-        # echo "$TLS_PRIVATE_KEY" > private.pem
+          echo "$TLS_SECRET_YAML" > tls-secrets.yaml
+          kubectl apply -f tls-secrets.yaml
 
-        # cat <<EOF > tls-secrets.yaml
-        #   apiVersion: v1
-        #   kind: Secret
-        #   metadata:
-        #     name: tls-secrets
-        #     namespace: nginx-ingress
-        #   type: kubernetes.io/tls
-        #   data:
-        #     tls.crt: $(base64 certificate.pem)
-        #     tls.key: $(base64 private.pem)
-        # EOF
-
-        kubectl apply -f tls-secrets.yaml
-
-        echo "Secretos creados."
+          echo "Secretos creados."
 
         fi
 
@@ -172,73 +122,73 @@ jobs:
           -f 03-nginx-ingress/common/crds/k8s.nginx.org_virtualserverroutes.yaml \
           -f 03-nginx-ingress/common/crds/k8s.nginx.org_transportservers.yaml \
           -f 03-nginx-ingress/common/crds/k8s.nginx.org_policies.yaml \
-          -f 03-nginx-ingress/common/crds/k8s.nginx.org_globalconfigurations.yaml \
+          # -f 03-nginx-ingress/common/crds/k8s.nginx.org_globalconfigurations.yaml \
           -f 03-nginx-ingress/deployment/nginx-ingress.yaml
-        echo "Cambios aplicados."
 
         kubectl apply -f 03-nginx-ingress/service/loadbalancer.yaml
 
-        # TODO: verificar que el controlador esté activo y que se haya generado la IP pública del balanceador de cargas.
+        echo "Todos los cambios de Kubernetes fueron aplicados."
 
-        # # Espera hasta que el controlador esté listo [https://kubernetes.github.io/ingress-nginx/deploy/#pre-flight-check].
-        # echo "Verifica que el controlador Ingress esté listo..."
-        # kubectl wait --namespace ingress-nginx \
-        #   --for=condition=ready pod \
-        #   --selector=app.kubernetes.io/component=controller \
-        #   --timeout=120s
-        # echo "Controlador listo."
+        # Espera hasta que el controlador esté listo [https://kubernetes.github.io/ingress-nginx/deploy/#pre-flight-check].
+        echo "Se verifica que el controlador del ingress esté listo..."
+        kubectl wait --namespace ingress-nginx \
+          --for=condition=ready pod \
+          --selector=app.kubernetes.io/component=controller \
+          --timeout=120s
+        echo "Controlador listo."
 
+    # Configura los servidores de nombre de dominio.
+    - name: Terraform DNS config
+      working-directory: src/terraform
+      env:
+        GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
+      run: |
+        ls -lah
 
-    # # Configura los servidores de nombre de dominio.
-    # - name: Terraform DNS config
-    #   working-directory: src/terraform
-    #   env:
-    #     GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
-    #   run: |
-    #     ls -lah
+        bucket_name="spgda-bucket"
 
-    #     bucket_name="spgda-bucket"
+        prefix="gke-dns/state"
 
-    #     prefix="gke-dns/state"
+        terraform init --reconfigure \
+          --backend-config bucket=$bucket_name \
+          --backend-config prefix=$prefix
 
-    #     terraform init --reconfigure \
-    #       --backend-config bucket=$bucket_name \
-    #       --backend-config prefix=$prefix
+        terraform validate
 
-    #     terraform validate
-
-    #     sudo apt-get install jq
+        sudo apt-get install jq
         
-    #     until 
-    #       kubectl get service front-service
-    #     do
-    #       echo
-    #       echo "El servicio del front no está activo aún..."
-    #       echo
-    #       sleep 10
-    #     done
+        echo "Verificando que balanceador de cargas esté activo..."
 
-    #     while 
-    #       LOADBALANCER_IP=$(kubectl get -o json service front-service | jq -r .status.loadBalancer.ingress\[0\].ip)
-    #       [ $LOADBALANCER_IP = null ]
-    #     do
-    #       echo
-    #       echo "Todavía no se pudo obtener la IP pública del balanceador de cargas..."
-    #       echo
-    #       sleep 10
-    #     done
+        until 
+          kubectl get service ingress-nginx-lb
+        do
+          echo
+          echo "El balanceador de cargas no está activo aún..."
+          echo
+          sleep 10
+        done
 
-    #     echo
-    #     echo "IP pública del balanceador de cargas = $LOADBALANCER_IP."
-    #     echo
+        while 
+          LOADBALANCER_IP=$(kubectl get -o json service ingress-nginx-lb | jq -r .status.loadBalancer.ingress\[0\].ip)
+          [ $LOADBALANCER_IP = null ]
+        do
+          echo
+          echo "Todavía no se pudo obtener la IP pública del balanceador de cargas..."
+          echo
+          sleep 10
+        done
 
-    #     export TF_VAR_CLOUDFLARE_EMAIL=${{ secrets.CF_API_EMAIL }}
-    #     export TF_VAR_CLOUDFLARE_API_KEY=${{ secrets.CF_API_KEY }}
-    #     export TF_VAR_LOADBALANCER_IP=$LOADBALANCER_IP
+        echo
+        echo "IP pública del balanceador de cargas = $LOADBALANCER_IP."
+        echo
 
-    #     terraform plan -lock=false
+        export TF_VAR_CLOUDFLARE_EMAIL=${{ secrets.CF_API_EMAIL }}
+        export TF_VAR_CLOUDFLARE_API_KEY=${{ secrets.CF_API_KEY }}
+        export TF_VAR_LOADBALANCER_IP=$LOADBALANCER_IP
 
-    #     terraform apply -lock=false --auto-approve
+        terraform plan -lock=false
+
+        terraform apply -lock=false --auto-approve
 
   base-up: # [BASE-UP]
     name: Base infra up
