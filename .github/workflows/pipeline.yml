@@ -73,9 +73,8 @@ jobs:
 
         set -e
 
-        # Crea los objetos de los secretos, si no existen.
+        # Crea los secretos del front, si no existen.
         FRONT_SECRETS_OBJ=$(kubectl get secret front-secrets --ignore-not-found)
-        TLS_SECRETS_OBJ=$(kubectl get secret tls-secrets --ignore-not-found)
         if [[ -z $FRONT_SECRETS_OBJ ]]
         then
           echo "Se crean los secretos del front..."
@@ -92,16 +91,6 @@ jobs:
 
           echo "Secretos del front creados."
         fi
-        # if [[ -z $TLS_SECRETS_OBJ ]]
-        # then
-        #   echo "Se crean los secretos del certificado..."
-
-        #   echo "$TLS_CERTIFICATE" > certificate.pem
-        #   echo "$TLS_PRIVATE_KEY" > private.pem
-        #   kubectl create secret tls front-lb-tls-cert --cert=certificate.pem --key=private.pem
-
-        #   echo "Secretos del certificado creados."
-        # fi        
 
         # Aplica los cambios de todos los archivos de configuración.
         echo "Se aplicarán los cambios de todos los archivos de configuración Kubernetes..."
@@ -112,17 +101,60 @@ jobs:
         eval "kubectl apply"$files
         echo "Cambios aplicados."
 
-        # Espera hasta que el controlador esté listo [https://kubernetes.github.io/ingress-nginx/deploy/#pre-flight-check].
-        echo "Verifica que el controlador Ingress esté listo..."
-        kubectl wait --namespace ingress-nginx \
-          --for=condition=ready pod \
-          --selector=app.kubernetes.io/component=controller \
-          --timeout=120s
-        echo "Controlador Ingress listo."
+        kubectl apply \
+          -f 03-nginx-ingress/common/ns-and-sa.yaml \
+          -f 03-nginx-ingress/rbac/rbac.yaml
 
-        echo "Se aplicarán los cambios de ingress.yaml..."
-        kubectl apply -f ingress.yaml
+        # Crea los secretos para el certificado TLS, si no existen.
+        TLS_SECRETS_OBJ=$(kubectl get secret tls-secrets --ignore-not-found)
+        if [[ -z $TLS_SECRETS_OBJ ]]
+        then
+          echo "Se crearán los secretos para el certificado TLS..."
+
+          echo "$TLS_CERTIFICATE" > certificate.pem
+          echo "$TLS_PRIVATE_KEY" > private.pem
+
+          cat <<EOF > tls-secrets.yaml
+            apiVersion: v1
+            kind: Secret
+            metadata:
+              name: tls-secrets
+              namespace: nginx-ingress
+            type: kubernetes.io/tls
+            data:
+              tls.crt: $(base64 certificate.pem)
+              tls.key: $(base64 private.pem)
+          EOF
+
+          kubectl apply -f tls-secrets.yaml
+
+          echo "Secretos creados."
+        fi
+
+        echo "Se aplicarán los cambios del Ingress..."
+        kubectl apply \
+          -f 03-nginx-ingress/common/nginx-config.yaml \
+          -f 03-nginx-ingress/common/ingress-class.yaml \
+          -f 03-nginx-ingress/common/crds/k8s.nginx.org_virtualservers.yaml \
+          -f 03-nginx-ingress/common/crds/k8s.nginx.org_virtualserverroutes.yaml \
+          -f 03-nginx-ingress/common/crds/k8s.nginx.org_transportservers.yaml \
+          -f 03-nginx-ingress/common/crds/k8s.nginx.org_policies.yaml \
+          -f 03-nginx-ingress/common/crds/k8s.nginx.org_globalconfigurations.yaml \
+          -f 03-nginx-ingress/deployment/nginx-ingress.yaml
         echo "Cambios aplicados."
+
+        kubectl apply -f 03-nginx-ingress/service/loadbalancer.yaml
+
+        # TODO: verificar que el controlador esté activo y que se haya generado la IP pública del balanceador de cargas.
+
+        # # Espera hasta que el controlador esté listo [https://kubernetes.github.io/ingress-nginx/deploy/#pre-flight-check].
+        # echo "Verifica que el controlador Ingress esté listo..."
+        # kubectl wait --namespace ingress-nginx \
+        #   --for=condition=ready pod \
+        #   --selector=app.kubernetes.io/component=controller \
+        #   --timeout=120s
+        # echo "Controlador listo."
+
 
     # # Configura los servidores de nombre de dominio.
     # - name: Terraform DNS config

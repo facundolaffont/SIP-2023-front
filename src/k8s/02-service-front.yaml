@@ -7,7 +7,6 @@ metadata:
 
 # https://kubernetes.io/docs/reference/kubernetes-api/service-resources/service-v1/#ServiceSpec
 spec:
-  # type: LoadBalancer
   selector:
     name: front-pod
   ports:
