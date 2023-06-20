@@ -95,8 +95,9 @@ jobs:
     - name: Kubernetes deploy
       working-directory: src/k8s
       env:
-        TLS_CERTIFICATE: ${{ secrets.TLS_CERTIFICATE }}
-        TLS_PRIVATE_KEY: ${{ secrets.TLS_PRIVATE_KEY }}
+        TLS_SECRET_YAML: ${{ secrets.TLS_SECRET_YAML }}
+        # TLS_CERTIFICATE: ${{ secrets.TLS_CERTIFICATE }}
+        # TLS_PRIVATE_KEY: ${{ secrets.TLS_PRIVATE_KEY }}
       run: |
         ls -lah
 
@@ -140,25 +141,27 @@ jobs:
         
         echo "Se crearán los secretos para el certificado TLS..."
 
-        echo "$TLS_CERTIFICATE" > certificate.pem
-        echo "$TLS_PRIVATE_KEY" > private.pem
+        echo "$TLS_SECRET_YAML" > tls-secrets.yaml
+        
+        # echo "$TLS_CERTIFICATE" > certificate.pem
+        # echo "$TLS_PRIVATE_KEY" > private.pem
 
-        cat <<EOF > tls-secrets.yaml
-          apiVersion: v1
-          kind: Secret
-          metadata:
-            name: tls-secrets
-            namespace: nginx-ingress
-          type: kubernetes.io/tls
-          data:
-            tls.crt: $(base64 certificate.pem)
-            tls.key: $(base64 private.pem)
-        EOF
+        # cat <<EOF > tls-secrets.yaml
+        #   apiVersion: v1
+        #   kind: Secret
+        #   metadata:
+        #     name: tls-secrets
+        #     namespace: nginx-ingress
+        #   type: kubernetes.io/tls
+        #   data:
+        #     tls.crt: $(base64 certificate.pem)
+        #     tls.key: $(base64 private.pem)
+        # EOF
 
         kubectl apply -f tls-secrets.yaml
 
         echo "Secretos creados."
-        
+
         fi
 
         echo "Se aplicarán los cambios del Ingress..."
