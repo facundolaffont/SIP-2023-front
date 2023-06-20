@@ -4,6 +4,7 @@ metadata:
   name: front-ingress
   namespace: nginx-ingress
 spec:
+  ingressClassName: nginx
   tls:
   - hosts:
     - spgda.fl.com.ar

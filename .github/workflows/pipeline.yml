@@ -114,17 +114,17 @@ jobs:
           echo "$TLS_CERTIFICATE" > certificate.pem
           echo "$TLS_PRIVATE_KEY" > private.pem
 
-          cat <<EOF > tls-secrets.yaml
-            apiVersion: v1
-            kind: Secret
-            metadata:
-              name: tls-secrets
-              namespace: nginx-ingress
-            type: kubernetes.io/tls
-            data:
-              tls.crt: $(base64 certificate.pem)
-              tls.key: $(base64 private.pem)
-          EOF
+        cat <<EOF > tls-secrets.yaml
+          apiVersion: v1
+          kind: Secret
+          metadata:
+            name: tls-secrets
+            namespace: nginx-ingress
+          type: kubernetes.io/tls
+          data:
+            tls.crt: $(base64 certificate.pem)
+            tls.key: $(base64 private.pem)
+        EOF
 
           kubectl apply -f tls-secrets.yaml
 
