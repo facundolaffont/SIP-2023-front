@@ -2,5 +2,5 @@
 
 set -e
 
-docker build -t facundol/sip-frontend:latest .
+docker build --no-cache -t facundol/sip-frontend:latest .
 docker push facundol/sip-frontend:latest
