@@ -15,7 +15,7 @@ resource "google_container_node_pool" "general" {
   }
 
   autoscaling {
-    min_node_count = 2
+    min_node_count = 1
     max_node_count = 10
   }
 
@@ -45,7 +45,7 @@ resource "google_container_node_pool" "spot" {
   }
 
   autoscaling {
-    min_node_count = 2
+    min_node_count = 1
     max_node_count = 10
   }
 
