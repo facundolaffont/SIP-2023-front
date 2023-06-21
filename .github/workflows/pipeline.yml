@@ -128,13 +128,13 @@ jobs:
 
         echo "Todos los cambios de Kubernetes fueron aplicados."
 
-        # Espera hasta que el controlador esté listo [https://kubernetes.github.io/ingress-nginx/deploy/#pre-flight-check].
-        echo "Se verifica que el controlador del ingress esté listo..."
-        kubectl wait --namespace ingress-nginx \
-          --for=condition=ready pod \
-          --selector=app.kubernetes.io/component=controller \
-          --timeout=120s
-        echo "Controlador listo."
+        # # Espera hasta que el controlador esté listo [https://kubernetes.github.io/ingress-nginx/deploy/#pre-flight-check].
+        # echo "Se verifica que el controlador del ingress esté listo..."
+        # kubectl wait --namespace ingress-nginx \
+        #   --for=condition=ready pod \
+        #   --selector=app.kubernetes.io/component=controller \
+        #   --timeout=120s
+        # echo "Controlador listo."
 
     # Configura los servidores de nombre de dominio.
     - name: Terraform DNS config
