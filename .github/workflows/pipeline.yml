@@ -128,13 +128,13 @@ jobs:
 
         echo "Todos los cambios de Kubernetes fueron aplicados."
 
-        # # Espera hasta que el controlador esté listo [https://kubernetes.github.io/ingress-nginx/deploy/#pre-flight-check].
-        # echo "Se verifica que el controlador del ingress esté listo..."
-        # kubectl wait --namespace ingress-nginx \
-        #   --for=condition=ready pod \
-        #   --selector=app.kubernetes.io/component=controller \
-        #   --timeout=120s
-        # echo "Controlador listo."
+        # Espera hasta que el controlador esté listo [https://kubernetes.github.io/ingress-nginx/deploy/#pre-flight-check].
+        echo "Se verifica que el controlador nginx esté listo..."
+        kubectl wait --namespace nginx-ingress \
+          --for=condition=ready pod \
+          --selector=app=nginx-ingress \
+          --timeout=120s
+        echo "Controlador listo."
 
     # Configura los servidores de nombre de dominio.
     - name: Terraform DNS config
@@ -159,7 +159,7 @@ jobs:
         echo "Verificando que balanceador de cargas esté activo..."
 
         until 
-          kubectl get service ingress-nginx-lb
+          kubectl get service nginx-ingress --namespace=nginx-ingress
         do
           echo
           echo "El balanceador de cargas no está activo aún..."
@@ -168,7 +168,7 @@ jobs:
         done
 
         while 
-          LOADBALANCER_IP=$(kubectl get -o json service ingress-nginx-lb | jq -r .status.loadBalancer.ingress\[0\].ip)
+          LOADBALANCER_IP=$(kubectl get -o json service nginx-ingress --namespace=nginx-ingress | jq -r .status.loadBalancer.ingress\[0\].ip)
           [ $LOADBALANCER_IP = null ]
         do
           echo
@@ -314,7 +314,7 @@ jobs:
         sudo apt-get install jq
         
         until 
-          kubectl get service front-service
+          kubectl get service nginx-ingress --namespace=nginx-ingress
         do
           echo
           echo "El servicio del front no está activo aún..."
@@ -323,7 +323,7 @@ jobs:
         done
 
         while 
-          LOADBALANCER_IP=$(kubectl get -o json service front-service | jq -r .status.loadBalancer.ingress\[0\].ip)
+          LOADBALANCER_IP=$(kubectl get -o json service nginx-ingress --namespace=nginx-ingress | jq -r .status.loadBalancer.ingress\[0\].ip)
           [ $LOADBALANCER_IP = null ]
         do
           echo
@@ -391,7 +391,7 @@ jobs:
 
           sudo apt-get install jq
         
-          LOADBALANCER_IP=$(kubectl get -o json service front-service | jq -r .status.loadBalancer.ingress\[0\].ip)
+          LOADBALANCER_IP=$(kubectl get -o json service nginx-ingress --namespace=nginx-ingress | jq -r .status.loadBalancer.ingress\[0\].ip)
 
           export TF_VAR_CLOUDFLARE_EMAIL=${{ secrets.CF_API_EMAIL }}
           export TF_VAR_CLOUDFLARE_API_KEY=${{ secrets.CF_API_KEY }}
@@ -501,7 +501,7 @@ jobs:
 
           sudo apt-get install jq
         
-          LOADBALANCER_IP=$(kubectl get -o json service ingress-nginx-lb | jq -r .status.loadBalancer.ingress\[0\].ip)
+          LOADBALANCER_IP=$(kubectl get -o json service nginx-ingress --namespace=nginx-ingress | jq -r .status.loadBalancer.ingress\[0\].ip)
 
           export TF_VAR_CLOUDFLARE_EMAIL=${{ secrets.CF_API_EMAIL }}
           export TF_VAR_CLOUDFLARE_API_KEY=${{ secrets.CF_API_KEY }}
