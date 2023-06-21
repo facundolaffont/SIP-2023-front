@@ -8,7 +8,7 @@ on:
 
 jobs:
 
-  all-up: # [ALL-UP] 
+  all-up: # [ALL-UP]
     name: Base + DNS infra up
     if: startsWith(github.event.head_commit.message, '[ALL-UP]')
     runs-on: ubuntu-latest
