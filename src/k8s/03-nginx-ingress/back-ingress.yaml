@@ -4,13 +4,13 @@ metadata:
   name: back-ingress
   namespace: default
   annotations:
-    nginx.ingress.kubernetes.io/whitelist-source-range: "10.0.0.0/16"
+    nginx.ingress.kubernetes.io/whitelist-source-range: "10.0.0.0/8"
 spec:
   ingressClassName: nginx
-  tls:
-  - hosts:
-    - back-service.default.svc.cluster.local
-    secretName: tls-secrets
+  # tls:
+  # - hosts:
+  #   - nginx-ingress.nginx-ingress.svc.cluster.local
+  #   secretName: tls-back-secrets
   rules:
   - host: back-service.default.svc.cluster.local
     http:
