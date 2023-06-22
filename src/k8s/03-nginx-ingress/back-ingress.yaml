@@ -1,0 +1,24 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: back-ingress
+  namespace: default
+  annotations:
+    nginx.ingress.kubernetes.io/whitelist-source-range: "10.0.0.0/16"
+spec:
+  ingressClassName: nginx
+  tls:
+  - hosts:
+    - back-service.default.svc.cluster.local
+    secretName: tls-secrets
+  rules:
+  - host: back-service.default.svc.cluster.local
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: back-service
+            port:
+              number: 6060

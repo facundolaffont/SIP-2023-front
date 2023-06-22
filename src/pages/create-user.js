@@ -145,6 +145,7 @@ export function CreateUser() {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        "Host": "back-service.default.svc.cluster.local"
         //Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify(data),

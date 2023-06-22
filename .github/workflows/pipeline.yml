@@ -8,9 +8,9 @@ on:
 
 jobs:
 
-  all-up: # [ALL-UP]
-    name: Base + DNS infra up
-    if: startsWith(github.event.head_commit.message, '[ALL-UP]')
+  all-up: # [UP]
+    name: Infra + front k8s up
+    if: startsWith(github.event.head_commit.message, '[UP]')
     runs-on: ubuntu-latest
     environment: front
     steps:
@@ -103,7 +103,8 @@ jobs:
           -f 03-nginx-ingress/common/crds/k8s.nginx.org_transportservers.yaml \
           -f 03-nginx-ingress/common/crds/k8s.nginx.org_policies.yaml \
           -f 03-nginx-ingress/deployment/nginx-ingress.yaml \
-          -f 03-nginx-ingress/ingress.yaml
+          -f 03-nginx-ingress/front-ingress.yaml \
+          -f 03-nginx-ingress/back-ingress.yaml
 
         kubectl apply -f 03-nginx-ingress/service/loadbalancer.yaml
 
@@ -170,9 +171,9 @@ jobs:
 
         terraform apply -lock=false --auto-approve
    
-  all-down: # [ALL-DOWN]
-    name: Front, DNS and base infrastructure down
-    if: startsWith(github.event.head_commit.message, '[ALL-DOWN]')
+  all-down: # [DOWN]
+    name: Infra down
+    if: startsWith(github.event.head_commit.message, '[DOWN]')
     runs-on: ubuntu-latest
     environment: front
     steps:
