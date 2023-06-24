@@ -147,7 +147,7 @@ export function AttendanceRegistering() {
     if (selectedEventId) {
 
       // Obtener la lista de asistencia
-      const attendanceData = spreadsheetManipulator.get().data.map((item) => {
+      const attendanceData = spreadsheetManipulator.getLastReadRange().data.map((item) => {
         return {
           studentDossier: item[firstColumn], // Utiliza el valor de 'Legajo' como studentDossier
           attendance: item[lastColumn], // Utiliza el valor de 'Asistencia' como attendance

@@ -1,3 +1,4 @@
+import { thisTypeAnnotation } from '@babel/types';
 import * as XLSX from 'xlsx';
 
 /**
@@ -36,7 +37,7 @@ class SpreadsheetManipulator {
             // debugger // Ya se cargó el archivo.
 
             // Habilita el uso del resto de los métodos y llama a la función callback.
-            onFileLoad();
+            onFileLoad(this);
 
         };
 

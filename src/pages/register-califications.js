@@ -146,8 +146,8 @@ export function CalificationRegistering() {
     if (selectedEventId) {
 
       // Obtener la lista de calificaciones
-      const calificacionData = spreadsheetManipulator.get().data.map((item) => {
-        console.log(spreadsheetManipulator.get());
+      const calificacionData = spreadsheetManipulator.getLastReadRange().data.map((item) => {
+        console.log(spreadsheetManipulator.getLastReadRange());
         return {
           studentDossier: item[firstColumn], // Utiliza el valor de 'Legajo' como studentDossier
           calification: item[lastColumn], // Utiliza el valor de 'Calificacion' como calification
