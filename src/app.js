@@ -16,6 +16,7 @@ import { AssignRole } from "./pages/assign-role";
 import { AttendanceRegistering } from "./pages/register-attendance";
 import { CalificationRegistering } from "./pages/register-califications";
 import { StudentRegistering } from "./pages/register-students";
+import { FinalCondition } from "./pages/final-condition";
 import { CreateCriterion } from "./pages/create-criterion";
 
 export const App = () => {
@@ -65,6 +66,7 @@ export const App = () => {
       <ProtectedRoute path="/register-attendance" component={AttendanceRegistering} />
       <ProtectedRoute path="/register-califications" component={CalificationRegistering} />
       <ProtectedRoute path="/register-students" component={StudentRegistering} />
+      <ProtectedRoute path="/final-condition" component={FinalCondition} />
 
       {isAdmin && <ProtectedRoute path="/create-user" component={CreateUser} />}
       {isAdmin && <ProtectedRoute path="/assign-role" component={AssignRole} />}
