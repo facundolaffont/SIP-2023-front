@@ -1,3 +1,11 @@
+# Archivos sensibles.
+gcloud-key.json
+*secrets.yaml
+*token.txt
+*.tfstate
+
+!*.example
+.terraform/
 
 # Created by https://www.toptal.com/developers/gitignore/api/macos,windows,jetbrains+all,visualstudiocode,node
 # Edit at https://www.toptal.com/developers/gitignore?templates=macos,windows,jetbrains+all,visualstudiocode,node
@@ -198,7 +206,7 @@ web_modules/
 # dotenv environment variables file
 .env
 .env.*
-!.env.example
+!*.example
 
 # parcel-bundler cache (https://parceljs.org/)
 .cache

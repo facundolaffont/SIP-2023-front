@@ -33,7 +33,7 @@ jobs:
 
         bucket_name="spgda-bucket"
 
-        prefix="gke/state"
+        prefix="state/base"
 
         terraform init --reconfigure \
           --backend-config bucket=$bucket_name \
@@ -128,7 +128,7 @@ jobs:
 
         bucket_name="spgda-bucket"
 
-        prefix="gke-dns/state"
+        prefix="state/dns"
 
         terraform init --reconfigure \
           --backend-config bucket=$bucket_name \
@@ -205,7 +205,7 @@ jobs:
           gcloud container clusters get-credentials primary --region=us-central1-a
 
       # Destruye la infraestructura en la nube.
-      - name: Terraform destroy gke-dns/state
+      - name: Terraform destroy state/dns
         working-directory: src/terraform
         env:
           GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
@@ -214,7 +214,7 @@ jobs:
 
           bucket_name="spgda-bucket"
 
-          prefix="gke-dns/state"
+          prefix="state/dns"
 
           sudo apt-get install jq
         
@@ -231,7 +231,7 @@ jobs:
           terraform destroy -lock=false --auto-approve
 
       # Destruye la infraestructura en la nube.
-      - name: Terraform destroy gke/state
+      - name: Terraform destroy state/base
         working-directory: src/terraform/00-base
         env:
           GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
@@ -240,7 +240,7 @@ jobs:
 
           bucket_name="spgda-bucket"
 
-          prefix="gke/state"
+          prefix="state/base"
 
           terraform init --reconfigure \
           --backend-config bucket=$bucket_name \

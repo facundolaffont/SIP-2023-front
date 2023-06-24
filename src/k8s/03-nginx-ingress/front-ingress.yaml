@@ -8,7 +8,7 @@ spec:
   tls:
   - hosts:
     - spgda.fl.com.ar
-    secretName: tls-secrets
+    secretName: spgda-fl-com-ar-tls
   rules:
   - host: spgda.fl.com.ar
     http:

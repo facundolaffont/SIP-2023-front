@@ -19,6 +19,10 @@ terraform {
 
 # https://developer.hashicorp.com/terraform/language/providers/configuration
 provider "google" {
+
+  # https://registry.terraform.io/providers/hashicorp/google/latest/docs/guides/provider_reference#authentication-configuration
+  credentials = file(var.credentials_file_path)
+  
   project     = var.project_id
   region      = var.region
   zone        = var.zone

@@ -16,14 +16,14 @@ variable "project_id" {
 variable "LOADBALANCER_IP" {
   type = string
 }
-variable "CLOUDFLARE_EMAIL" {
-  type = string
-}
-variable "CLOUDFLARE_API_KEY" {
-  type = string
-}
 
 # Obtiene la información de la zona del dominio de Cloudflare.
 data "cloudflare_zone" "spgda" {
   name = "fl.com.ar"
+}
+
+variable "credentials_file_path" {
+  description = "Ruta del archivo de credenciales para la cuenta de servicios de GCP"
+  default     = "./gcloud-key.json"
+  sensitive   = true
 }
