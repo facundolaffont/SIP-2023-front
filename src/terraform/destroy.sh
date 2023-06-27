@@ -27,7 +27,7 @@ else
 
     # Inicializa Terraform en carpeta de estado de la configuración del DNS.
     echo "Inicializando Terraform..."
-    docker run -it --mount type=bind,src=./,dst=/tmp hashicorp/terraform \
+    docker run --rm -it --mount type=bind,src=./,dst=/tmp hashicorp/terraform \
         -chdir=/tmp init \
         --backend-config bucket="spgda-bucket" \
         --backend-config prefix="state/dns" \
@@ -36,7 +36,7 @@ else
 
     # Destruye infra del DNS.
     echo "Desactivando infraestructura..."
-    docker run -it --mount type=bind,src=./,dst=/tmp hashicorp/terraform \
+    docker run --rm -it --mount type=bind,src=./,dst=/tmp hashicorp/terraform \
         -chdir=/tmp destroy \
         --auto-approve \
         -lock=false
@@ -44,7 +44,7 @@ else
 
     # Inicializa Terraform en carpeta de estado de la base de la infraestructura.
     echo "Inicializando Terraform..."
-    docker run -it --mount type=bind,src=./,dst=/tmp hashicorp/terraform \
+    docker run --rm -it --mount type=bind,src=./,dst=/tmp hashicorp/terraform \
         -chdir=/tmp/00-base init \
         --backend-config bucket="spgda-bucket" \
         --backend-config prefix="state/base" \
@@ -53,7 +53,7 @@ else
 
     # Destruye infra del DNS.
     echo "Desactivando infraestructura..."
-    docker run -it --mount type=bind,src=./,dst=/tmp hashicorp/terraform \
+    docker run --rm -it --mount type=bind,src=./,dst=/tmp hashicorp/terraform \
         -chdir=/tmp/00-base destroy \
         --auto-approve \
         -lock=false
