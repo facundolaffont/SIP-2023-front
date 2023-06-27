@@ -27,7 +27,7 @@ else
     # Terraform init.
       # --reconfigure --var credentials_file_path=/tmp/gcloud-key.json \
     echo "Terraform init..."
-    docker run -it --mount type=bind,src=./,dst=/tmp hashicorp/terraform \
+    docker run --rm -it --mount type=bind,src=./,dst=/tmp hashicorp/terraform \
         -chdir=/tmp/00-base init \
         --backend-config bucket="spgda-bucket" \
         --backend-config prefix="state/base" \
@@ -36,19 +36,19 @@ else
     # Terraform validate.
     echo "Validando configuración de Terraform..."
     docker run \
-      -it \
+      --rm -it \
       --mount type=bind,src=./,dst=/tmp hashicorp/terraform \
       -chdir=/tmp/00-base validate
     echo "Configuración validada."
 
     # Terraform plan.
     echo "Verificando plan de Terraform..."
-    docker run -it --mount type=bind,src=./,dst=/tmp hashicorp/terraform -chdir=/tmp/00-base plan
+    docker run --rm -it --mount type=bind,src=./,dst=/tmp hashicorp/terraform -chdir=/tmp/00-base plan
     echo "Plan verificado."
 
     # Terraform apply.
     echo "Aplicando la configuración de Terraform..."
-    docker run -it --mount type=bind,src=./,dst=/tmp hashicorp/terraform -chdir=/tmp/00-base apply --auto-approve -lock=false
+    docker run --rm -it --mount type=bind,src=./,dst=/tmp hashicorp/terraform -chdir=/tmp/00-base apply --auto-approve -lock=false
     echo "Configuración aplicada."
 
     # Establece el proyecto adecuado, si no está establecido aún.
@@ -79,7 +79,7 @@ else
       -f 03-nginx-ingress/common/crds/k8s.nginx.org_transportservers.yaml \
       -f 03-nginx-ingress/common/crds/k8s.nginx.org_policies.yaml \
       -f 03-nginx-ingress/deployment/nginx-ingress.yaml \
-      -f 03-nginx-ingress/front-ingress.yaml
+      -f 03-nginx-ingress/app-ingress.yaml
     kubectl apply -f 03-nginx-ingress/service/loadbalancer.yaml
     cd -
     echo "Todos los cambios de Kubernetes fueron aplicados."
@@ -117,7 +117,7 @@ else
 
     # Terraform init.
     echo "Terraform init..."
-    docker run -it --mount type=bind,src=./,dst=/tmp hashicorp/terraform \
+    docker run --rm -it --mount type=bind,src=./,dst=/tmp hashicorp/terraform \
         -chdir=/tmp init \
         --backend-config bucket="spgda-bucket" \
         --backend-config prefix="state/dns" \
@@ -126,7 +126,7 @@ else
     # Terraform plan.
     echo "Ejecutando plan de Terraform..."
     docker run \
-        -it \
+        --rm -it \
         --mount type=bind,src=./,dst=/tmp hashicorp/terraform \
         -chdir=/tmp plan \
         -var "LOADBALANCER_IP=$LOADBALANCER_IP"
@@ -135,7 +135,7 @@ else
     # Terraform apply.
     echo "Aplicando cambios de Terraform..."
     docker run \
-        -it \
+        --rm -it \
         --mount type=bind,src=./,dst=/tmp hashicorp/terraform \
         -chdir=/tmp apply \
         -var "LOADBALANCER_IP=$LOADBALANCER_IP" \

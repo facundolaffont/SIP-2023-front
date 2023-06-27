@@ -3,6 +3,7 @@ gcloud-key.json
 *secrets.yaml
 *token.txt
 *.tfstate
+*.tfstate.backup
 
 !*.example
 .terraform/

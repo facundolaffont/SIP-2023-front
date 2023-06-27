@@ -31,6 +31,7 @@
             <NavBarTab path="/register-califications" label="Registrar calificaciones" />
             <NavBarTab path="/register-students" label="Registrar estudiantes" />
             <NavBarTab path="/create-criterion" label="Alta de criterio" />
+            <NavBarTab path="/register-event" label="Registrar Evento" />
             <NavBarTab path="/final-condition" label="Condición Final" />
 
             {isAdmin && <NavBarTab path="/search-professor" label="Buscar docente" /> }
