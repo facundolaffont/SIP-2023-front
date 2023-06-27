@@ -2,6 +2,9 @@
 
 set -e
 
+# Se asegura de que el CWD sea el del directorio de este script.
+cd "$(dirname "$0")"
+
 # Carga el mail con el que se va a acceder a GCP.
 source .env
 
@@ -12,7 +15,7 @@ if [ -z $user_email ]; then
 else
 
     # Verifica y eventualmente crea el archivo con las llaves para conectarse por SSH con GCP.
-    echo "Verificando llave SSH..."
+    echo "Verificando clave SSH..."
     sshkey_name=$HOME/.ssh/gcp
     if [ -f "$sshkey_name" ]; then
         echo "Archivo de clave SSH verificado."
@@ -24,10 +27,14 @@ else
         echo "Archivo creado."
     fi
 
+
+    ######################################################
+    ### Configuración de la base de la infraestructura ###
+    ######################################################
+
     # Terraform init.
-      # --reconfigure --var credentials_file_path=/tmp/gcloud-key.json \
     echo "Terraform init..."
-    docker run -it --mount type=bind,src=./,dst=/tmp hashicorp/terraform \
+    docker run --rm -it --mount type=bind,src=./,dst=/tmp hashicorp/terraform \
         -chdir=/tmp/00-base init \
         --backend-config bucket="spgda-bucket" \
         --backend-config prefix="state/base" \
@@ -36,20 +43,25 @@ else
     # Terraform validate.
     echo "Validando configuración de Terraform..."
     docker run \
-      -it \
+      --rm -it \
       --mount type=bind,src=./,dst=/tmp hashicorp/terraform \
       -chdir=/tmp/00-base validate
     echo "Configuración validada."
 
     # Terraform plan.
     echo "Verificando plan de Terraform..."
-    docker run -it --mount type=bind,src=./,dst=/tmp hashicorp/terraform -chdir=/tmp/00-base plan
+    docker run --rm -it --mount type=bind,src=./,dst=/tmp hashicorp/terraform -chdir=/tmp/00-base plan
     echo "Plan verificado."
 
     # Terraform apply.
     echo "Aplicando la configuración de Terraform..."
-    docker run -it --mount type=bind,src=./,dst=/tmp hashicorp/terraform -chdir=/tmp/00-base apply --auto-approve -lock=false
+    docker run --rm -it --mount type=bind,src=./,dst=/tmp hashicorp/terraform -chdir=/tmp/00-base apply --auto-approve -lock=false
     echo "Configuración aplicada."
+
+
+    ###############################################
+    ### Aplicación de los cambios de Kubernetes ###
+    ###############################################
 
     # Establece el proyecto adecuado, si no está establecido aún.
     echo "Configurando el proyecto..."
@@ -61,7 +73,7 @@ else
     gcloud container clusters get-credentials primary --region=us-central1-a
     echo "Archivo obtenido."
 
-    # Aplica los cambios de todos los archivos de configuración.
+    # Aplica los cambios de la primera tanda de archivos de configuración de Kubernetes.
     echo "Aplicando los cambios de Kubernetes..."
     cd ../k8s
     kubectl apply \
@@ -69,9 +81,7 @@ else
       -f 02-service-front.yaml \
       -f 03-nginx-ingress/common/ns-and-sa.yaml \
       -f 03-nginx-ingress/rbac/rbac.yaml \
-      -f tls-secrets.yaml
-    echo "Aplicando los cambios de Kubernetes del Ingress..."
-    kubectl apply \
+      -f tls-secrets.yaml \
       -f 03-nginx-ingress/common/nginx-config.yaml \
       -f 03-nginx-ingress/common/ingress-class.yaml \
       -f 03-nginx-ingress/common/crds/k8s.nginx.org_virtualservers.yaml \
@@ -79,19 +89,43 @@ else
       -f 03-nginx-ingress/common/crds/k8s.nginx.org_transportservers.yaml \
       -f 03-nginx-ingress/common/crds/k8s.nginx.org_policies.yaml \
       -f 03-nginx-ingress/deployment/nginx-ingress.yaml \
-      -f 03-nginx-ingress/front-ingress.yaml
-    kubectl apply -f 03-nginx-ingress/service/loadbalancer.yaml
-    cd -
-    echo "Todos los cambios de Kubernetes fueron aplicados."
+      -f 03-nginx-ingress/app-ingress.yaml \
+      -f 03-nginx-ingress/service/loadbalancer.yaml \
+      -f 04-tls/dns01/00-cert-manager.yaml \
+      -f 04-tls/dns01/01-cloudflare-secrets.yaml
 
-    # Espera hasta que el controlador esté listo [https://kubernetes.github.io/ingress-nginx/deploy/#pre-flight-check].
-    echo "Esperando a que el controlador nginx esté listo..."
+    # Espera hasta que los objetos de cert-manager estén listos. [https://kubernetes.github.io/ingress-nginx/deploy/#pre-flight-check]
+    echo "Esperando a que cert-manager esté listo..."
+    kubectl wait --namespace cert-manager \
+      --for=condition=ready pod \
+      --selector=app=cert-manager \
+      --timeout=120s
+    kubectl wait --namespace cert-manager \
+      --for=condition=ready pod \
+      --selector=app=webhook \
+      --timeout=120s
+    kubectl wait --namespace cert-manager \
+      --for=condition=ready pod \
+      --selector=app=cainjector \
+      --timeout=120s
+    echo "cert-manager listo."
+    
+    # Aplica los cambios de la segunda tanda de archivos de configuración de Kubernetes.
+    kubectl apply \
+      -f 04-tls/dns01/02-issuer.yaml \
+      -f 04-tls/dns01/03-certificate.yaml
+    cd -
+    echo "Cambios aplicados."
+
+    # Espera hasta que el controlador NGINX esté listo. [https://kubernetes.github.io/ingress-nginx/deploy/#pre-flight-check]
+    echo "Esperando a que el controlador NGINX esté listo..."
     kubectl wait --namespace nginx-ingress \
       --for=condition=ready pod \
       --selector=app=nginx-ingress \
       --timeout=120s
     echo "Controlador listo."
 
+    # Espera hasta que el balanceador de carga exista.
     until
       kubectl get service nginx-ingress --namespace=nginx-ingress
     do
@@ -101,6 +135,7 @@ else
       sleep 10
     done
 
+    # Espera hasta que el balanceador de carga tenga IP pública.
     while
       LOADBALANCER_IP=$(kubectl get -o json service nginx-ingress --namespace=nginx-ingress | jq -r .status.loadBalancer.ingress\[0\].ip)
       [ $LOADBALANCER_IP = null ]
@@ -115,9 +150,14 @@ else
     echo "IP pública del balanceador de cargas = $LOADBALANCER_IP."
     echo
 
+
+    ###################################################
+    ### Configuración de la infraestructura del DNS ###
+    ###################################################
+
     # Terraform init.
     echo "Terraform init..."
-    docker run -it --mount type=bind,src=./,dst=/tmp hashicorp/terraform \
+    docker run --rm -it --mount type=bind,src=./,dst=/tmp hashicorp/terraform \
         -chdir=/tmp init \
         --backend-config bucket="spgda-bucket" \
         --backend-config prefix="state/dns" \
@@ -126,7 +166,7 @@ else
     # Terraform plan.
     echo "Ejecutando plan de Terraform..."
     docker run \
-        -it \
+        --rm -it \
         --mount type=bind,src=./,dst=/tmp hashicorp/terraform \
         -chdir=/tmp plan \
         -var "LOADBALANCER_IP=$LOADBALANCER_IP"
@@ -135,7 +175,7 @@ else
     # Terraform apply.
     echo "Aplicando cambios de Terraform..."
     docker run \
-        -it \
+        --rm -it \
         --mount type=bind,src=./,dst=/tmp hashicorp/terraform \
         -chdir=/tmp apply \
         -var "LOADBALANCER_IP=$LOADBALANCER_IP" \
