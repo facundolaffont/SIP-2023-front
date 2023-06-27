@@ -79,7 +79,7 @@ else
       -f 03-nginx-ingress/common/crds/k8s.nginx.org_transportservers.yaml \
       -f 03-nginx-ingress/common/crds/k8s.nginx.org_policies.yaml \
       -f 03-nginx-ingress/deployment/nginx-ingress.yaml \
-      -f 03-nginx-ingress/front-ingress.yaml
+      -f 03-nginx-ingress/app-ingress.yaml
     kubectl apply -f 03-nginx-ingress/service/loadbalancer.yaml
     cd -
     echo "Todos los cambios de Kubernetes fueron aplicados."
