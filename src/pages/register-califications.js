@@ -33,7 +33,6 @@ export function CalificationRegistering() {
     
     // Muestra los resultados en la tabla.
     let calificationsTable = document.getElementsByClassName("calification-table")[0];
-    debugger
     spreadsheetManipulator.insertDataIntoTable(calificationsTable, "Tabla de calificaciones");
     calificationsTable.classList.remove("not-displayed");
     setSpreadSheet(spreadsheetManipulator);

@@ -25,15 +25,12 @@ export const ChangePasswordForm = () => {
 
       // Si el usuario está logueado y se pudieron obtener sus datos,
       // se actualiza la variable email.
-      debugger;
       if (isAuthenticated && typeof user.email !== "undefined") {
-        debugger;
         setEmail(user.email);
       }
 
       // Función de limpieza.
       return () => {
-        debugger;
         setEmail(null);
       };
 
@@ -53,7 +50,6 @@ export const ChangePasswordForm = () => {
   // enviar el mail o no.
   const processSubmit = async (event) => {
     event.preventDefault();
-    debugger;
     auth0WebAuth.changePassword(
       {
         client_id: process.env.REACT_APP_AUTH0_CLIENT_ID,

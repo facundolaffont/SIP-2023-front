@@ -30,8 +30,6 @@ export function StudentRegistering() {
    */
   const loadRange = () => {
 
-    // debugger // Ya se cargó el archivo.
-
     console.debug(`Se ejecuta la función loadRange. [spreadsheetManipulator = ${spreadsheetManipulator}]`);
 
     // Lee un rango de celdas.
@@ -65,8 +63,7 @@ export function StudentRegistering() {
   }
 
   const handleRegistering = () => {
-
-    debugger
+    
     // Obtiene la lista de estudiantes.
     const studentsRequest =
       spreadsheetManipulator

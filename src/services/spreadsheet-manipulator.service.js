@@ -34,8 +34,6 @@ class SpreadsheetManipulator {
             const data = new Uint8Array(loadEvent.target.result);
             this.#loadedWorkbook = XLSX.read(data, { type: 'array' });
 
-            // debugger // Ya se cargó el archivo.
-
             // Habilita el uso del resto de los métodos y llama a la función callback.
             onFileLoad(this);
 
@@ -104,7 +102,6 @@ class SpreadsheetManipulator {
                 }
             }
 
-            debugger
             console.info("Rango leído.");
             console.debug(`this.#lastReadRange = ${this.#lastReadRange}`);
         }
@@ -127,8 +124,6 @@ class SpreadsheetManipulator {
         `);
 
         if (this.#loadedWorkbook) {
-            
-            // debugger // Ya se cargó el archivo.
 
             // Establece el nombre de la pestaña que se quiere seleccionar, y
             // obtiene un manejador.
@@ -143,7 +138,6 @@ class SpreadsheetManipulator {
                 columnNames: columnNames,
                 data: [],
             }
-            // debugger // A punto de cargar los valores en el arreglo.
             console.debug(`this.#lastReadRange = ${this.#lastReadRange}`);
             let columnNamesArrayIndex;
             for (let R = sheetJSRangeCells.s.r; R <= sheetJSRangeCells.e.r; ++R) {
@@ -160,7 +154,6 @@ class SpreadsheetManipulator {
                     const sheetJSColumnCell = sheet[a1ColumnCellAddress];
 
                     // Guarda la celda, si tiene datos.
-                    // debugger
                     if (sheetJSColumnCell) {
                         row[columnNames.at(columnNamesArrayIndex++)] = sheetJSColumnCell.v; // TODO: Cambiar 'C' por el nombre de la columna.
                     }
@@ -169,11 +162,8 @@ class SpreadsheetManipulator {
                 
                 this.#lastReadRange.data.push(row);
 
-                // debugger // Se cargó un registro.
-
             }
 
-            debugger
             console.info("Rango leído.");
             console.debug(`this.#lastReadRange = ${this.#lastReadRange}`);
 
@@ -190,8 +180,6 @@ class SpreadsheetManipulator {
     insertDataIntoTable(htmlTable, title) {
 
         if (this.#loadedWorkbook) {
-            
-            // debugger // Rango cargado. Se insertará en una tabla.
 
             /**
              * Elimina los hijos que pueda tener la tabla que se pasa por argumento (A). Luego,
@@ -261,7 +249,6 @@ class SpreadsheetManipulator {
 
                 let tableRow = document.createElement("tr");
 
-                // debugger
                 for (let columnIndex = 0; columnIndex < this.#lastReadRange.columnNames.length; columnIndex++) {
 
                     let columnDataTag = document.createElement("td");
@@ -274,7 +261,6 @@ class SpreadsheetManipulator {
                 }
 
                 tableBody.appendChild(tableRow);
-                // debugger
 
             }
 
