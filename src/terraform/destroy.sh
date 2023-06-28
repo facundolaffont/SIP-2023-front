@@ -25,6 +25,8 @@ else
     echo "Archivo creado."
     fi
 
+    LOADBALANCER_IP=$(kubectl get -o json service nginx-ingress --namespace=nginx-ingress | jq -r .status.loadBalancer.ingress\[0\].ip)
+
     # Inicializa Terraform en carpeta de estado de la configuración del DNS.
     echo "Inicializando Terraform..."
     docker run --rm -it --mount type=bind,src=./,dst=/tmp hashicorp/terraform \
@@ -39,7 +41,8 @@ else
     docker run --rm -it --mount type=bind,src=./,dst=/tmp hashicorp/terraform \
         -chdir=/tmp destroy \
         --auto-approve \
-        -lock=false
+        -lock=false \
+        -var "LOADBALANCER_IP=$LOADBALANCER_IP"
     echo "Infraestructura desactivada."
 
     # Inicializa Terraform en carpeta de estado de la base de la infraestructura.
