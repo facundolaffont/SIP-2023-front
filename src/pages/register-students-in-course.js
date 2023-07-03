@@ -13,9 +13,9 @@ import CourseDTO from "../contexts/course/course-d-t-o";
 
 // Estilos.
 import "../styles/components/table.css";
-import "../styles/register-students.css";
+import "../styles/register-students-in-course.css";
 
-export function StudentRegistering() {
+export function CourseStudentRegistering() {
     const [fileName, setFileName] = useState("");
     const [fileHandle, setFileHandle] = useState(null);
     const [sheetNameValue, setSheetNameValue] = useState("");

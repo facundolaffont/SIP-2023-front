@@ -1,4 +1,3 @@
-import { thisTypeAnnotation } from '@babel/types';
 import * as XLSX from 'xlsx';
 
 /**
@@ -25,9 +24,8 @@ class SpreadsheetManipulator {
         // Establece la función que se ejecutará cuando
         // se termine de cargar el archivo.
         const fileReader = new FileReader();
-        fileReader.onload = (loadEvent) => {
+        fileReader.onload = loadEvent => {
             
-            console.debug(`Tipo de evento: ${loadEvent.type}.`);
             console.info("Archivo cargado.");
 
             // Carga todos los datos de la planilla.
@@ -51,20 +49,8 @@ class SpreadsheetManipulator {
      * @param {String} sheetName Nombre de la pestaña en la planilla.
      * @param {String} A1CellRange Rango, en notación A1, que se quiere leer.
      * @param {Array.<String>} columnNames Lista de nombres de las columnas (debe tener la misma cantidad de nombres que de columnas en {@link A1CellRange}).
-     * 
-     * TODO: hacer que los nombres de las columnas estén implementadas como en
-     * el método 'loadRange'.
      */
     loadRangeSides(sheetName, A1CellRange, columnNames) {
-    // @param {String} firstColumnName Nombre que tendrá la primera columna.
-    // @param {String} lastColumnName Nombre que tendrá la última columna.
-    // loadRangeSides(sheetName, A1CellRange, firstColumnName, columnNames) {
-
-        console.debug(`Se ejecuta la función loadRangeSides. 
-            [sheetName = ${sheetName}] 
-            [A1CellRange = ${A1CellRange}] 
-            [columnNames = ${columnNames}] 
-        `);
 
         if (this.#loadedWorkbook) {
             
@@ -78,7 +64,6 @@ class SpreadsheetManipulator {
                 columnNames: columnNames,
                 data: [],
             }
-            console.debug(`this.#lastReadRange = ${this.#lastReadRange}`);
             for (let R = sheetJSRangeCells.s.r; R <= sheetJSRangeCells.e.r; ++R) {
                 
                 // Obtiene los datos de la celda de la primera columna.
@@ -95,15 +80,19 @@ class SpreadsheetManipulator {
 
                 // Guarda la celda, si tiene datos.
                 const row = {};
-                if (sheetJSFirstColumnCell) {
-                    row[columnNames.at(0)] = sheetJSFirstColumnCell.v;
-                    row[columnNames.at(1)] = SheetJSLastColumnCell ? SheetJSLastColumnCell.v : 0;
-                    this.#lastReadRange.data.push(row);
-                }
+                row[columnNames.at(0)] =
+                    sheetJSFirstColumnCell === undefined
+                    ? ""
+                    : sheetJSFirstColumnCell.v;
+                row[columnNames.at(1)] =
+                    SheetJSLastColumnCell === undefined
+                    ? ""
+                    : SheetJSLastColumnCell.v;
+                this.#lastReadRange.data.push(row);
+                
             }
 
             console.info("Rango leído.");
-            console.debug(`this.#lastReadRange = ${this.#lastReadRange}`);
         }
 
     }
@@ -111,17 +100,15 @@ class SpreadsheetManipulator {
     /**
      * Carga un rango en una variable interna.
      * 
+     * Precondiciones: la cantidad de columnas en {@link A1CellRange} debe ser igual que
+     * la cantidad de elementos en {@link columnNames}.
+     *
      * @param {String} sheetName Nombre de la pestaña en la planilla.
      * @param {String} A1CellRange Rango, en notación A1, que se quiere leer.
-     * @param {Array.<String>} columnNames Lista de nombres de las columnas (debe tener la misma cantidad de nombres que de columnas en {@link A1CellRange}).
+     * @param {Array.<String>} columnNames Lista de nombres de las columnas (debe tener la misma
+     * cantidad de nombres que de columnas en {@link A1CellRange}).
      */
     loadRange(sheetName, A1CellRange, columnNames) {
-
-        console.debug(`Se ejecuta la función loadRange. 
-            [sheetName = ${sheetName}] 
-            [A1CellRange = ${A1CellRange}] 
-            [columnNames = ${columnNames}]
-        `);
 
         if (this.#loadedWorkbook) {
 
@@ -130,15 +117,11 @@ class SpreadsheetManipulator {
             const sheet = this.#loadedWorkbook.Sheets[sheetName];
             
             // Lee el rango y almacena todas las columnas.
-            //
-            // TODO: validar que la cantidad de columnas leídas sea igual
-            // que la cantidad de elementos en 'columnNames'.
             const sheetJSRangeCells = XLSX.utils.decode_range(A1CellRange);
             this.#lastReadRange = {
                 columnNames: columnNames,
                 data: [],
             }
-            console.debug(`this.#lastReadRange = ${this.#lastReadRange}`);
             let columnNamesArrayIndex;
             for (let R = sheetJSRangeCells.s.r; R <= sheetJSRangeCells.e.r; ++R) {
 
@@ -153,10 +136,11 @@ class SpreadsheetManipulator {
                     });
                     const sheetJSColumnCell = sheet[a1ColumnCellAddress];
 
-                    // Guarda la celda, si tiene datos.
-                    if (sheetJSColumnCell) {
-                        row[columnNames.at(columnNamesArrayIndex++)] = sheetJSColumnCell.v; // TODO: Cambiar 'C' por el nombre de la columna.
-                    }
+                    // Guarda el contenido de la celda.
+                    row[columnNames.at(columnNamesArrayIndex++)] =
+                        sheetJSColumnCell === undefined
+                        ? ""
+                        : sheetJSColumnCell.v;
 
                 }
                 
@@ -165,11 +149,20 @@ class SpreadsheetManipulator {
             }
 
             console.info("Rango leído.");
-            console.debug(`this.#lastReadRange = ${this.#lastReadRange}`);
 
         }
 
     }
+
+    /**
+     * @returns {Array.<String>} La lista de nombres de pestañas de la planilla cargada.
+     */
+    getSheetNamesList() { return this.#loadedWorkbook.SheetNames; }
+
+    /**
+     * @returns {lastReadRangeType} Un arreglo de filas del último rango leído.
+     */
+    getLastReadRange() { return this.#lastReadRange; }
 
     /**
      * Inserta, dentro de la tabla pasada por parámetro, los registros leídos de la planilla.
@@ -220,8 +213,7 @@ class SpreadsheetManipulator {
             );
             htmlTable
                 .childNodes[0].childNodes[0].childNodes[0] // thead.tr[0].td
-                .setAttribute("colSpan", this.#lastReadRange.columnNames.length)
-            console.debug(htmlTable.outerHTML);
+                .setAttribute("colSpan", this.#lastReadRange.columnNames.length);
 
             // (BB)
             let tableColumnsParentTag =
@@ -264,16 +256,9 @@ class SpreadsheetManipulator {
 
             }
 
-            console.debug(htmlTable.outerHTML);
-
         }
 
     }
-
-    /**
-     * @returns {Object} Un arreglo de filas del último rango leído.
-     */
-    getLastReadRange() { return this.#lastReadRange; }
 
 
     /* Private */
@@ -286,8 +271,10 @@ class SpreadsheetManipulator {
 
     /**
      * @typedef {Object} lastReadRangeType
-     * @property {Array.<Object>} columnNames - Los nombres de columna de los datos en {@link data}, ordenados tal como se cargaron.
-     * @property {Array.<Object>} data - Contiene los registros que se leyeron de la planilla.
+     * @property {!Array.<string>} columnNames - Los nombres de columna de los datos en {@link data}, ordenados tal como se cargaron.
+     * @property {!Array.<Object.<string,(string|number|boolean)>>} data - Contiene los registros que se leyeron de la planilla, de
+     * forma tal que cada elemento del arreglo es un objeto que representa una fila del rango leído, y que tendrá propiedades que se
+     * llamarán con los nombres dentro de {@link columnNames}, y que contendrán cada una el valor de una celda de la fila.
      */
     /**
      * Manejador del último rango cargado en memoria.

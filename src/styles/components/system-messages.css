@@ -1,0 +1,31 @@
+.info-msg-container {
+    margin: 1rem 0rem;
+    background-color: var(--indigo);
+    padding: 1rem;
+    border-radius: 4px;
+    text-align: center;
+}
+
+.info-msg-icon-container {
+    display: inline-block;
+    margin: 0;
+}
+
+.info-msg-icon {
+    font-size: 2rem;
+    font-weight: bold;
+}
+
+.info-msg-desc-container {
+    display: inline-block;
+    width: 90%;
+}
+
+.info-msg-description {
+    margin-left: 1rem;
+    color: white;
+    font-style: normal;
+    font-weight: bold;
+    font-size: 1.5rem;
+    margin: 0 0 0 1rem;
+}
