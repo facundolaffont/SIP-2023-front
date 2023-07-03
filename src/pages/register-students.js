@@ -33,7 +33,7 @@ export function StudentRegistering() {
     console.debug(`Se ejecuta la función loadRange. [spreadsheetManipulator = ${spreadsheetManipulator}]`);
 
     // Lee un rango de celdas.
-    spreadsheetManipulator.loadRange(sheetNameValue, cellRangeName, ["Legajo", "DNI", "Apellido", "Nombre", "Email"]);
+    spreadsheetManipulator.loadRange(sheetNameValue, cellRangeName, ["Legajo", "DNI", "Apellido", "Nombre", "Email", "Recursante", "Correlativas"]);
     
     // Muestra los resultados en la tabla.
     let studentsTable = document.getElementsByClassName("student-table")[0];
@@ -108,30 +108,34 @@ export function StudentRegistering() {
   return (
     <PageLayout>
       <h1 id="page-title" className="content__title">Registro de estudiantes</h1>
-      <form onSubmit={loadFile}>
+      <form>
         <label htmlFor="file"><p>Seleccionar archivo de estudiantes</p></label>
-          <input
-            type="file"
-            id="file"
-            onChange={handleFileSelection}
-            accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-            required
-          /><p>{fileName}</p>
-          <label htmlFor="sheet-name"><p>Nombre de la pestaña en la planilla</p></label>
-          <input
-            type="text"
-            id="sheet-name"
-            onChange={handleSheetNameValueChange}
-            required
-          />
-          <label htmlFor="cell-range"><p>Rango de celdas a cargar</p></label>
-          <input
-            type="text"
-            id="cell-range"
-            onChange={handleCellRangeName}
-            required
-          />
-        <button type="submit" className="load-button">Cargar archivo</button>
+        <input
+          type="file"
+          id="file"
+          onChange={handleFileSelection}
+          accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+          required
+        /><p>{fileName}</p>
+        <label htmlFor="sheet-name"><p>Nombre de la pestaña en la planilla</p></label>
+        <input
+          type="text"
+          id="sheet-name"
+          onChange={handleSheetNameValueChange}
+          required
+        />
+        <label htmlFor="cell-range"><p>Rango de celdas a cargar</p></label>
+        <input
+          type="text"
+          id="cell-range"
+          onChange={handleCellRangeName}
+          required
+        />
+        <button
+          type="submit"
+          className="load-button"
+          onClick={loadFile}
+        >Cargar archivo</button>
         <button
           type="button"
           className="register-student-button"

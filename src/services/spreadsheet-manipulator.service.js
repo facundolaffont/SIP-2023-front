@@ -51,19 +51,13 @@ class SpreadsheetManipulator {
      * @param {String} sheetName Nombre de la pestaña en la planilla.
      * @param {String} A1CellRange Rango, en notación A1, que se quiere leer.
      * @param {Array.<String>} columnNames Lista de nombres de las columnas (debe tener la misma cantidad de nombres que de columnas en {@link A1CellRange}).
-     * 
-     * TODO: hacer que los nombres de las columnas estén implementadas como en
-     * el método 'loadRange'.
      */
     loadRangeSides(sheetName, A1CellRange, columnNames) {
-    // @param {String} firstColumnName Nombre que tendrá la primera columna.
-    // @param {String} lastColumnName Nombre que tendrá la última columna.
-    // loadRangeSides(sheetName, A1CellRange, firstColumnName, columnNames) {
 
         console.debug(`Se ejecuta la función loadRangeSides. 
-            [sheetName = ${sheetName}] 
-            [A1CellRange = ${A1CellRange}] 
-            [columnNames = ${columnNames}] 
+            [sheetName = ${sheetName}]
+            [A1CellRange = ${A1CellRange}]
+            [columnNames = ${columnNames}]
         `);
 
         if (this.#loadedWorkbook) {
@@ -95,11 +89,16 @@ class SpreadsheetManipulator {
 
                 // Guarda la celda, si tiene datos.
                 const row = {};
-                if (sheetJSFirstColumnCell) {
-                    row[columnNames.at(0)] = sheetJSFirstColumnCell.v;
-                    row[columnNames.at(1)] = SheetJSLastColumnCell ? SheetJSLastColumnCell.v : 0;
-                    this.#lastReadRange.data.push(row);
-                }
+                row[columnNames.at(0)] =
+                    sheetJSFirstColumnCell === undefined
+                    ? ""
+                    : sheetJSFirstColumnCell.v;
+                row[columnNames.at(1)] =
+                    SheetJSLastColumnCell === undefined
+                    ? ""
+                    : SheetJSLastColumnCell.v;
+                this.#lastReadRange.data.push(row);
+                
             }
 
             console.info("Rango leído.");
@@ -153,10 +152,11 @@ class SpreadsheetManipulator {
                     });
                     const sheetJSColumnCell = sheet[a1ColumnCellAddress];
 
-                    // Guarda la celda, si tiene datos.
-                    if (sheetJSColumnCell) {
-                        row[columnNames.at(columnNamesArrayIndex++)] = sheetJSColumnCell.v; // TODO: Cambiar 'C' por el nombre de la columna.
-                    }
+                    // Guarda el contenido de la celda.
+                    row[columnNames.at(columnNamesArrayIndex++)] =
+                        sheetJSColumnCell === undefined
+                        ? ""
+                        : sheetJSColumnCell.v;
 
                 }
                 
