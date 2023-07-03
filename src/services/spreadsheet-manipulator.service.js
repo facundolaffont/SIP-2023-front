@@ -271,7 +271,7 @@ class SpreadsheetManipulator {
     }
 
     /**
-     * @returns {Object} Un arreglo de filas del último rango leído.
+     * @returns {lastReadRangeType} Un arreglo de filas del último rango leído.
      */
     getLastReadRange() { return this.#lastReadRange; }
 
@@ -286,8 +286,10 @@ class SpreadsheetManipulator {
 
     /**
      * @typedef {Object} lastReadRangeType
-     * @property {Array.<Object>} columnNames - Los nombres de columna de los datos en {@link data}, ordenados tal como se cargaron.
-     * @property {Array.<Object>} data - Contiene los registros que se leyeron de la planilla.
+     * @property {Array.<String>} columnNames - Los nombres de columna de los datos en {@link data}, ordenados tal como se cargaron.
+     * @property {Array.<Object>} data - Contiene los registros que se leyeron de la planilla, de forma tal que cada elemento del
+     * arreglo es un objeto que representa una fila del rango leído, y que tendrá propiedades que se llamarán con los nombres
+     * dentro de {@link columnNames}, y que contendrán cada una el valor de una celda de la fila.
      */
     /**
      * Manejador del último rango cargado en memoria.

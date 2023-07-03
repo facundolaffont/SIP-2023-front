@@ -26,9 +26,6 @@ export function StudentRegistering() {
     // Carga el archivo Excel y establece la función callback que se llamará al
     // finalizar la carga.
     spreadsheetManipulator.loadFile(fileHandler, loadRange);
-
-    // TODO: consultar al back cuáles registros existen en sistema y cuáles no.
-    
     
   }
 
@@ -43,6 +40,41 @@ export function StudentRegistering() {
     // Lee un rango de celdas.
     spreadsheetManipulator.loadRange(sheetNameValue, cellRangeName, ["Legajo", "DNI", "Apellido", "Nombre", "Email", "Recursante", "Correlativas"]);
     
+    /**
+     * TODO: consultar al back cuáles registros existen en sistema y cuáles no.
+     * 
+     * (A) Obtiene el rango leído,
+     * 
+     * (B) construye el arreglo JSON
+     * 
+     * (C) y lo envía al back.
+     */
+
+    // (A)
+    let readRange = spreadsheetManipulator.getLastReadRange();
+
+    // (B)
+    const dossierArray = readRange.data.map( element => element["Legajo"] );
+    console.debug(dossierArray);
+    
+    fetch(`${process.env.REACT_APP_API_SERVER_URL}/api/v1/students/check-students-registration`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(dossierArray)
+    })
+      .then((response) => {
+        if (!response.ok) { throw new Error(`${response.status}: ${response.statusText}`); }
+        return response.json();
+      })
+      .then((response) => {
+        console.debug(response);
+      })
+      .catch((error) => {
+        console.error(error);
+      });
+
     // Muestra los resultados en la tabla.
     let studentsTable = document.getElementsByClassName("student-table")[0];
     spreadsheetManipulator.insertDataIntoTable(studentsTable, "Tabla de estudiantes");
