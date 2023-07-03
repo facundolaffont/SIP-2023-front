@@ -4,7 +4,7 @@ run-name: front-actions (@${{ github.triggering_actor }})
 on:
   push:
     branches:
-      - cloud-configs
+      - cloud
 
 jobs:
 
