@@ -11,6 +11,11 @@ export function StudentRegistering() {
   const [cellRangeName, setCellRangeName] = useState('');
   const [spreadsheetManipulator, setSpreadsheetManipulator] = useState(new SpreadsheetManipulator());
 
+  /**
+   * Manejador del evento clic en el botón de carga de archivo a memoria.
+   * 
+   * @param {Event} event Evento de clic.
+   */
   const loadFile = (event) => {
 
     console.debug(`Se ejecuta la función loadFile. [event = ${event}]`);
@@ -21,6 +26,9 @@ export function StudentRegistering() {
     // Carga el archivo Excel y establece la función callback que se llamará al
     // finalizar la carga.
     spreadsheetManipulator.loadFile(fileHandler, loadRange);
+
+    // TODO: consultar al back cuáles registros existen en sistema y cuáles no.
+    
     
   }
 
@@ -42,6 +50,12 @@ export function StudentRegistering() {
 
   }
 
+  /**
+   * Manejador del evento que surge cuando se carga un
+   * archivo con el explorador de archivos.
+   * 
+   * @param {Event} event Representa la carga de un archivo.
+   */
   const handleFileSelection = (event) => {
 
     console.debug(`Se ejecuta el método handleFileSelection. [event = ${event}]`);
@@ -62,6 +76,10 @@ export function StudentRegistering() {
     setCellRangeName(event.target.value);
   }
 
+  /**
+   * Manejador del evento clic en el botón de registración
+   * masiva de alumnos.
+   */
   const handleRegistering = () => {
     
     // Obtiene la lista de estudiantes.
