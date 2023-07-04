@@ -181,7 +181,7 @@ jobs:
 
         terraform apply -lock=false --auto-approve
    
-  all-down: # [DOWN]
+  all-down: # [DOWN] 
     name: Infra down
     if: startsWith(github.event.head_commit.message, '[DOWN]')
     runs-on: ubuntu-latest
