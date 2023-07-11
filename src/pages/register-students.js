@@ -57,10 +57,31 @@ export function StudentRegistering() {
     const dossierArray = readRange.data.map( element => element["Legajo"] );
     console.debug(dossierArray);
     
-    fetch(`${process.env.REACT_APP_API_SERVER_URL}/api/v1/students/check-students-registration`, {
+    ///////////////////
+
+    function getCsrfToken() {
+      const cookies = document.cookie.split(';');
+    
+      for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i].trim();
+        if (cookie.startsWith('XSRF-TOKEN=')) {
+          const csrfToken = cookie.substring('XSRF-TOKEN='.length, cookie.length);
+          return csrfToken;
+        }
+      }
+    
+      return null; // CSRF token not found
+    }
+    
+    // Usage example
+    const csrfToken = getCsrfToken();
+    console.log(csrfToken);
+    
+    fetch(`${process.env.REACT_APP_API_SERVER_URL}/api/v1/course/check-students-registration`, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'X-XSRF-TOKEN': getCsrfToken()
       },
       body: JSON.stringify(dossierArray)
     })
@@ -74,6 +95,8 @@ export function StudentRegistering() {
       .catch((error) => {
         console.error(error);
       });
+
+    ////////////////////////
 
     // Muestra los resultados en la tabla.
     let studentsTable = document.getElementsByClassName("student-table")[0];
