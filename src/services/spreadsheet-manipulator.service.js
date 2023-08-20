@@ -144,6 +144,8 @@ class SpreadsheetManipulator {
 
                 }
                 
+                // Agrega los datos leídos de la fila, junto con el número de fila.
+                row["_row"] = XLSX.utils.encode_row(R);
                 this.#lastReadRange.data.push(row);
 
             }

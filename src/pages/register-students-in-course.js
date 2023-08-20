@@ -240,19 +240,27 @@ export function CourseStudentRegistering() {
             let invalidFormatRange = [];
             readRange.data.forEach(row => {
 
-                //// Normaliza los datos.
-                //row.Correlativas = row.Correlativas.toLowerCase();
-                //row.Recursante = row.Recursante.toLowerCase();
-
                 // Determina si el formato es inválido y añade una descripción del problema.
                 let invalidFormat = false;
                 if (typeof row.Legajo !== 'number') {
                     row.formatInfo = "El legajo no es un entero.";
                     invalidFormat = true;
-                } else if (row.Correlativas !== "" && row.Correlativas !== "x") {
+                } else if (
+                    typeof row.Correlativas !== 'string'
+                    || (
+                        row.Correlativas !== ""
+                        && row.Correlativas.toLowerCase() !== "x"
+                    )
+                ) {
                     row.formatInfo = "El campo que indica si tiene todas las correlativas debe estar marcado por una 'x' o debe estar vacío.";
                     invalidFormat = true;
-                } else if (row.Recursante !== "" && row.Recursante !== "x") {
+                } else if (
+                    typeof row.Recursante !== 'string'
+                    || (
+                        row.Recursante !== ""
+                        && row.Recursante.toLowerCase() !== "x"
+                    ) 
+                ) {
                     row.formatInfo = "El campo que indica si es recursante debe estar marcado por una 'x' o debe estar vacío.";
                     invalidFormat = true;
                 }
@@ -278,10 +286,10 @@ export function CourseStudentRegistering() {
                     throw error;
                 });
 
-            // (1) (2)
+            // 1, 2
             const studentsCheckedInfo = await axios
                 .post(
-                    `${process.env.REACT_APP_API_SERVER_URL}/api/v1/students/students-registration-check`,
+                    `${process.env.REACT_APP_API_SERVER_URL}/api/v1/course/students-registration-check`,
                     {
                         courseId: course.getId(),
                         dossierList: dossierArray,
@@ -303,13 +311,13 @@ export function CourseStudentRegistering() {
 
             } else {
 
-                // La actualización ejecuta (0.A.1)
+                // 0.A.1
                 setInvalidRegistersList(
                     invalidFormatRange
                 );
 
-                // (2.a)
-                // La actualización de okStudentsList ejecuta (3)
+                // 2.a
+                // 3
                 setOkStudentsList(
                     studentsCheckedInfo.data.ok.map(
                         studentInfo => {
@@ -338,9 +346,7 @@ export function CourseStudentRegistering() {
                     )
                 );
 
-                // (2.b)
-                // (2.c)
-                // La actualización de notOkStudentsList ejecuta (2.A.1)
+                // 2.b, 2.c, 2.A.1
                 setNotOkStudentsList(
                     studentsCheckedInfo.data.nok.map(
                         dossierInfo => {
@@ -483,7 +489,7 @@ export function CourseStudentRegistering() {
                 throw error;
             });
 
-        // (1) (2)
+        // 1, 2
         // Realiza la solicitud al endpoint para registrar la calificación.
         const response = await axios
             .post(
@@ -498,43 +504,46 @@ export function CourseStudentRegistering() {
                     },
                 }
             )
-            .then(response => {
-                // Arroja un error si la petición no fue exitosa.
-                if (response.status !== 200)
-                    throw new Error(`${response.status}: ${response.statusText}`);
+            .then(response => response)
+            .catch(error => error);
 
-                // Devuelve el contenido de la respuesta.
-                return response;
-            })
-            .catch(error => {
-                throw error;
+        // 6.A
+        if (response.status !== 200) {
+            
+            // 6.A.1
+            // Guarda el mensaje de error traído del back al usuario y,
+            // en el próximo renderizado, se mostrará el mensaje.
+            setError("Hubo un error. Por favor, contactarse con Soporte Técnico.");
+
+        } else {
+            
+            // 3
+            // El front inserta un símbolo en la primera columna de cada registro para indicar
+            // que se registró en el sistema. [usar okStudentsList y notOkStudentsList]
+
+            // Actualiza la información de los estudiantes que se registraron correctamente.
+            response.data.ok.forEach(registeredStudentDossier => {
+                let registeredStudent = okStudentsList
+                    .find(student => student.dossier === registeredStudentDossier);
+                registeredStudent.state = "Registrado";
             });
 
-        // (3)
-        // El front inserta un símbolo en la primera columna de cada registro para indicar
-        // que se registró en el sistema. [usar okStudentsList y notOkStudentsList]
+            // Actualiza la información de los estudiantes que no se registraron correctamente.
+            response.data.nok.forEach(notRegisteredStudentInfo => {
+                let notRegisteredStudent = okStudentsList
+                    .find(student => student.dossier === notRegisteredStudentInfo.dossier);
+                switch(notRegisteredStudentInfo.errorCode) {
+                    case 1: notRegisteredStudent.state = "No registrado: el legajo no existe en sistema.";
+                        break;
+                    case 2: notRegisteredStudent.state = "No registrado: el legajo ya estaba registrado.";
+                        break;
+                };
+            });
 
-        // Actualiza la información de los estudiantes que se registraron correctamente.
-        response.data.body.ok.forEach(registeredStudentDossier => {
-            let registeredStudent = okStudentsList
-                .find(student => student.dossier === registeredStudentDossier);
-            registeredStudent.state = "Registrado";
-        });
+            // Actualiza la información de la tabla.
+            setTableManualUpdateTrigger(!tableManualUpdateTrigger);
 
-        // Actualiza la información de los estudiantes que no se registraron correctamente.
-        response.data.body.nok.forEach(notRegisteredStudentInfo => {
-            let notRegisteredStudent = okStudentsList
-                .find(student => student.dossier === notRegisteredStudentInfo.dossier);
-            switch(notRegisteredStudentInfo.errorCode) {
-                case 1: notRegisteredStudent.state = "No registrado: el legajo no existe en sistema.";
-                    break;
-                case 2: notRegisteredStudent.state = "No registrado: el legajo ya estaba registrado.";
-                    break;
-            };
-        });
-
-        // Actualiza la información de la tabla.
-        setTableManualUpdateTrigger(!tableManualUpdateTrigger);
+        }
 
     };
 
