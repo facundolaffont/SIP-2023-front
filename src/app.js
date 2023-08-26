@@ -18,6 +18,7 @@ import { CalificationRegistering } from "./pages/register-califications";
 import { StudentRegistering } from "./pages/register-students";
 import { FinalCondition } from "./pages/final-condition";
 import { CreateCriterion } from "./pages/create-criterion";
+import { EventRegistering } from "./pages/register-events";
 
 export const App = () => {
   const {isLoading, isAuthenticated, getIdTokenClaims } = useAuth0();
@@ -67,6 +68,7 @@ export const App = () => {
       <ProtectedRoute path="/register-califications" component={CalificationRegistering} />
       <ProtectedRoute path="/register-students" component={StudentRegistering} />
       <ProtectedRoute path="/final-condition" component={FinalCondition} />
+      <ProtectedRoute path="/register-event" component={EventRegistering} />
 
       {isAdmin && <ProtectedRoute path="/create-user" component={CreateUser} />}
       {isAdmin && <ProtectedRoute path="/assign-role" component={AssignRole} />}
