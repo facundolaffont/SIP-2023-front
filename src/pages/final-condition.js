@@ -32,12 +32,16 @@ import React, { useEffect } from "react";
 // Imports internos.
 import { PageLayout } from "../components/page-layout";
 
-export function FinalCondition() {
+export const FinalCondition = () => {
     const [criterias, setCriterias] = useState([]);
     const [finalConditions, setFinalConditions] = useState([]);
     const { getAccessTokenSilently } = useAuth0();
 
+    console.debug("Antes de useEffect");
+
     useEffect(async () => {
+
+        console.debug("Dentro de useEffect");
 
         // Obtiene el token Auth0.
         const auth0Token = await getAccessTokenSilently()
@@ -57,7 +61,7 @@ export function FinalCondition() {
                 }
             )
             .then(criteria => {
-                setCriterias(criteria);
+                setCriterias(criteria.data);
             })
             .catch(error => error.response);
 
@@ -78,15 +82,29 @@ export function FinalCondition() {
 
     }, []);
 
-    const handleSubmit = (event) => {
+    console.debug("Antes de handleSubmit");
+
+    const handleSubmit = async (event) => {
+
+        console.debug("Dentro de handleSubmit");
+
         event.preventDefault();
 
-        // Enviamos petición al back para calcular condicion final de los alumnos de la cursada
+        // Obtiene el token Auth0.
+        const auth0Token = await getAccessTokenSilently()
+            .then(response => {
+                return response;
+            })
+            .catch(error => {
+                throw error;
+            });
 
+        // Enviamos petición al back para calcular condicion final de los alumnos de la cursada
         fetch(`${process.env.REACT_APP_API_SERVER_URL}/api/v1/course/finalCondition?courseId=1`, {
             method: "GET",
             headers: {
                 "Content-Type": "application/json",
+                "Authorization": `Bearer ${auth0Token}`,
             },
         })
             .then((response) => response.json())
@@ -98,8 +116,11 @@ export function FinalCondition() {
 
     }
 
+    console.debug("Antes de return");
+
     return (
         <PageLayout>
+        {console.debug("Dentro de return")}
             <h1 id="page-title" className="content__title">Condición Final</h1>
             <form onSubmit={handleSubmit}>
                 <p>Se evaluará la condicion final de los estudiantes según los siguientes criterios:</p>
@@ -112,6 +133,7 @@ export function FinalCondition() {
                         </tr>
                     </thead>
                     <tbody>
+                        {console.debug("Antes de criterias.map")}
                         {criterias.map((criteria, index) => (
                             <tr key={index}>
                                 <td>{criteria.criteria.name}</td>
@@ -172,7 +194,7 @@ export function FinalCondition() {
                                             </td>
                                         );
                                     })}
-                                    <td class="condition-cell">{student.Condición}</td>
+                                    <td className="condition-cell">{student.Condición}</td>
                                 </tr>
                             ))}
                         </tbody>
