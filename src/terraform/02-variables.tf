@@ -10,7 +10,7 @@ variable "zone" {
 
 variable "project_id" {
   type    = string
-  default = "spgda-389523"
+  default = "spheric-almanac-409420"
 }
 
 variable "LOADBALANCER_IP" {

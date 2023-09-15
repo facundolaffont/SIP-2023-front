@@ -5,12 +5,12 @@ export default class HTMLTableManipulator {
 
     /**
      * @typedef {Object} TableBodyDataType Contiene los nombres y datos de las columnas de una tabla.
-     * @property {!Array.<string>} columnNames Debe contener un arreglo de cadenas de caracteres con el siguiente format:
-     * nombre-de-propiedad:nombre-de-columna. El nombre-de-propiedad será el de la propiedad de cada objecto de {@link tableRows}
-     * que contiene el valor de la columna nombre-de-columna. Este último nombre se utilizará para la cabecera de la columna.
      * @property {!Array.<Object.<string,(string|number|boolean)>>} tableRows Debe contener las filas de la tabla, de forma tal
      * que cada propiedad de cada objeto del arreglo contendrá el valor de una columna para la fila que representa el objeto y los
      * nombres de las propiedades y la cantidad deben ser los mismos que en {@link columnNames}.
+     * @property {!Array.<string>} columnNames Debe contener un arreglo de cadenas de caracteres con el siguiente format:
+     * nombre-de-propiedad:nombre-de-columna. El nombre-de-propiedad será el de la propiedad de cada objecto de {@link tableRows}
+     * que contiene el valor de la columna nombre-de-columna. Este último nombre se utilizará para la cabecera de la columna.
      * @property {Array.<string>} [columnClasses] Tendrá la información necesaria para agregar clases a las diferentes columnas
      * de la tabla. El formato debe ser el siguiente: nombre-de-propiedad:lista-de-clases-separadas-por-espacios.
      * El nombre-de-propiedad tiene el mismo objetivo que el descrito en la propiedad {@link columnNames}.

@@ -16,6 +16,7 @@ import "../styles/components/table.css";
 import "../styles/register-students.css";
 
 export function StudentRegistering() {
+
     const [fileName, setFileName] = useState("");
     const [fileHandle, setFileHandle] = useState(null);
     const [sheetNameValue, setSheetNameValue] = useState("");
@@ -380,8 +381,6 @@ export function StudentRegistering() {
      * @param {Event} event Evento de cambio de la etiqueta input.
      */
     const handleFileSelection = event => {
-
-        // Muestra el botón de actualizar.
 
         // Obtiene y almacena el nombre del archivo.
         const file = event.target.files[0];
