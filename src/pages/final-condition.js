@@ -36,6 +36,7 @@ export const FinalCondition = () => {
     const [criterias, setCriterias] = useState([]);
     const [finalConditions, setFinalConditions] = useState([]);
     const { getAccessTokenSilently } = useAuth0();
+    const [sortedFinalConditions, setSortedFinalConditions] = useState([]);
 
     console.debug("Antes de useEffect");
 
@@ -65,6 +66,7 @@ export const FinalCondition = () => {
             })
             .catch(error => error.response);
 
+        
         //     // Enviamos petición al backend para obtener los criterios de evaluación asociados a la cursada
         //     fetch(`${process.env.REACT_APP_API_SERVER_URL}/api/v1/criterion-course/evaluationCriterias?courseId=1`, {
         //       method: "GET",
@@ -110,7 +112,11 @@ export const FinalCondition = () => {
             .then((response) => response.json())
             .then((data) => {
                 console.log(data);
-                setFinalConditions(data);
+              //  setFinalConditions(data);
+
+                const sortedConditions = data.sort((a, b) => a.Legajo - b.Legajo);
+                setSortedFinalConditions(sortedConditions);
+
             })
             .catch((error) => console.error(error));
 
@@ -155,9 +161,9 @@ export const FinalCondition = () => {
             </form>
 
             {/* Mostrar la tabla de condiciones finales */}
-            {finalConditions.length > 0 && (
+            {sortedFinalConditions.length > 0 && (
                 <div>
-                    <h2>Condiciones Finales de Alumnos</h2>
+                    <h2>Condiciones Finales de Alumnos (Ordenadas por legajo)</h2>
                     <table className="condition-table">
                         <thead>
                             <tr>
@@ -169,7 +175,7 @@ export const FinalCondition = () => {
                             </tr>
                         </thead>
                         <tbody>
-                            {finalConditions.map((student, index) => (
+                            {sortedFinalConditions.map((student, index) => (
                                 <tr key={index}>
                                     <td>{student.Legajo}</td>
                                     {criterias.map((criteria, criteriaIndex) => {
@@ -186,6 +192,8 @@ export const FinalCondition = () => {
                                             cellClassName = "yellow-cell"; // Si el contenido es R, aplicamos la clase "yellow-cell"
                                         } else if (condition === "P") {
                                             cellClassName = "green-cell"; // Si el contenido es P, aplicamos la clase "green-cell"
+                                        } else if (condition === "N/A") {
+                                            cellClassName = "common-cell"
                                         }
 
                                         return (
