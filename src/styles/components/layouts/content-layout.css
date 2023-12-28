@@ -54,6 +54,7 @@ input[type="text"],
 input[type="password"],
 input[type="number"],
 select,
+input[type="datetime-local"],
 textarea {
     border: 1px solid #ccc;
     box-shadow: 0 1px 1px rgba(0, 0, 0, 0.075) inset;
@@ -67,6 +68,7 @@ input[type="date"]:focus,
 input[type="email"]:focus,
 input[type="text"]:focus,
 input[type="password"]:focus,
+input[type="datetime-local"]:focus,
 textarea:focus {
     border-color: #66afe9;
     outline: 0;
@@ -189,6 +191,81 @@ label[for="password"]::before {
 .selected {
     background-color: rgb(244, 222, 180);
     /* Puedes ajustar el color de fondo según tus necesidades */
+}
+
+.criteria-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 1rem;
+}
+
+.criteria-table th,
+.criteria-table td {
+  padding: 8px;
+  text-align: left;
+  border: 1px solid #ccc;
+  font-style: italic;
+  margin-top: 10px;
+  font-size: 16px;
+  color: black;
+}
+
+.criteria-table th {
+  font-weight: bold;
+}
+
+.calculate-button {
+  padding: 8px 16px;
+  background-color: #007bff;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.calculate-button:hover {
+  background-color: #0056b3;
+}
+
+.condition-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 1rem;
+}
+
+.condition-table th,
+.condition-table td {
+  padding: 8px;
+  text-align: left;
+  border: 1px solid #ccc;
+  font-style: italic;
+  margin-top: 10px;
+  font-size: 16px;
+}
+
+.condition-cell {
+  background-color: #255f27;
+}
+
+/* Estilos para las celdas con contenido "L", "R" y "P" */
+.normal-cell {
+  color: black; /* Por defecto, texto en negro */
+}
+
+.red-cell {
+  color: red; /* Texto en rojo para contenido "L" */
+}
+
+.yellow-cell {
+  color: yellow; /* Texto en amarillo para contenido "R" */
+}
+
+.green-cell {
+  color: green; /* Texto en verde para contenido "P" */
+}
+
+h2 {
+  color: white
 }
 
 @media only screen and (max-width: 480px) {

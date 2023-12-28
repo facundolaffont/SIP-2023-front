@@ -19,6 +19,7 @@ import { StudentRegistering } from "./pages/register-students";
 import { CourseStudentRegistering } from "./pages/register-students-in-course";
 import { FinalCondition } from "./pages/final-condition";
 import { CreateCriterion } from "./pages/create-criterion";
+import { EventRegistering } from "./pages/register-events";
 
 export const App = () => {
     const { isLoading, isAuthenticated, getIdTokenClaims } = useAuth0();
@@ -55,6 +56,7 @@ export const App = () => {
 
     return (
         <Switch>
+            
             {/* Rutas públicas. */}
             <Route path="/" exact component={HomePage} />
             <Route path="/callback" component={CallbackPage} />
@@ -66,6 +68,7 @@ export const App = () => {
             {isProfessor && <ProtectedRoute path="/register-califications" component={CalificationRegistering} />}
             {isProfessor && <ProtectedRoute path="/register-students-in-course" component={CourseStudentRegistering} />}
             {isProfessor && <ProtectedRoute path="/register-students" component={StudentRegistering} />}
+            {isProfessor && <ProtectedRoute path="/register-event" component={EventRegistering} />}
             {isProfessor && <ProtectedRoute path="/final-condition" component={FinalCondition} />}
 
             {/* Rutas para administradores. */}

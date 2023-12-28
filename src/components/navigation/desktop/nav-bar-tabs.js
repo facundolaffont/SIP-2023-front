@@ -35,6 +35,7 @@
             {/* Rutas para docentes. */}
             {isProfessor && <NavBarTab path="/register-students" label="Alta de estudiantes" />}
             {isProfessor && <NavBarTab path="/create-criterion" label="Alta de criterio" />}
+            {isProfessor && <NavBarTab path="/register-event" label="Alta de Evento" />}
             {isProfessor && <NavBarTab path="/register-attendance" label="Registrar asistencia" />}
             {isProfessor && <NavBarTab path="/register-califications" label="Registrar calificaciones" />}
             {isProfessor && <NavBarTab path="/register-students-in-course" label="Registrar estudiantes en comisión" />}
