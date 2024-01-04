@@ -1,1 +1,5 @@
-# Este archivo sólo llevará el token configurado en Cloudflare con permiso de edición de DNS.
+# Este archivo sólo llevará el API Token configurado en Cloudflare con la siguiente configuración:
+#   1. Elegir plantilla "Edit Zone DNS".
+#   2. Configurar el registro "Permissions" para que tenga el valor "Zone - DNS - Edit".
+#   3. Configurar el registro de "Zone Resources" para que tenga el valor "Include - All zones".
+#   4. Configurar el registro "TTL" para determinar la fecha de vencimiento del token.

@@ -3,12 +3,14 @@ kind: Ingress
 metadata:
   name: app-ingress
   namespace: default
+  annotations:
+    cert-manager.io/issuer: letsencrypt-issuer
 spec:
   ingressClassName: nginx
   tls:
   - hosts:
     - spgda.fl.com.ar
-    secretName: spgda-fl-com-ar-tls
+    secretName: tls-secrets
   rules:
   - host: spgda.fl.com.ar
     http:
@@ -27,3 +29,21 @@ spec:
             name: front-service
             port:
               number: 80
+
+#apiVersion: networking.k8s.io/v1
+#kind: Ingress
+#metadata:
+#  name: app-ingress
+#  annotations:
+#    #kubernetes.io/ingress.class: gce # https://cloud.google.com/kubernetes-engine/docs/how-to/load-balance-ingress
+#    #                                 # This tells Google Cloud to create an External Load Balancer to realize this Ingress.
+#    kubernetes.io/ingress.allow-http: "true" # https://cloud.google.com/kubernetes-engine/docs/concepts/ingress-xlb
+#    kubernetes.io/ingress.global-static-ip-name: nat # https://cloud.google.com/kubernetes-engine/docs/concepts/ingress-xlb#static_ip_addresses_for_https_load_balancers
+#                                                            # This tells Google Cloud to associate the External Load Balancer with the static IP which we created earlier.
+#spec:
+#  # Ejemplo sobre cómo generar un ingress con un solo servicio: https://kubernetes.io/docs/concepts/services-networking/ingress/#single-service-ingress
+#  defaultBackend: # https://kubernetes.io/docs/reference/kubernetes-api/service-resources/ingress-v1/#IngressBackend
+#    service:
+#      name: front-service
+#      port:
+#        number: 8080
