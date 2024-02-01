@@ -1,0 +1,38 @@
+.table-container {
+    padding: 20px;
+    border-radius: 5px;
+    background: linear-gradient(to bottom, #ffffff 0%,#f6f6f6 100%);
+    margin-top: 20px;
+    overflow-x: auto;
+}
+
+table {
+    width: 100%;
+    font-size: 16px;
+    color: black;
+    border-collapse: separate;
+    border-spacing: 0px;
+    white-space: nowrap;
+}
+
+thead tr {
+    height: 3rem;
+}
+
+tr.even-row {
+    background-color: lightgray;
+}
+
+table td {
+    /* border-right: 1px solid gray; */
+    padding: 0.25rem 5px;
+}
+
+.wrapped {
+    width: 250px;
+    white-space: normal;
+}
+
+.centered {
+    text-align: center;
+}

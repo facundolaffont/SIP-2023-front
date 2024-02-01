@@ -13,9 +13,9 @@ import CourseDTO from "../contexts/course/course-d-t-o";
 
 // Estilos.
 import "../styles/components/table.css";
-import "../styles/register-students.css";
+import "../styles/register-students-in-course.css";
 
-export function StudentRegistering() {
+export function CourseStudentRegistering() {
 
     const [fileName, setFileName] = useState("");
     const [fileHandle, setFileHandle] = useState(null);
@@ -28,6 +28,17 @@ export function StudentRegistering() {
     const [tableManualUpdateTrigger, setTableManualUpdateTrigger] = useState(true);
     const [error, setError] = useState(null);
     const { getAccessTokenSilently } = useAuth0();
+    /** @type {CourseDTO} */ const course = useSelectedCourse(false);
+
+    // Redirige a la página de selección de cursada, si todavía no se seleccionó una,
+    // o si se actualiza la página, ya que se pierde el contexto de la selección que
+    // se había hecho.
+    useEffect(() => {
+
+        if (course === null)
+            window.location.replace(`${process.env.REACT_APP_DOMAIN_URL}/profile?redirected`);
+
+    }, []);
 
     // Actualiza las tablas.
     useEffect(() => {
@@ -42,18 +53,16 @@ export function StudentRegistering() {
                 notValidFormatTable,
                 {
                     columnNames: [
-                        "_row:Fila",
-                        "dossier:Legajo",
-                        "id:DNI",
-                        "name:Nombre",
-                        "surname:Apellido",
-                        "email:Email",
+                        "Legajo:Legajo",
+                        "Correlativas:Correlativas",
+                        "Recursante:Recursante",
                         "formatInfo:Error de formato",
                     ],
                     tableRows: invalidRegistersList,
                     columnClasses: [
-                        "_row:centered",
-                    ],
+                        "Correlativas:centered",
+                        "Recursante:centered",
+                    ]
                 },
                 `Registros con formato inválido (${invalidRegistersList.length})`
             );
@@ -69,14 +78,10 @@ export function StudentRegistering() {
                 notOkStudentsTable,
                 {
                     columnNames: [
-                        "_row:Fila",
                         "dossier:Legajo",
                         "errorDescription:Descripción del error",
                     ],
                     tableRows: notOkStudentsList,
-                    columnClasses: [
-                        "_row:centered",
-                    ],
                 },
                 `Legajos que no se pueden registrar (${notOkStudentsList.length})`
             );
@@ -95,19 +100,20 @@ export function StudentRegistering() {
                 okStudentsTable,
                 {
                     columnNames: [
-                        "_row:Fila",
                         "state:Estado",
                         "dossier:Legajo",
                         "id:DNI",
                         "name:Nombre",
                         "surname:Apellido",
-                        "email:Email",
+                        "previousSubjectsApproved:Correlativas",
+                        "studiedPreviously:Es recursante",
                     ],
                     tableRows: okStudentsList,
                     columnClasses: [
-                        "_row:centered",
                         "state:wrapped",
-                    ],
+                        "previousSubjectsApproved:centered",
+                        "studiedPreviously:centered",
+                    ]
                 },
                 `Estudiantes para registrar en la comisión (${okStudentsList.length})`
             );
@@ -161,8 +167,6 @@ export function StudentRegistering() {
      */
     const handleRangeLoading = async event => {
 
-        /*** Procedimiento: HU003.001.001/CU01. ***/
-
         // Evita que se ejecute la llamada del submit.
         event.preventDefault();
 
@@ -182,12 +186,52 @@ export function StudentRegistering() {
 
             // Lee un rango de celdas.
             spreadsheetManipulator.loadRange(sheetNameValue, cellRangeName, [
-                "dossier",
-                "id",
-                "name",
-                "surname",
-                "email",
+                "Legajo",
+                "Correlativas",
+                "Recursante",
             ]);
+
+            /*
+             * --- Procedimiento normal ---
+             *
+             * !0. El usuario indica que quiere cargar un rango de datos de una pestaña de la planilla.
+             *
+             * 1. Envía al back la lista de legajos al endpoint /api/v1/course/students-registration-check.
+             *
+             *    dossierList:
+             *    - # <numérico> - Legajo
+             *    # ...
+             *
+             * !2. El back procesa los datos y devuelve información que determina (a) cuáles legajos existen ya
+             * en sistema y no están registrados en la cursada, (b) cuáles están registrados en sistema y además
+             * en la cursada, y (c) cuáles no están registrados en sistema. Esta información es devuelta por el
+             * back en formato JSON, con la siguiente estructura (representada en YAML).:
+             *
+             *    ok:
+             *    - dossier: # <numérico> - Legajo
+             *      id: # <numérico> - DNI
+             *      name: # <texto>
+             *      surname: # <texto>
+             *    # ...
+             *    nok:
+             *    - # <numérico> - Legajo
+             *    # ...
+             *
+             * 3. Muestra al usuario en una tabla los registros del rango especificado, junto con los datos
+             * traídos del back de los estudiantes que ya están registrados.
+             *
+             * --- Procedimientos alternativos ---
+             *
+             * 0.A. Hay registros que no tienen un número en la primera columna, o tienen su segundo o tercer
+             * campo con un valor diferente de 'x' o de la cadena vacía.
+             *
+             *      0.A.1. El sistema muestra la notación A1 de los registros en una tabla independiente.
+             *
+             * 2.A. El back devuelve legajos que no pueden ser registrados en la cursada indicando el motivo:
+             * no existe el legajo o ya está registrado el alumno en la cursada.
+             *
+             *      2.A.1. El front muestra los legajos y el motivo en una tabla independiente.
+             */
 
             // Obtiene el rango seleccionado del Excel.
             let readRange = spreadsheetManipulator.getLastReadRange();
@@ -197,45 +241,28 @@ export function StudentRegistering() {
             let invalidFormatRange = [];
             readRange.data.forEach(row => {
 
-                // 1c.A.
                 // Determina si el formato es inválido y añade una descripción del problema.
-                let emailRegEx = /^[a-zA-Z0-9.!#$%&'*+\/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/;
-                let properNameRegEx = /[a-zA-Z ]+/;
                 let invalidFormat = false;
-                if (
-                    typeof row.dossier !== 'number'
-                    ||
-                    row.dossier <= 0
-                ) {
-                    row.formatInfo = "El legajo no es un entero positivo.";
+                if (typeof row.Legajo !== 'number') {
+                    row.formatInfo = "El legajo no es un entero.";
                     invalidFormat = true;
                 } else if (
-                    typeof row.id !== 'number'
-                    ||
-                    row.id <= 0
+                    typeof row.Correlativas !== 'string'
+                    || (
+                        row.Correlativas !== ""
+                        && row.Correlativas.toLowerCase() !== "x"
+                    )
                 ) {
-                    row.formatInfo = "El dni no es un entero positivo.";
+                    row.formatInfo = "El campo que indica si tiene todas las correlativas debe estar marcado por una 'x' o debe estar vacío.";
                     invalidFormat = true;
                 } else if (
-                    typeof row.name !== 'string'
-                    ||
-                    !properNameRegEx.exec(row.name)
+                    typeof row.Recursante !== 'string'
+                    || (
+                        row.Recursante !== ""
+                        && row.Recursante.toLowerCase() !== "x"
+                    ) 
                 ) {
-                    row.formatInfo = "El nombre no es alfabético.";
-                    invalidFormat = true;
-                } else if (
-                    typeof row.surname !== 'string'
-                    ||
-                    !properNameRegEx.exec(row.surname)
-                ) {
-                    row.formatInfo = "El apellido no es alfabético.";
-                    invalidFormat = true;
-                } else if (
-                    typeof row.email !== 'string'
-                    ||
-                    !emailRegEx.exec(row.email.trim())
-                ) {
-                    row.formatInfo = "El mail no tiene el formato adecuado.";
+                    row.formatInfo = "El campo que indica si es recursante debe estar marcado por una 'x' o debe estar vacío.";
                     invalidFormat = true;
                 }
 
@@ -250,7 +277,7 @@ export function StudentRegistering() {
 
             // Guarda los registros con formato correcto en un arreglo.
             /** @type {Array.<number>} */ const dossierArray = validFormatRange.map(
-                element => element["dossier"]
+                element => element["Legajo"]
             );
 
             // Obtiene el token Auth0.
@@ -260,12 +287,13 @@ export function StudentRegistering() {
                     throw error;
                 });
 
-            // 2
+            // 1, 2
             const studentsCheckedInfo = await axios
                 .post(
-                    `${process.env.REACT_APP_API_SERVER_URL}/api/v1/students/new-dossiers-check`,
+                    `${process.env.REACT_APP_API_SERVER_URL}/api/v1/course/students-registration-check`,
                     {
-                        dossiersList: dossierArray,
+                        courseId: course.getId(),
+                        dossierList: dossierArray,
                     },
                     {
                         headers: {
@@ -276,38 +304,39 @@ export function StudentRegistering() {
                 .then(okReponse => okReponse)
                 .catch(error => error.response);
 
-            // 2.A
             if (studentsCheckedInfo.status !== 200) {
                 
-                // 2.A.1
                 // Guarda el mensaje de error traído del back al usuario, y
                 // en el próximo renderizado se mostrará el mensaje.
                 setError("Hubo un error. Por favor, contactarse con Soporte Técnico.");
 
             } else {
 
-                // 1c.A.1
+                // 0.A.1
                 setInvalidRegistersList(
                     invalidFormatRange
                 );
 
-                // 4
+                // 2.a
+                // 3
                 setOkStudentsList(
                     studentsCheckedInfo.data.ok.map(
-                        dossier => {
+                        studentInfo => {
 
                             // Obtiene el registro de readRange que tiene mismo legajo.
                             let studentLoadedData = readRange.data.find(
-                                register => register.dossier == dossier
+                                register => register.Legajo == studentInfo.dossier
                             );
 
                             // Une la información traída del back con la que se cargó del Excel.
-                            let studentInfo = {dossier: dossier};
-                            studentInfo._row = studentLoadedData._row;
-                            studentInfo.id = studentLoadedData.id;
-                            studentInfo.name = studentLoadedData.name.trim();
-                            studentInfo.surname = studentLoadedData.surname.trim();
-                            studentInfo.email = studentLoadedData.email.trim();
+                            studentInfo.previousSubjectsApproved = 
+                                studentLoadedData.Correlativas === 'x'
+                                ? true
+                                : false;
+                            studentInfo.studiedPreviously =
+                                studentLoadedData.Recursante === 'x'
+                                ? true
+                                : false;
 
                             // Agrega el estado de registración en sistema.
                             studentInfo.state = 'Pendiente';
@@ -318,31 +347,24 @@ export function StudentRegistering() {
                     )
                 );
 
-                // 3.A.1
+                // 2.b, 2.c, 2.A.1
                 setNotOkStudentsList(
                     studentsCheckedInfo.data.nok.map(
                         dossierInfo => {
-
-                            // Establece el mensaje de error, según el código.
                             let errorDescription;
                             switch (dossierInfo.errorCode) {
                                 case 1:
-                                    errorDescription = "El legajo ya está registrado en el sistema.";
+                                    errorDescription = "El legajo no está registrado en el sistema.";
+                                    break;
+                                case 2:
+                                    errorDescription =
+                                        "El estudiante ya está registrado en la cursada.";
                                     break;
                             }
-                            
-                            // Obtiene el registro de readRange que tiene mismo legajo.
-                            let studentLoadedData = readRange.data.find(
-                                register => register.dossier == dossierInfo.dossier
-                            );
-
-                            // Indica el objeto que va a formar parte del arreglo. 
                             return {
-                                _row: studentLoadedData._row,
                                 dossier: dossierInfo.dossier,
                                 errorDescription: errorDescription,
                             };
-
                         }
                     )
                 );
@@ -382,6 +404,8 @@ export function StudentRegistering() {
      */
     const handleFileSelection = event => {
 
+        // Muestra el botón de actualizar.
+
         // Obtiene y almacena el nombre del archivo.
         const file = event.target.files[0];
         setFileName(file.name);
@@ -402,17 +426,10 @@ export function StudentRegistering() {
 
     };
 
-    /**
-     * Manejador del evento de cambio del campo de selección
-     * de nombre de pestaña.
-     */
     const handleSheetNameValueChange = event => {
         setSheetNameValue(event.target.value);
     };
 
-    /** 
-     * Manejador del evento de cambio del campo de rango.
-     */
     const handleCellRangeName = event => {
         setCellRangeName(event.target.value.toUpperCase());
     };
@@ -423,17 +440,46 @@ export function StudentRegistering() {
      */
     const handleRegistering = async () => {
 
-        /*** Procedimiento: HU003.001.001/CU01. ***/
+        /*
+         * 1. Envía al back los datos al endpoint /api/v1/course/register-students.
+         *   
+         *   courseId: # <numérico>
+         *   studentsRegistrationList:
+         *   - dossier: # <numérico> - Legajo
+         *     previousSubjectsApproved: # <booleano> - true, si tiene todas las correlativas aprobadas.
+         *     studiedPreviously: # <booleano> - true, si es recursante.
+         *   # ...
+         *   
+         * !2. El back devuelve un mensaje indicando que la registración fue exitosa.
+         *
+         *   ok:
+         *   - # <numérico> - Legajo
+         *   # ...
+         *   nok:
+         *   - dossier: # <numérico> - Legajo
+         *     errorCode: # <numérico> - Número que representa la razón
+         *                # por la que no se puede registrar el legajo.
+         *                # Posibles valores:
+         *                # - 1: el legajo no existe en el sistema.
+         *                # - 2: el legajo ya está registrado en la cursada.
+         *   # ...
+         *
+         * 3. El front inserta un símbolo en la primera columna de cada registro para indicar que se registró en el sistema.
+         *
+         * ---
+         *
+         * 2.A.-El back devuelve legajos que no se pudieron registrar, junto con el motivo.
+         *
+         * 2.A.1.-El front muestra los legajos y el motivo en una tabla independiente.
+         */
 
         // Prepara la lista de estudiantes para ser enviada.
         const studentsRegistrationInfo = okStudentsList
             .map(studentRegistrationInfo => {
                 return {
                     dossier: studentRegistrationInfo.dossier,
-                    id: studentRegistrationInfo.id,
-                    name: studentRegistrationInfo.name,
-                    surname: studentRegistrationInfo.surname,
-                    email: studentRegistrationInfo.email,
+                    previousSubjectsApproved: studentRegistrationInfo.previousSubjectsApproved,
+                    studiedPreviously: studentRegistrationInfo.studiedPreviously,
                 }
             });
 
@@ -444,13 +490,14 @@ export function StudentRegistering() {
                 throw error;
             });
 
-        // 6
+        // 1, 2
         // Realiza la solicitud al endpoint para registrar la calificación.
         const response = await axios
             .post(
-                `${process.env.REACT_APP_API_SERVER_URL}/api/v1/students/register-students`,
+                `${process.env.REACT_APP_API_SERVER_URL}/api/v1/course/register-students`,
                 {
-                    newStudentsList: studentsRegistrationInfo,
+                    courseId: course.getId(),
+                    studentsRegistrationList: studentsRegistrationInfo,
                 },
                 {
                     headers: {
@@ -458,7 +505,7 @@ export function StudentRegistering() {
                     },
                 }
             )
-            .then(okResponse => okResponse)
+            .then(response => response)
             .catch(error => error);
 
         // 6.A
@@ -470,7 +517,7 @@ export function StudentRegistering() {
             setError("Hubo un error. Por favor, contactarse con Soporte Técnico.");
 
         } else {
-
+            
             // 3
             // El front inserta un símbolo en la primera columna de cada registro para indicar
             // que se registró en el sistema. [usar okStudentsList y notOkStudentsList]
@@ -487,14 +534,16 @@ export function StudentRegistering() {
                 let notRegisteredStudent = okStudentsList
                     .find(student => student.dossier === notRegisteredStudentInfo.dossier);
                 switch(notRegisteredStudentInfo.errorCode) {
-                    case 1: notRegisteredStudent.state = "No registrado: el legajo ya existe en sistema.";
+                    case 1: notRegisteredStudent.state = "No registrado: el legajo no existe en sistema.";
+                        break;
+                    case 2: notRegisteredStudent.state = "No registrado: el legajo ya estaba registrado.";
                         break;
                 };
             });
 
             // Actualiza la información de la tabla.
             setTableManualUpdateTrigger(!tableManualUpdateTrigger);
-            
+
         }
 
     };
@@ -502,7 +551,7 @@ export function StudentRegistering() {
     return (
         <PageLayout>
             <h1 id="page-title" className="content__title">
-                Alta de estudiantes
+                Registro de estudiantes en comisión
             </h1>
             <div className="info-msg-container not-displayed">
                 <div className="info-msg-desc-container">

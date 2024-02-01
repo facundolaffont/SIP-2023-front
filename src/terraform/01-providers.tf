@@ -37,6 +37,9 @@ provider "google" {
 
 # Define el proveedor de Cloudflare para crear los registros que permitirán resolver el nombre de dominio,
 # devolviendo la IP pública del balanceador de cargas.
+#
+# Más información sobre la estructura del proveedor de Cloudflare para Terraform: https://registry.terraform.io/providers/cloudflare/cloudflare/latest/docs
+# Más información sobre cómo configurar el token API: https://developers.cloudflare.com/fundamentals/api/get-started/create-token/
 provider "cloudflare" {
   api_token = file("./cloudflare-token.txt")
 }

@@ -2,6 +2,10 @@
 
 set -e
 
+# Se asegura de que el CWD sea el del directorio de este script.
+cd "$(dirname "$0")"
+
+# Carga el mail con el que se va a acceder a GCP.
 source .env
 
 if [ -z $user_email ]
@@ -31,7 +35,7 @@ else
     echo "Inicializando Terraform..."
     docker run --rm -it --mount type=bind,src=./,dst=/tmp hashicorp/terraform \
         -chdir=/tmp init \
-        --backend-config bucket="spgda-bucket" \
+        --backend-config bucket="spgda-fg" \
         --backend-config prefix="state/dns" \
         --backend-config credentials=/tmp/gcloud-key.json
     echo "Terraform inicializado."
@@ -49,7 +53,7 @@ else
     echo "Inicializando Terraform..."
     docker run --rm -it --mount type=bind,src=./,dst=/tmp hashicorp/terraform \
         -chdir=/tmp/00-base init \
-        --backend-config bucket="spgda-bucket" \
+        --backend-config bucket="spgda-fg" \
         --backend-config prefix="state/base" \
         --backend-config credentials=/tmp/gcloud-key.json
     echo "Terraform inicializado."
