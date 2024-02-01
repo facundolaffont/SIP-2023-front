@@ -33,6 +33,7 @@
             <NavBarTab path="/create-criterion" label="Alta de criterio" />
             <NavBarTab path="/register-event" label="Registrar Evento" />
             <NavBarTab path="/final-condition" label="Condición Final" />
+            <NavBarTab path="/modificate-criterion" label="Modificación de Criterio de Evaluación" />
 
             {isAdmin && <NavBarTab path="/search-professor" label="Buscar docente" /> }
             {isAdmin && <NavBarTab path="/create-user" label="Alta de usuario" /> }

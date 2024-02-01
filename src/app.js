@@ -18,6 +18,7 @@ import { CalificationRegistering } from "./pages/register-califications";
 import { StudentRegistering } from "./pages/register-students";
 import { FinalCondition } from "./pages/final-condition";
 import { CreateCriterion } from "./pages/create-criterion";
+import { ModificateCriterion } from "./pages/modificate-criterion";
 import { EventRegistering } from "./pages/register-events";
 
 export const App = () => {
@@ -75,6 +76,8 @@ export const App = () => {
       {isAdmin && <ProtectedRoute path="/search-professor" component={SearchProfessor} />}
       {isAdmin && <ProtectedRoute path="/down-user" component={DownUser} />}
       {isAdmin && <ProtectedRoute path="/create-criterion" component={CreateCriterion} />}
+      {isAdmin && <ProtectedRoute path="/modificate-criterion" component={ModificateCriterion} />}
+
       <Route path="*" component={NotFoundPage} />
     </Switch>
   );
