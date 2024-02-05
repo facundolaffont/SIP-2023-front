@@ -400,7 +400,7 @@ h2 {
 
 /* Estilos para las celdas con contenido "L", "R" y "P" */
 .normal-cell {
-  color: black; /* Por defecto, texto en negro */
+  color: white; /* Por defecto, texto en negro */
 }
 
 .red-cell {
@@ -413,6 +413,10 @@ h2 {
 
 .green-cell {
   color: green; /* Texto en verde para contenido "P" */
+}
+
+.common-cell {
+  color: white; /* Texto en blanco para contenido "N/A" */
 }
 
 h2 {

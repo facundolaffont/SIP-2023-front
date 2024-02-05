@@ -40,10 +40,9 @@
             {isProfessor && <NavBarTab path="/register-califications" label="Registrar calificaciones" />}
             {isProfessor && <NavBarTab path="/register-students-in-course" label="Registrar estudiantes en comisión" />}
             {isProfessor && <NavBarTab path="/final-condition" label="Condición Final" />}
-
-            {/* Rutas para administradores. */}            
             {isProfessor && <NavBarTab path="/modificate-criterion" label="Modificación de Criterio de Evaluación" />}
 
+            {/* Rutas para administradores. */}            
             {isAdmin && <NavBarTab path="/search-professor" label="Buscar docente" /> }
             {isAdmin && <NavBarTab path="/create-user" label="Alta de usuario" /> }
             {isAdmin && <NavBarTab path="/down-user" label="Baja de docente"/> }
