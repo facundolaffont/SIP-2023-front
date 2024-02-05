@@ -1,17 +1,22 @@
 apiVersion: cert-manager.io/v1
 kind: Issuer
 metadata:
-  name: example-issuer
+  name: letsencrypt-issuer
 spec:
   acme:
     email: facundolaffont@gmail.com # Es el mail al cual Let's Encrypt enviará recordatorios de renovación del certificado.
     server: https://acme-staging-v02.api.letsencrypt.org/directory # API para test.
     # server: https://acme-v02.api.letsencrypt.org/directory # API para producción.
     privateKeySecretRef:
-      name: example-issuer-account-key
+      name: letsencrypt-issuer-account-key
     solvers:
-    - dns01:
-        cloudflare:
-          apiTokenSecretRef:
-            name: cloudflare-api-token-secret
-            key: api-token
+
+    #- dns01:
+    #    cloudflare:
+    #      apiTokenSecretRef:
+    #        name: cloudflare-api-token-secret
+    #        key: api-token
+
+    - http01:
+        ingress:
+          name: app-ingress

@@ -80,6 +80,7 @@ else
     echo "Aplicando los cambios de Kubernetes..."
     cd ../k8s
     kubectl apply \
+      -f debug.yaml \
       -f 01-deploy-front.yaml \
       -f 02-service-front.yaml \
       -f 03-nginx-ingress/common/ns-and-sa.yaml \
