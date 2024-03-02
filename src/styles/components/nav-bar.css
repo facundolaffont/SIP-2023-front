@@ -10,6 +10,28 @@
   z-index: 300;
   background-color: var(--black);
 }
+.dropdown {
+  position: absolute; /* O cualquier otra posición que necesites */
+  top: 100%; /* Coloca el dropdown debajo del elemento del menú principal */
+  background-color: white; /* Color de fondo del dropdown */
+  border: 1px solid #ccc; /* Borde del dropdown */
+  border-radius: 4px; /* Radio de borde del dropdown */
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1); /* Sombra del dropdown */
+  z-index: 999; /* Asegura que el dropdown esté por encima de otros elementos */
+}
+
+/* Estilos para los elementos del dropdown (opcional) */
+.dropdown a {
+  display: block;
+  padding: 10px 15px;
+  text-decoration: none;
+  color: #333;
+}
+
+.dropdown a:hover {
+  background-color: black;
+}
+
 
 .nav-bar {
   flex: 1;

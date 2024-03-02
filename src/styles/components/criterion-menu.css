@@ -1,0 +1,35 @@
+.menu {
+    position: relative;
+  }
+  
+  .menu-header {
+    cursor: pointer;
+  }
+  
+  .menu-items {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    z-index: 10;
+    background-color: #fff;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-top: none;
+    border-radius: 0 0 5px 5px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    display: none;
+  }
+  
+  .menu-items li {
+    list-style: none;
+    padding: 5px 0;
+  }
+  
+  .menu-items li:hover {
+    background-color: #f0f0f0;
+  }
+  
+  .menu.open .menu-items {
+    display: block;
+  }
+  

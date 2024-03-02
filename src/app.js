@@ -21,6 +21,8 @@ import { FinalCondition } from "./pages/final-condition";
 import { CreateCriterion } from "./pages/create-criterion";
 import { ModificateCriterion } from "./pages/modificate-criterion";
 import { EventRegistering } from "./pages/register-events";
+import { CriterionMenu } from './pages/criterion-menu';
+
 
 export const App = () => {
     const { isLoading, isAuthenticated, getIdTokenClaims } = useAuth0();
@@ -62,7 +64,6 @@ export const App = () => {
             <Route path="/" exact component={HomePage} />
             <Route path="/callback" component={CallbackPage} />
             <ProtectedRoute path="/change-password" component={ChangePasswordForm} />
-
             {/* Rutas para docentes. */}
             {isProfessor && <ProtectedRoute path="/profile" component={HomePageProfessor} />}
             {isProfessor && <ProtectedRoute path="/register-attendance" component={AttendanceRegistering} />}

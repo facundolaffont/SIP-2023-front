@@ -7,6 +7,9 @@
     const { isAuthenticated, getIdTokenClaims } = useAuth0();
     const [isAdmin, setIsAdmin] = useState(false);
     const [isProfessor, setIsProfessor] = useState(false);
+    const [showDropdown, setShowDropdown] = useState(false);
+    const [dropdownTop, setDropdownTop] = useState(0);
+
 
     // Determina el rol del usuario.
     useEffect(() => {
@@ -26,26 +29,55 @@
         };
         checkRole();
     }, [isAuthenticated, getIdTokenClaims]);
+    
+    const handleMouseEnter = (e) => {
+      const rect = e.target.getBoundingClientRect();
+      setDropdownTop(rect.bottom);
+      setShowDropdown(true);
+    };
+  
+    const handleMouseLeave = () => {
+      setShowDropdown(false);
+    };  
 
     return (
       <div className="nav-bar__tabs">
         {isAuthenticated && (
           <>
-
+            
             {/* Rutas para docentes. */}
             {isProfessor && <NavBarTab path="/register-students" label="Alta de estudiantes" />}
             {isProfessor && <NavBarTab path="/create-criterion" label="Alta de criterio" />}
             {isProfessor && <NavBarTab path="/register-event" label="Alta de Evento" />}
-            {isProfessor && <NavBarTab path="/register-attendance" label="Registrar asistencia" />}
-            {isProfessor && <NavBarTab path="/register-califications" label="Registrar calificaciones" />}
-            {isProfessor && <NavBarTab path="/register-students-in-course" label="Registrar estudiantes en comisión" />}
+            {isProfessor && (
+            <div className="nav-bar__tab" onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
+              <span>Cargas masivas</span>
+              {showDropdown && (
+                <div className="dropdown" style={{ top: dropdownTop }}>
+                  <NavBarTab path="/register-attendance" label="Registrar asistencia" />
+                  <NavBarTab path="/register-califications" label="Registrar calificaciones" />
+                  <NavBarTab path="/register-students-in-course" label="Registrar estudiantes en comisión" />
+                  </div>
+              )}
+            </div>
+            )}
+
             {isProfessor && <NavBarTab path="/final-condition" label="Condición Final" />}
             {isProfessor && <NavBarTab path="/modificate-criterion" label="Modificación de Criterio de Evaluación" />}
 
             {/* Rutas para administradores. */}            
-            {isAdmin && <NavBarTab path="/search-professor" label="Buscar docente" /> }
-            {isAdmin && <NavBarTab path="/create-user" label="Alta de usuario" /> }
-            {isAdmin && <NavBarTab path="/down-user" label="Baja de docente"/> }
+            {isAdmin && (
+            <div className="nav-bar__tab" onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
+              <span>Gestión de docentes</span>
+              {showDropdown && (
+                <div className="dropdown" style={{ top: dropdownTop }}>
+                  <NavBarTab path="/search-professor" label="Buscar docente" />
+                  <NavBarTab path="/create-user" label="Alta de usuario" />
+                  <NavBarTab path="/down-user" label="Baja de docente" />
+                </div>
+              )}
+            </div>
+          )}
 
             {/* Rutas públicas. */}
             <NavBarTab path="/change-password" label="Cambiar Contraseña" />
