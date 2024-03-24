@@ -111,6 +111,11 @@
   margin-right: 0;
 }
 
+.dropdown .nav-bar__tab--active {
+  border: none;
+  padding: 10px 15px;
+}
+
 .nav-bar__icon {
   display: none;
 }
