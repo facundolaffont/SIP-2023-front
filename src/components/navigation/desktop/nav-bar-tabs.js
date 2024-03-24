@@ -46,7 +46,6 @@
           <>
             
             {/* Rutas para docentes. */}
-            {isProfessor && <NavBarTab path="/register-students" label="Alta de estudiantes" />}
             {isProfessor && <NavBarTab path="/create-criterion" label="Alta de criterio" />}
             {isProfessor && <NavBarTab path="/register-event" label="Alta de Evento" />}
             {isProfessor && (
@@ -54,9 +53,10 @@
               <span>Cargas masivas</span>
               {showDropdown && (
                 <div className="dropdown" style={{ top: dropdownTop }}>
+                  <NavBarTab path="/register-students" label="Alta de estudiantes" />
+                  <NavBarTab path="/register-students-in-course" label="Registrar estudiantes en comisión" />
                   <NavBarTab path="/register-attendance" label="Registrar asistencia" />
                   <NavBarTab path="/register-califications" label="Registrar calificaciones" />
-                  <NavBarTab path="/register-students-in-course" label="Registrar estudiantes en comisión" />
                   <NavBarTab path="/search-student" label="Ver estado de alumno" />
                   <NavBarTab path="/list-course-students" label="Listar alumnos" />
                   </div>
