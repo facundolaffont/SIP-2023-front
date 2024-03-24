@@ -1,0 +1,42 @@
+/* Estilos para el contenedor de la información del alumno */
+.alumno-info-container {
+    margin-top: 20px;
+    padding: 20px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+  }
+  
+  /* Estilos para los títulos de sección */
+  .alumno-info-container h2 {
+    font-size: 18px;
+    margin-top: 1px;
+    margin-bottom: 10px;
+  }
+  
+  /* Estilos para los párrafos de información */
+  .alumno-info-container p {
+    margin-bottom: 5px;
+    color: white;
+    font-size: 14px;
+  }
+  
+  /* Estilos para los datos específicos (nombre, apellido, etc.) */
+  .alumno-info-container .data-label {
+    font-weight: bold;
+  }
+  
+  /* Estilos para los datos del alumno */
+  .alumno-info-container .data-value {
+    margin-left: 10px;
+    color: #ffffff;
+  }
+  
+  /* Estilos para resaltar "Sí" y "No" */
+  .alumno-info-container .yes {
+    color: green;
+  }
+  
+  .alumno-info-container .no {
+    color: red;
+  }
+  

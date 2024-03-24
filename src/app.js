@@ -22,6 +22,8 @@ import { CreateCriterion } from "./pages/create-criterion";
 import { ModificateCriterion } from "./pages/modificate-criterion";
 import { EventRegistering } from "./pages/register-events";
 import { CriterionMenu } from './pages/criterion-menu';
+import { SearchStudent } from "./pages/search-student";
+
 
 
 export const App = () => {
@@ -73,6 +75,7 @@ export const App = () => {
             {isProfessor && <ProtectedRoute path="/register-event" component={EventRegistering} />}
             {isProfessor && <ProtectedRoute path="/final-condition" component={FinalCondition} />}
             {isProfessor && <ProtectedRoute path="/modificate-criterion" component={ModificateCriterion} />}
+            {isProfessor && <ProtectedRoute path="/search-student" component={SearchStudent} />}
 
             {/* Rutas para administradores. */}
             {isAdmin && <ProtectedRoute path="/profile" component={HomePageAdmin} />}

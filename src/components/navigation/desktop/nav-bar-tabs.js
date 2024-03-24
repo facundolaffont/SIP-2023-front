@@ -57,6 +57,7 @@
                   <NavBarTab path="/register-attendance" label="Registrar asistencia" />
                   <NavBarTab path="/register-califications" label="Registrar calificaciones" />
                   <NavBarTab path="/register-students-in-course" label="Registrar estudiantes en comisión" />
+                  <NavBarTab path="/search-student" label="Ver estado de alumno" />
                   </div>
               )}
             </div>

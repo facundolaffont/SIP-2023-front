@@ -25,7 +25,7 @@ export function EventRegistering() {
         "Content-Type": "application/json",
         "Host": "back-service.default.svc.cluster.local"
         //Authorization: `Bearer ${token}`,
-      },
+      },  
       body: JSON.stringify(data),
     })
       .then((response) => response.json())
@@ -56,7 +56,8 @@ export function EventRegistering() {
           <option value="5">Recuperatorio Trabajo Práctico</option>
           <option value="6">Recuperatorio Parcial</option>
           <option value="7">Recuperatorio Autoevaluación</option>
-          <option value="8">Integrador</option>
+          <option value="8">Integrador</option>          
+          <option value="9">Final</option>
         </select>
         <label htmlFor="calification-date">
           <p>Fecha de inicio del evento</p>
