@@ -80,7 +80,7 @@ export function EventRegistering() {
           required
         />
         <label htmlFor="event-required">
-          <p>Evento obligatorio</p>
+          <p style={{ display: "inline-block", marginRight: 4 }}>Evento obligatorio</p>
           <input
             type="checkbox"
             id="event-required"
