@@ -76,6 +76,7 @@ export const App = () => {
             {isProfessor && <ProtectedRoute path="/final-condition" component={FinalCondition} />}
             {isProfessor && <ProtectedRoute path="/modificate-criterion" component={ModificateCriterion} />}
             {isProfessor && <ProtectedRoute path="/search-student" component={SearchStudent} />}
+            {isProfessor && <ProtectedRoute path="/create-criterion" component={CreateCriterion} />}
 
             {/* Rutas para administradores. */}
             {isAdmin && <ProtectedRoute path="/profile" component={HomePageAdmin} />}
@@ -83,7 +84,6 @@ export const App = () => {
             {isAdmin && <ProtectedRoute path="/assign-role" component={AssignRole} />}
             {isAdmin && <ProtectedRoute path="/search-professor" component={SearchProfessor} />}
             {isAdmin && <ProtectedRoute path="/down-user" component={DownUser} />}
-            {isAdmin && <ProtectedRoute path="/create-criterion" component={CreateCriterion} />}
 
             {/* Dirección para el resto de las rutas. */}
             <Route path="*" component={NotFoundPage} />
