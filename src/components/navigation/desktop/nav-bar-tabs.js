@@ -58,6 +58,7 @@
                   <NavBarTab path="/register-califications" label="Registrar calificaciones" />
                   <NavBarTab path="/register-students-in-course" label="Registrar estudiantes en comisión" />
                   <NavBarTab path="/search-student" label="Ver estado de alumno" />
+                  <NavBarTab path="/list-course-students" label="Listar alumnos" />
                   </div>
               )}
             </div>

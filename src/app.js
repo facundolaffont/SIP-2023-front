@@ -21,10 +21,8 @@ import { FinalCondition } from "./pages/final-condition";
 import { CreateCriterion } from "./pages/create-criterion";
 import { ModificateCriterion } from "./pages/modificate-criterion";
 import { EventRegistering } from "./pages/register-events";
-import { CriterionMenu } from './pages/criterion-menu';
 import { SearchStudent } from "./pages/search-student";
-
-
+import { ListCourseStudents } from "./pages/list-course-students";
 
 export const App = () => {
     const { isLoading, isAuthenticated, getIdTokenClaims } = useAuth0();
@@ -77,6 +75,7 @@ export const App = () => {
             {isProfessor && <ProtectedRoute path="/modificate-criterion" component={ModificateCriterion} />}
             {isProfessor && <ProtectedRoute path="/search-student" component={SearchStudent} />}
             {isProfessor && <ProtectedRoute path="/create-criterion" component={CreateCriterion} />}
+            {isProfessor && <ProtectedRoute path="/list-course-students" component={ListCourseStudents} />}
 
             {/* Rutas para administradores. */}
             {isAdmin && <ProtectedRoute path="/profile" component={HomePageAdmin} />}
