@@ -1,28 +1,3 @@
-// // Imports internos.
-// import { PageLayout } from "../components/page-layout";
-// import SpreadsheetManipulator from "../services/spreadsheet-manipulator.service";
-// import HTMLTableManipulator from "../services/html-table-manipulator";
-// import { useSelectedCourse } from "../contexts/course/course-provider.js";
-// import CourseDTO from "../contexts/course/course-d-t-o";
-
-// // Estilos.
-// import "../styles/components/table.css";
-// import "../styles/register-students.css";
-
-// export function StudentRegistering() {
-//     const [fileName, setFileName] = useState("");
-//     const [fileHandle, setFileHandle] = useState(null);
-//     const [sheetNameValue, setSheetNameValue] = useState("");
-//     const [cellRangeName, setCellRangeName] = useState("");
-//     const [spreadsheetManipulator, setSpreadsheetManipulator] = useState(null);
-//     const [okStudentsList, setOkStudentsList] = useState([]);
-//     const [notOkStudentsList, setNotOkStudentsList] = useState([]);
-//     const [invalidRegistersList, setInvalidRegistersList] = useState([]);
-//     const [tableManualUpdateTrigger, setTableManualUpdateTrigger] = useState(true);
-//     const [error, setError] = useState(null);
-    
-
-
 // Imports externos.
 import axios from "axios";
 import { useAuth0 } from "@auth0/auth0-react";
@@ -34,15 +9,12 @@ import { PageLayout } from "../components/page-layout";
 
 export const FinalCondition = () => {
     const [criterias, setCriterias] = useState([]);
-    const [finalConditions, setFinalConditions] = useState([]);
     const { getAccessTokenSilently } = useAuth0();
     const [sortedFinalConditions, setSortedFinalConditions] = useState([]);
+    const [saveMessage, setSaveMessage] = useState("");
 
-    console.debug("Antes de useEffect");
-
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     useEffect(async () => {
-
-        console.debug("Dentro de useEffect");
 
         // Obtiene el token Auth0.
         const auth0Token = await getAccessTokenSilently()
@@ -66,29 +38,9 @@ export const FinalCondition = () => {
             })
             .catch(error => error.response);
 
-        
-        //     // Enviamos petición al backend para obtener los criterios de evaluación asociados a la cursada
-        //     fetch(`${process.env.REACT_APP_API_SERVER_URL}/api/v1/criterion-course/evaluationCriterias?courseId=1`, {
-        //       method: "GET",
-        //       headers: {
-        //         "Content-Type": "application/json",
-        //       },
-        //     })
-        //       .then((response) => response.json())
-        //       .then((criteria) => {
-        //         // Aquí puedes hacer algo con los criterios recibidos, como actualizar el estado del componente
-        //         console.log(criteria);
-        //         setCriterias(criteria);
-        //       })
-        //       .catch((error) => console.error(error));
-
-    }, []);
-
-    console.debug("Antes de handleSubmit");
+    }, [getAccessTokenSilently]);
 
     const handleSubmit = async (event) => {
-
-        console.debug("Dentro de handleSubmit");
 
         event.preventDefault();
 
@@ -122,11 +74,41 @@ export const FinalCondition = () => {
 
     }
 
-    console.debug("Antes de return");
+    const handleSaveChanges = async () => {
+        const auth0Token = await getAccessTokenSilently().catch(error => {
+            throw error;
+        });
+
+        if (sortedFinalConditions) {
+            console.log(sortedFinalConditions);
+            const dataToSend = {
+                courseId: 1, // ID de la cursada
+                finalConditions: sortedFinalConditions.map(student => ({
+                    legajo: student.Legajo,
+                    nota: student.Condición // Asegúrate de que "Nota" sea el nombre correcto de la propiedad que representa la nota del estudiante
+                }))
+            };
+
+            // Envía los datos al backend
+            axios.post(`${process.env.REACT_APP_API_SERVER_URL}/api/v1/course/saveFinalConditions`, dataToSend, {
+                headers: {
+                    Authorization: `Bearer ${auth0Token}`,
+                    "Content-Type": "application/json"
+                }
+            }).then(response => {
+                console.log("Cambios guardados exitosament", response.data);
+                setSaveMessage("¡Cambios guardados exitosamente!");
+            }).catch(error => {
+                console.error("Error al guardar cambios:", error);
+                setSaveMessage("¡Error al guardar cambios!");
+            });
+        } else {
+            console.warn("No hay datos para enviar al backend.");
+        }
+    }
 
     return (
         <PageLayout>
-        {console.debug("Dentro de return")}
             <h1 id="page-title" className="content__title">Condición Final</h1>
             <form onSubmit={handleSubmit}>
                 <p>Se evaluará la condicion final de los estudiantes según los siguientes criterios:</p>
@@ -207,9 +189,12 @@ export const FinalCondition = () => {
                             ))}
                         </tbody>
                     </table>
+                    <div className="button-container">
+                        <button type="button" onClick={handleSaveChanges}>Guardar Cambios</button>
+                        {saveMessage && <p>{saveMessage}</p>}
+                    </div>
                 </div>
             )}
-
         </PageLayout>
     );
 }

@@ -19,6 +19,17 @@
   width: 100%;
 }
 
+.button-container {
+  display: flex;
+  align-items: center; /* Alinear verticalmente */
+}
+
+.button-container p {
+  margin-left: 10px; /* Espacio entre el botón y el mensaje */
+  color: white;
+  font-size: 14px;
+}
+
 @media only screen and (max-width: 640px) {
   .page-layout__content {
     margin-top: 6.4rem;
