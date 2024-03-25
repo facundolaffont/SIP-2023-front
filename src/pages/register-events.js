@@ -8,12 +8,16 @@ export function EventRegistering() {
   const [fechaFin, setFechaFin] = useState("");
   const [tipoEvento, setTipoEvento] = useState("");
 
+  // Tipos de eventos que siempre deben ser obligatorios.
+  const EVENTOS_OBLIGATORIOS = ["3", "6", "8", "9"];
+  const forzarObligatorio = EVENTOS_OBLIGATORIOS.includes(tipoEvento);
+
   const handleSubmit = async (event) => {
     event.preventDefault();
     const data = {
       idCursada: 1,
       tipoEvento: tipoEvento,
-      obligatorio: obligatorio,
+      obligatorio: obligatorio || forzarObligatorio,
       fechaInicio: fechaInicio,
       fechaFin: fechaFin,
     };
@@ -84,7 +88,8 @@ export function EventRegistering() {
           <input
             type="checkbox"
             id="event-required"
-            checked={obligatorio}
+            checked={obligatorio || forzarObligatorio}
+            disabled={forzarObligatorio}
             onChange={(e) => setObligatorio(e.target.checked)}
           />
         </label>
