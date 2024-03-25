@@ -4,6 +4,7 @@
     background: linear-gradient(to bottom, #ffffff 0%,#f6f6f6 100%);
     margin-top: 20px;
     overflow-x: auto;
+    color: black;
 }
 
 table {

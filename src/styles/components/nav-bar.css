@@ -99,18 +99,21 @@
 }
 
 .nav-bar__tab--active {
-  text-decoration-line: underline;
-  text-decoration-style: solid;
-  text-decoration-color: var(--indigo);
-
-  /* responsive */
-
-  text-decoration-thickness: 4px;
-  text-underline-offset: 8px;
+  border-bottom: 4px solid var(--indigo);
+  padding: 12px 0 8px;
 }
 
 .nav-bar__tab:hover {
   color: var(--white);
+}
+
+.dropdown .nav-bar__tab {
+  margin-right: 0;
+}
+
+.dropdown .nav-bar__tab--active {
+  border: none;
+  padding: 10px 15px;
 }
 
 .nav-bar__icon {
