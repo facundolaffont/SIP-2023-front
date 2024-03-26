@@ -101,6 +101,8 @@
 .nav-bar__tab--active {
   border-bottom: 4px solid var(--indigo);
   padding: 12px 0 8px;
+  border-bottom: 4px solid var(--indigo);
+  padding: 12px 0 8px;
 }
 
 .nav-bar__tab:hover {
