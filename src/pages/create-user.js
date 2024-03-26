@@ -12,7 +12,7 @@ export function CreateUser() {
   const [error, setError] = useState(null);
   const [result, setResult] = useState("");
 
-  const getAccessToken = async () => {
+  /*const getAccessToken = async () => {
     const client_id = process.env.API_EXPLORER_CLIENT_ID;
     const client_secret = process.env.API_EXPLORER_CLIENT_SECRET;
     const audience = `https://${process.env.REACT_APP_AUTH0_DOMAIN}/api/v2/`;
@@ -44,7 +44,7 @@ export function CreateUser() {
     }
   };
 
-  async function createUser() {
+  /*async function createUser() {
     // Obtengo Token de Acceso
     const token = await getAccessToken();
 
@@ -127,7 +127,7 @@ export function CreateUser() {
       .catch((error) => {
         console.error("Error:", error);
       });
-  }
+  }*/
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -150,9 +150,22 @@ export function CreateUser() {
       },
       body: JSON.stringify(data),
     })
-      .then((response) => response.json())
-      .then((data) => console.log(data))
-      .catch((error) => console.error(error));
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error('Failed to create user');
+        }
+        return response.json();
+      })
+      .then((data) => {
+        setResult('Usuario creado exitosamente');
+        setError(null);
+        console.log(data);
+      })
+      .catch((error) => {
+        setError(error);
+        setResult('');
+        console.error(error);
+      });
   };
 
   function getError(error) {
