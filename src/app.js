@@ -23,6 +23,7 @@ import { ModificateCriterion } from "./pages/modificate-criterion";
 import { EventRegistering } from "./pages/register-events";
 import { SearchStudent } from "./pages/search-student";
 import { ListCourseStudents } from "./pages/list-course-students";
+import { ListCourseEvents } from "./pages/list-course-events";
 
 export const App = () => {
     const { isLoading, isAuthenticated, getIdTokenClaims } = useAuth0();
@@ -64,6 +65,7 @@ export const App = () => {
             <Route path="/" exact component={HomePage} />
             <Route path="/callback" component={CallbackPage} />
             <ProtectedRoute path="/change-password" component={ChangePasswordForm} />
+
             {/* Rutas para docentes. */}
             {isProfessor && <ProtectedRoute path="/profile" component={HomePageProfessor} />}
             {isProfessor && <ProtectedRoute path="/register-attendance" component={AttendanceRegistering} />}
@@ -76,6 +78,7 @@ export const App = () => {
             {isProfessor && <ProtectedRoute path="/search-student" component={SearchStudent} />}
             {isProfessor && <ProtectedRoute path="/create-criterion" component={CreateCriterion} />}
             {isProfessor && <ProtectedRoute path="/list-course-students" component={ListCourseStudents} />}
+            {isProfessor && <ProtectedRoute path="/list-course-events" component={ListCourseEvents} />}
 
             {/* Rutas para administradores. */}
             {isAdmin && <ProtectedRoute path="/profile" component={HomePageAdmin} />}

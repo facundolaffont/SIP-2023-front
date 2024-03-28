@@ -23,8 +23,6 @@ export function AttendanceRegistering() {
     const [eventDescription, setEventDescription] = useState('');
     const [selectedEvent, setSelectedEvent] = useState(null);
     const [spreadsheetManipulator, setSpreadsheetManipulator] = useState(null);
-    const [firstColumn, setFirstColumn] = useState('Legajo');
-    const [lastColumn, setLastColumn] = useState('Asistencia');
     const [okStudentsList, setOkStudentsList] = useState([]);
     const [notOkStudentsList, setNotOkStudentsList] = useState([]);
     const [tableManualUpdateTrigger, setTableManualUpdateTrigger] = useState(true);
@@ -66,8 +64,8 @@ export function AttendanceRegistering() {
                     },
                 }
             )
-                .then(okReponse => okReponse)
-                .catch(error => error.response);
+            .then(okReponse => okReponse)
+            .catch(error => error.response);
             
             if (eventsList.status !== 200) {
                 

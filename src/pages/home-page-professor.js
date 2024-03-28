@@ -9,7 +9,7 @@ import { PageLayout } from "../components/page-layout";
 import CourseDTO from "../contexts/course/course-d-t-o";
 import { useSelectedCourse } from "../contexts/course/course-provider";
 
-// Estilos
+// Estilos.
 import "../styles/components/system-messages.css";
 
 export const HomePageProfessor = () => {
@@ -89,7 +89,7 @@ export const HomePageProfessor = () => {
             <div className="info-msg-container">
                 <div className="info-msg-desc-container">
                     <p className="info-msg-description">Usted fue redirigido porque debe seleccionar una cursada para operar en la página en la que estaba.</p>
-                    <p className="info-msg-description">Seleccione una cursada y diríjase nuevamente a la página en la que estaba.</p>
+                    <p className="info-msg-description">Seleccione una cursada y diríjase nuevamente a dicha página.</p>
                 </div>
             </div>
             )}

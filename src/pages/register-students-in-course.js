@@ -388,6 +388,9 @@ export function CourseStudentRegistering() {
         while (sheetNamesSelect.firstChild) {
             sheetNamesSelect.removeChild(sheetNamesSelect.firstChild);
         }
+        const listFirstElement = document.createElement("option");
+        listFirstElement.innerHTML = "SELECCIONAR PESTAÑA";
+        sheetNamesSelect.appendChild(listFirstElement);
         sheetNamesList.forEach(sheetName => {
             const listElement = document.createElement("option");
             listElement.innerHTML = sheetName;
@@ -427,7 +430,11 @@ export function CourseStudentRegistering() {
     };
 
     const handleSheetNameValueChange = event => {
-        setSheetNameValue(event.target.value);
+
+        if(event.target.value !== "SELECCIONAR PESTAÑA") 
+            setSheetNameValue(event.target.value);
+        else setSheetNameValue("");
+
     };
 
     const handleCellRangeName = event => {
