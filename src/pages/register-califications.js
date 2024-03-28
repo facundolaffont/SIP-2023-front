@@ -76,7 +76,7 @@ export function CalificationRegistering() {
 
                 // Redirige a la página de selección de eventos, si la cursada no tiene eventos
                 // asociados.
-                window.location.replace(`${process.env.REACT_APP_DOMAIN_URL}/create-event?redirected`);
+                window.location.replace(`${process.env.REACT_APP_DOMAIN_URL}/register-event?redirected`);
 
             } else {
 

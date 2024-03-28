@@ -366,6 +366,9 @@ export function StudentRegistering() {
         while (sheetNamesSelect.firstChild) {
             sheetNamesSelect.removeChild(sheetNamesSelect.firstChild);
         }
+        const listFirstElement = document.createElement("option");
+        listFirstElement.innerHTML = "SELECCIONAR PESTAÑA";
+        sheetNamesSelect.appendChild(listFirstElement);
         sheetNamesList.forEach(sheetName => {
             const listElement = document.createElement("option");
             listElement.innerHTML = sheetName;
@@ -407,7 +410,11 @@ export function StudentRegistering() {
      * de nombre de pestaña.
      */
     const handleSheetNameValueChange = event => {
-        setSheetNameValue(event.target.value);
+
+        if(event.target.value !== "SELECCIONAR PESTAÑA") 
+            setSheetNameValue(event.target.value);
+        else setSheetNameValue("");
+
     };
 
     /** 
