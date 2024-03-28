@@ -439,7 +439,7 @@ export function CalificationRegistering() {
                     // Con letra: trabajos prácticos (2), recu. de trabajo práctico (5), recu. de parcial (6), autoeval. (4), recu. autoeval. (7)
                     // Con número: parciales (3), integrador (8).
 
-                    var regex = new RegExp("^(a-?|d|[0-9]|10)$");
+                    var regex = new RegExp("^(a-?|d|[0-9]((\\.|,)\\d+)?|10)$");
                     if (!regex.test(String(row.calification).trim().toLowerCase())) {
                         row.formatInfo = "El campo de calificación debe contener un valor de 0 a 10, ó D, A o A-";
                         invalidFormat = true;
@@ -519,7 +519,7 @@ export function CalificationRegistering() {
                             studentInfo.id = student.id;
                             studentInfo.name = student.name;
                             studentInfo.surname = student.surname;
-                            studentInfo.calification = studentLoadedData.calification;
+                            studentInfo.calification = String(studentLoadedData.calification).replace(',', '.');
                             studentInfo._row = studentLoadedData._row;
 
                             // Agrega el estado de registración en sistema.
@@ -570,11 +570,7 @@ export function CalificationRegistering() {
             .map(studentInfo => {
                 return {
                     dossier: studentInfo.dossier,
-                    calification:
-                        studentInfo.calification == 'x'
-                        ? true
-                        : false
-                    ,
+                    calification: String(studentInfo.calification).replace(',', '.')
                 }
             });
 
