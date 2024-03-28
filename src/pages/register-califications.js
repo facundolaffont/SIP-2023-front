@@ -545,7 +545,7 @@ export function CalificationRegistering() {
                                 return {
                                     _row: studentLoadedData._row,
                                     dossier: dossierInfo.dossier,
-                                    errorDescription: dossierInfo.errorDescription,
+                                    errorDescription: dossierInfo.errorCode == 3 ? "La calificación del legajo ya está registrada en el evento." : dossierInfo.errorDescription,
                                 };
 
                             }
