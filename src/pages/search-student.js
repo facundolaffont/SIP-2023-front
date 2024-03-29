@@ -42,7 +42,7 @@ export const SearchStudent = () => {
   return (
     <PageLayout>
       <h1 id="page-title" className="content__title">
-        Buscar Alumno
+        Buscar alumno
       </h1>
       <div>
         <input

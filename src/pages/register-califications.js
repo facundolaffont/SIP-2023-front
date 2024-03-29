@@ -29,6 +29,7 @@ export function CalificationRegistering() {
     const [invalidRegistersList, setInvalidRegistersList] = useState([]);
     const [error, setError] = useState(null);
     const { getAccessTokenSilently } = useAuth0();
+    const [, changeCourse] = useSelectedCourse(true);
     /** @type {CourseDTO} */ const course = useSelectedCourse(false);
 
     // Obtiene la lista de eventos de evaluación de la cursada.
@@ -652,6 +653,14 @@ export function CalificationRegistering() {
     return (
         <PageLayout>
             <h1 id="page-title" className="content__title">Registro de calificaciones</h1>
+            <h2 className="selected-course-info">
+                {
+                    course !== null && `Cursada seleccionada: (${course.getSubjectCode()}) ${course.getSubject()}, comisión ${course.getCommission()}, año ${course.getYear()}`
+                }
+                {
+                    course === null && 'Sin cursada seleccionada'
+                }
+            </h2>
             <div className="info-msg-container not-displayed">
                 <div className="info-msg-desc-container">
                     <p className="info-msg-description"></p>

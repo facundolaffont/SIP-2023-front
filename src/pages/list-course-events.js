@@ -5,16 +5,17 @@ import { useAuth0 } from "@auth0/auth0-react";
 
 // Imports internos.
 import { PageLayout } from "../components/page-layout.js";
-import { useSelectedCourse } from "../contexts/course/course-provider.js";
 import HTMLTableManipulator from "../services/html-table-manipulator";
+import { useSelectedCourse } from "../contexts/course/course-provider.js";
+import CourseDTO from "../contexts/course/course-d-t-o";
 
 // Estilos.
 import '../styles/search-student.css';
 
 export const ListCourseEvents = () => {
-    //const [eventosCursada, setEventosCursada] = useState(null);
     const [eventsList, setEventsList] = useState([]);
     const { getAccessTokenSilently } = useAuth0();
+    const [, changeCourse] = useSelectedCourse(true);
     /** @type {CourseDTO} */ const course = useSelectedCourse(false);
 
     // Verifica que se haya seleccionado una cursada.
@@ -147,8 +148,16 @@ export const ListCourseEvents = () => {
     return (
         <PageLayout>
             <h1 id="page-title" className="content__title">
-                Eventos asociados a la cursada seleccionada
+                Eventos de la cursada
             </h1>
+            <h2 className="selected-course-info">
+                {
+                    course !== null && `Cursada seleccionada: (${course.getSubjectCode()}) ${course.getSubject()}, comisión ${course.getCommission()}, año ${course.getYear()}`
+                }
+                {
+                    course === null && 'Sin cursada seleccionada'
+                }
+            </h2>
             {eventsList && (
                 <div>
                     <table className="events-table table-container not-displayed"></table>

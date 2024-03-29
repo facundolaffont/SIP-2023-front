@@ -28,6 +28,7 @@ export function CourseStudentRegistering() {
     const [tableManualUpdateTrigger, setTableManualUpdateTrigger] = useState(true);
     const [error, setError] = useState(null);
     const { getAccessTokenSilently } = useAuth0();
+    const [, changeCourse] = useSelectedCourse(true);
     /** @type {CourseDTO} */ const course = useSelectedCourse(false);
 
     // Redirige a la página de selección de cursada, si todavía no se seleccionó una,
@@ -560,6 +561,14 @@ export function CourseStudentRegistering() {
             <h1 id="page-title" className="content__title">
                 Registro de estudiantes en comisión
             </h1>
+            <h2 className="selected-course-info">
+                {
+                    course !== null && `Cursada seleccionada: (${course.getSubjectCode()}) ${course.getSubject()}, comisión ${course.getCommission()}, año ${course.getYear()}`
+                }
+                {
+                    course === null && 'Sin cursada seleccionada'
+                }
+            </h2>
             <div className="info-msg-container not-displayed">
                 <div className="info-msg-desc-container">
                     <p className="info-msg-description"></p>

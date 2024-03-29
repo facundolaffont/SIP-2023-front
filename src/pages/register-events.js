@@ -1,102 +1,118 @@
+// Imports externos.
 import { useState } from "react";
 import { PageLayout } from "../components/page-layout";
+
+// Imports internos.
+import { useSelectedCourse } from "../contexts/course/course-provider";
+
+// Estilos.
 import '../styles/register-students.css';
 
 export function EventRegistering() {
-  const [obligatorio, setObligatorio] = useState(false); // Cambiado a un valor booleano
-  const [fechaInicio, setFechaInicio] = useState("");
-  const [fechaFin, setFechaFin] = useState("");
-  const [tipoEvento, setTipoEvento] = useState("");
+    const [obligatorio, setObligatorio] = useState(false); // Cambiado a un valor booleano
+    const [fechaInicio, setFechaInicio] = useState("");
+    const [fechaFin, setFechaFin] = useState("");
+    const [tipoEvento, setTipoEvento] = useState("");
+    const [, changeCourse] = useSelectedCourse(true);
+    /** @type {CourseDTO} */ const course = useSelectedCourse(false);
 
-  // Tipos de eventos que siempre deben ser obligatorios.
-  const EVENTOS_OBLIGATORIOS = ["3", "6", "8", "9"];
-  const forzarObligatorio = EVENTOS_OBLIGATORIOS.includes(tipoEvento);
+    // Tipos de eventos que siempre deben ser obligatorios.
+    const EVENTOS_OBLIGATORIOS = ["3", "6", "8", "9"];
+    const forzarObligatorio = EVENTOS_OBLIGATORIOS.includes(tipoEvento);
 
-  const handleSubmit = async (event) => {
-    event.preventDefault();
-    const data = {
-      idCursada: 1,
-      tipoEvento: tipoEvento,
-      obligatorio: obligatorio || forzarObligatorio,
-      fechaInicio: fechaInicio,
-      fechaFin: fechaFin,
+    const handleSubmit = async (event) => {
+        event.preventDefault();
+        const data = {
+            idCursada: 1,
+            tipoEvento: tipoEvento,
+            obligatorio: obligatorio || forzarObligatorio,
+            fechaInicio: fechaInicio,
+            fechaFin: fechaFin,
+        };
+        console.log(data);
+
+        fetch(`${process.env.REACT_APP_API_SERVER_URL}/api/v1/events/create`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Host": "back-service.default.svc.cluster.local"
+                //Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify(data),
+        })
+            .then((response) => response.json())
+            .then((data) => console.log(data))
+            .catch((error) => console.error(error));
     };
-    console.log(data);
-    
-    fetch(`${process.env.REACT_APP_API_SERVER_URL}/api/v1/events/create`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Host": "back-service.default.svc.cluster.local"
-        //Authorization: `Bearer ${token}`,
-      },  
-      body: JSON.stringify(data),
-    })
-      .then((response) => response.json())
-      .then((data) => console.log(data))
-      .catch((error) => console.error(error));
-  };
 
-  return (
-    <PageLayout>
-      <h1 id="page-title" className="content__title">
-        Registro de eventos
-      </h1>
-      <form onSubmit={handleSubmit}>
-        <label htmlFor="event-type">
-          <p>Tipo de evento</p>
-        </label>
-        <select
-          id="event-type"
-          required
-          onChange={(e) => setTipoEvento(e.target.value)}
-          value={tipoEvento}
-        >
-          <option value="">Selecciona un tipo de evento</option>
-          <option value="1">Clase</option>
-          <option value="2">Trabajo Práctico</option>
-          <option value="3">Parcial</option>
-          <option value="4">Autoevaluación</option>
-          <option value="5">Recuperatorio Trabajo Práctico</option>
-          <option value="6">Recuperatorio Parcial</option>
-          <option value="7">Recuperatorio Autoevaluación</option>
-          <option value="8">Integrador</option>          
-          <option value="9">Final</option>
-        </select>
-        <label htmlFor="calification-date">
-          <p>Fecha de inicio del evento</p>
-        </label>
-        <input
-          type="datetime-local"
-          id="calification-date"
-          value={fechaInicio}
-          onChange={(e) => setFechaInicio(e.target.value)}
-          required
-        />
-        <label htmlFor="calification-date">
-          <p>Fecha de finalización del evento</p>
-        </label>
-        <input
-          type="datetime-local"
-          id="calification-date"
-          value={fechaFin}
-          onChange={(e) => setFechaFin(e.target.value)}
-          required
-        />
-        <label htmlFor="event-required">
-          <p style={{ display: "inline-block", marginRight: 4 }}>Evento obligatorio</p>
-          <input
-            type="checkbox"
-            id="event-required"
-            checked={obligatorio || forzarObligatorio}
-            disabled={forzarObligatorio}
-            onChange={(e) => setObligatorio(e.target.checked)}
-          />
-        </label>
-        <button type="submit" className="register-student-button">
-          Registrar evento
-        </button>
-      </form>
-    </PageLayout>
-  );
+    return (
+        <PageLayout>
+            <h1 id="page-title" className="content__title">
+                Registro de eventos
+            </h1>
+            <h2 className="selected-course-info">
+                {
+                    course !== null && `Cursada seleccionada: (${course.getSubjectCode()}) ${course.getSubject()}, comisión ${course.getCommission()}, año ${course.getYear()}`
+                }
+                {
+                    course === null && 'Sin cursada seleccionada'
+                }
+            </h2>
+            <form onSubmit={handleSubmit}>
+                <label htmlFor="event-type">
+                    <p>Tipo de evento</p>
+                </label>
+                <select
+                    id="event-type"
+                    required
+                    onChange={(e) => setTipoEvento(e.target.value)}
+                    value={tipoEvento}
+                >
+                    <option value="">Selecciona un tipo de evento</option>
+                    <option value="1">Clase</option>
+                    <option value="2">Trabajo Práctico</option>
+                    <option value="3">Parcial</option>
+                    <option value="4">Autoevaluación</option>
+                    <option value="5">Recuperatorio Trabajo Práctico</option>
+                    <option value="6">Recuperatorio Parcial</option>
+                    <option value="7">Recuperatorio Autoevaluación</option>
+                    <option value="8">Integrador</option>
+                    <option value="9">Final</option>
+                </select>
+                <label htmlFor="calification-date">
+                    <p>Fecha de inicio del evento</p>
+                </label>
+                <input
+                    type="datetime-local"
+                    id="calification-date"
+                    value={fechaInicio}
+                    onChange={(e) => setFechaInicio(e.target.value)}
+                    required
+                />
+                <label htmlFor="calification-date">
+                    <p>Fecha de finalización del evento</p>
+                </label>
+                <input
+                    type="datetime-local"
+                    id="calification-date"
+                    value={fechaFin}
+                    onChange={(e) => setFechaFin(e.target.value)}
+                    required
+                />
+                <label htmlFor="event-required">
+                    <p style={{ display: "inline-block", marginRight: 4 }}>Evento obligatorio</p>
+                    <input
+                        type="checkbox"
+                        id="event-required"
+                        checked={obligatorio || forzarObligatorio}
+                        disabled={forzarObligatorio}
+                        onChange={(e) => setObligatorio(e.target.checked)}
+                    />
+                </label>
+                <button type="submit" className="register-student-button">
+                    Registrar evento
+                </button>
+            </form>
+        </PageLayout>
+    );
 }

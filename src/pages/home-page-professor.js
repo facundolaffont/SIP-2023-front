@@ -11,7 +11,6 @@ import { useSelectedCourse } from "../contexts/course/course-provider";
 
 // Estilos.
 import "../styles/components/system-messages.css";
-import "../styles/home-page-professor.css"
 
 export const HomePageProfessor = () => {
     const { getAccessTokenSilently } = useAuth0();
