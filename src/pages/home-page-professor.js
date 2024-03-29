@@ -11,10 +11,12 @@ import { useSelectedCourse } from "../contexts/course/course-provider";
 
 // Estilos.
 import "../styles/components/system-messages.css";
+import "../styles/home-page-professor.css"
 
 export const HomePageProfessor = () => {
-    const [, changeCourse] = useSelectedCourse(true);
     const { getAccessTokenSilently } = useAuth0();
+    const [, changeCourse] = useSelectedCourse(true);
+    /** @type {CourseDTO} */ const course = useSelectedCourse(false);
 
     const urlSearchParams = new URLSearchParams(window.location.search);
     const isRedirected = urlSearchParams.has("redirected");
@@ -84,6 +86,14 @@ export const HomePageProfessor = () => {
     return (
         <PageLayout>
             <h1 className="content__title">Comisiones asociadas</h1>
+            <h2 className="selected-course-info">
+                {
+                    course !== null && `Cursada seleccionada: (${course.getSubjectCode()}) ${course.getSubject()}, comisión ${course.getCommission()}, año ${course.getYear()}`
+                }
+                {
+                    course === null && 'Sin cursada seleccionada'
+                }
+            </h2>
             {isRedirected && (
             <div className="info-msg-container">
                 <div className="info-msg-desc-container">

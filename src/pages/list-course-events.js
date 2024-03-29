@@ -51,7 +51,7 @@ export const ListCourseEvents = () => {
                         "mandatory:centered",
                     ],*/
                 },
-                `Eventos de la cursada seleccionada (${course.getSubjectCode()} - ${course.getSubject()}, comisión: ${course.getCommission()}, año: ${course.getYear()})`
+                `Eventos de la cursada seleccionada: (${course.getSubjectCode()}) ${course.getSubject()}, comisión ${course.getCommission()}, año ${course.getYear()}.`
             );
             eventsTable.classList.remove("not-displayed");
         } else eventsTable.classList.add("not-displayed");
