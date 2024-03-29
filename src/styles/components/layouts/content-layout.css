@@ -181,11 +181,11 @@ label[for="password"]::before {
 
 .cuadro-cursada h3 {
     font-size: 18px;
-    margin-bottom: 5px;
+    margin-bottom: 11px;
 }
 
 .cuadro-cursada p {
-    font-size: 14px;
+    font-size: 18px;
     color: #666;
 }
 

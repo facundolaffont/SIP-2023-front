@@ -49,29 +49,28 @@ export const HomePageProfessor = () => {
         const cursadasContainer = document.getElementById('cursadas-container');
         cursadasContainer.innerHTML = '';
 
-        // Iterar sobre las cursadas y crear un cuadro para cada una
+        // Iterar sobre las cursadas y crear un cuadro para cada una.
         userCourses.data.forEach((cursada, index) => {
+
             const cuadroCursada = document.createElement('div');
             cuadroCursada.classList.add('cuadro-cursada');
-            // Agregar un atributo de datos para almacenar el índice de la cursada
+
+            // Agrega un atributo de datos para almacenar el índice del elemento gráfico que representa una cursada (https://www.w3schools.com/TAGS/att_data-.asp).
             cuadroCursada.setAttribute('data-index', index);
 
-            // Mostrar los detalles de la cursada dentro del cuadro
+            // Muestra los detalles de la cursada dentro del cuadro.
             const nombreCursada = document.createElement('h3');
-            nombreCursada.textContent = `Nombre de la Asignatura: ` + cursada.nombreAsignatura;
-
             const detallesCursada = document.createElement('p');
-            detallesCursada.textContent = `Año de la cursada: ${cursada.anio}, Numero de Comision: ${cursada.numeroComision}`;
-
+            nombreCursada.textContent = `Asignatura: ` + cursada.nombreAsignatura;
+            detallesCursada.textContent = `Año de la cursada: ${cursada.anio} - Número de comisión: ${cursada.numeroComision}`;
             cuadroCursada.appendChild(nombreCursada);
             cuadroCursada.appendChild(detallesCursada);
 
-            // Agregar un evento de clic al cuadro de la cursada
+            // Agrega un evento de clic al cuadro de la cursada.
             cuadroCursada.addEventListener('click', () => {
 
-                // Obtener el índice de la cursada seleccionada
+                // Obtiene la cursada seleccionada.
                 const selectedIndex = parseInt(cuadroCursada.getAttribute('data-index'), 10);
-
                 const selectedCursada = userCourses.data[selectedIndex];
                 changeCourse(CourseDTO.createFrom(selectedCursada));
 
@@ -84,7 +83,7 @@ export const HomePageProfessor = () => {
 
     return (
         <PageLayout>
-            <h1 className="content__title">Mis Asignaturas</h1>
+            <h1 className="content__title">Comisiones asociadas</h1>
             {isRedirected && (
             <div className="info-msg-container">
                 <div className="info-msg-desc-container">

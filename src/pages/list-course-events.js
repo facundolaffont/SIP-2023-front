@@ -51,7 +51,7 @@ export const ListCourseEvents = () => {
                         "mandatory:centered",
                     ],*/
                 },
-                //`Eventos de la cursada con ID ${course.getId()}`
+                `Eventos de la cursada seleccionada (${course.getSubjectCode()} - ${course.getSubject()}, comisión: ${course.getCommission()}, año: ${course.getYear()})`
             );
             eventsTable.classList.remove("not-displayed");
         } else eventsTable.classList.add("not-displayed");
@@ -147,37 +147,12 @@ export const ListCourseEvents = () => {
     return (
         <PageLayout>
             <h1 id="page-title" className="content__title">
-                Eventos asociados a la cursada ID {course.getId()}
+                Eventos asociados a la cursada seleccionada
             </h1>
             {eventsList && (
                 <div>
                     <table className="events-table table-container not-displayed"></table>
                 </div>
-                /*<div>
-                    <table className="events-table">
-                        <thead>
-                            <tr>
-                                <th>Identificador de evento</th>
-                                <th>Tipo de evento</th>
-                                <th>Fecha y hora</th>
-                                <th>Obligatorio</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {eventosCursada.eventList.map(eventoCursada => (
-                                <tr key={eventoCursada.eventId}>
-                                    <td>{eventoCursada.eventId}</td>
-                                    <td>{eventoCursada.type}</td>
-                                    <td>{getFormattedDateAndTime(
-                                        eventoCursada.initialDateTime,
-                                        eventoCursada.endDateTime
-                                    )}</td>
-                                    <td>{eventoCursada.mandatory == true ? 'x' : ''}</td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>*/
             )}
         </PageLayout>
     );

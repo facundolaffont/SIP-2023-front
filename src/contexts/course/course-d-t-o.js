@@ -10,6 +10,12 @@ export default class CourseDTO {
     #id;
 
     /**
+     * Código de la asignatura.
+     * @type {number}
+     */
+    #subjectCode;
+
+    /**
      * Nombre de la asignatura.
      * @type {string}
      */
@@ -39,8 +45,9 @@ export default class CourseDTO {
      */
     #permission;
 
-    constructor(id, subject, career, commission, year, permission) {
+    constructor(id, subjectCode, subject, career, commission, year, permission) {
         this.#id = id;
+        this.#subjectCode = subjectCode;
         this.#subject = subject;
         this.#career = career;
         this.#commission = commission;
@@ -54,12 +61,33 @@ export default class CourseDTO {
      * @returns {CourseDTO}
      */
     static createFrom(obj) {
-        const { id, nombreAsignatura, nombreCarrera, numeroComision, anio, nivelPermiso } = obj;
-        return new CourseDTO(id, nombreAsignatura, nombreCarrera, numeroComision, anio, nivelPermiso);
+        const {
+            id,
+            codigoAsignatura,
+            nombreAsignatura,
+            nombreCarrera,
+            numeroComision,
+            anio,
+            nivelPermiso
+        } = obj;
+
+        return new CourseDTO(
+            id,
+            codigoAsignatura,
+            nombreAsignatura,
+            nombreCarrera,
+            numeroComision,
+            anio,
+            nivelPermiso
+        );
     }
 
     getId() {
         return this.#id;
+    }
+
+    getSubjectCode() {
+        return this.#subjectCode;
     }
 
     getSubject() {
@@ -88,6 +116,7 @@ export default class CourseDTO {
      */
     replace(dto) {
         this.#id = dto.getId();
+        this.#subjectCode = dto.getSubjectCode();
         this.#subject = dto.getSubject();
         this.#career = dto.getCareer();
         this.#commission = dto.getCommission();
