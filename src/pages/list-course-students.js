@@ -14,6 +14,16 @@ export const ListCourseStudents = () => {
     const [, changeCourse] = useSelectedCourse(true);
     /** @type {CourseDTO} */ const course = useSelectedCourse(false);
 
+    // Redirige a la página de selección de cursada, si todavía no se seleccionó una,
+    // o si se actualiza la página, ya que se pierde el contexto de la selección que
+    // se había hecho.
+    useEffect(() => {
+
+        if (course === null)
+            window.location.replace(`${process.env.REACT_APP_DOMAIN_URL}/profile?redirected`);
+
+    }, []);
+
     useEffect(() => {
         // Realizar la solicitud al backend cuando el componente se monta
         fetch(`${process.env.REACT_APP_API_SERVER_URL}/api/v1/course/getStudents?courseId=${course.getId()}`)

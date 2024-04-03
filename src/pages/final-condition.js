@@ -109,7 +109,7 @@ export const FinalCondition = () => {
 
     return (
         <PageLayout>
-            <h1 id="page-title" className="content__title">Condición Final</h1>
+            <h1 id="page-title" className="content__title">Calcular condición final</h1>
             <form onSubmit={handleSubmit}>
                 <p>Se evaluará la condicion final de los estudiantes según los siguientes criterios:</p>
                 <table className="criteria-table">

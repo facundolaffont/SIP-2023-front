@@ -6,7 +6,7 @@ export const NavBarTabs = () => {
     const { isAuthenticated, getIdTokenClaims } = useAuth0();
     const [isAdmin, setIsAdmin] = useState(false);
     const [isProfessor, setIsProfessor] = useState(false);
-    const [showBulkRegistrationsDropdown, setShowBulkRegistrationsDropdown] = useState(false);
+    const [showRegistrationsDropdown, setShowRegistrationsDropdown] = useState(false);
     const [showListingsDropdown, setShowListingsDropdown] = useState(false);
     const [showTeachersManagementDropdown, setShowTeachersManagementDropdown] = useState(false);
     const [showCalificationCriterionsDropdown, setShowCalificationCriterionsDropdown] = useState(false);
@@ -52,19 +52,13 @@ export const NavBarTabs = () => {
 
                     {/* Rutas para docentes */}
                     {isProfessor && (
-                        <NavBarTab
-                            path="/register-event"
-                            label="Crear evento"
-                        />
-                    )}
-                    {isProfessor && (
                         <div
                             className="nav-bar__tab"
-                            onMouseEnter={(event) => handleMouseEnter(event, setShowBulkRegistrationsDropdown)}
-                            onMouseLeave={(event) => handleMouseLeave(event, setShowBulkRegistrationsDropdown)}
+                            onMouseEnter={(event) => handleMouseEnter(event, setShowRegistrationsDropdown)}
+                            onMouseLeave={(event) => handleMouseLeave(event, setShowRegistrationsDropdown)}
                         >
-                            <span>Cargas masivas</span>
-                            {showBulkRegistrationsDropdown && (
+                            <span>Registraciones</span>
+                            {showRegistrationsDropdown && (
                                 <div className="dropdown" style={{ top: dropdownTopStyle }}>
                                     <NavBarTab
                                         path="/register-students"
@@ -72,7 +66,15 @@ export const NavBarTabs = () => {
                                     />
                                     <NavBarTab
                                         path="/register-students-in-course"
-                                        label="Vincular estudiantes con comisión"
+                                        label="Vincular estudiantes con cursada"
+                                    />
+                                    <NavBarTab
+                                        path="/register-event"
+                                        label="Crear evento"
+                                    />
+                                    <NavBarTab
+                                        path="/register-events-bulk"
+                                        label="Crear eventos masivamente"
                                     />
                                     <NavBarTab
                                         path="/register-attendance"
@@ -103,7 +105,7 @@ export const NavBarTabs = () => {
                                         path="/list-course-students"
                                         label="Listar alumnos"
                                     />
-                                    <NavBarTab path="/search-student" label="Consultar alumno" />
+                                    <NavBarTab path="/search-student" label="Buscar alumno" />
                                 </div>
                             )}
                         </div>
@@ -123,7 +125,7 @@ export const NavBarTabs = () => {
                                     />
                                     <NavBarTab
                                         path="/modificate-criterion"
-                                        label="Modificar criterio"
+                                        label="Modificar criterios"
                                     />
                                     <NavBarTab
                                         path="/final-condition"

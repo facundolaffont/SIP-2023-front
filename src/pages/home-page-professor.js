@@ -28,7 +28,7 @@ export const HomePageProfessor = () => {
             .catch(error => { throw error; });
 
         // Obtiene las cursadas del docente.
-        const userCourses = await axios.get(`${process.env.REACT_APP_API_SERVER_URL}/api/v1/course/getProfessorCourses`,
+        const userCourses = await axios.get(`${process.env.REACT_APP_API_SERVER_URL}/api/v1/course/get-professor-courses`,
             {
                 headers: {
                     Authorization: `Bearer ${auth0Token}`

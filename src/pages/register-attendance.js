@@ -55,7 +55,7 @@ export function AttendanceRegistering() {
             // HU002.007.001/CU01.0b.
             // Obtiene los eventos de la cursada.
             const eventsList = await axios.get(
-                `${process.env.REACT_APP_API_SERVER_URL}/api/v1/course/get-events`,
+                `${process.env.REACT_APP_API_SERVER_URL}/api/v1/course/get-class-events`,
                 {
                     params: {
                         'course-id': course.getId(),
@@ -666,7 +666,7 @@ export function AttendanceRegistering() {
 
     return (
         <PageLayout>
-            <h1 id="page-title" className="content__title">Registro de asistencias</h1>
+            <h1 id="page-title" className="content__title">Registrar asistencias</h1>
             <h2 className="selected-course-info">
                 {
                     course !== null && `Cursada seleccionada: (${course.getSubjectCode()}) ${course.getSubject()}, comisión ${course.getCommission()}, año ${course.getYear()}`

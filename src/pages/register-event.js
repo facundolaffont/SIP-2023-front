@@ -1,12 +1,13 @@
 // Imports externos.
 import { useState } from "react";
 import { PageLayout } from "../components/page-layout";
+import React, { useEffect } from "react";
 
 // Imports internos.
 import { useSelectedCourse } from "../contexts/course/course-provider";
 
 // Estilos.
-import '../styles/register-students.css';
+import '../styles/register-event.css';
 
 export function EventRegistering() {
     const [obligatorio, setObligatorio] = useState(false); // Cambiado a un valor booleano
@@ -15,6 +16,16 @@ export function EventRegistering() {
     const [tipoEvento, setTipoEvento] = useState("");
     const [, changeCourse] = useSelectedCourse(true);
     /** @type {CourseDTO} */ const course = useSelectedCourse(false);
+
+    // Redirige a la página de selección de cursada, si todavía no se seleccionó una,
+    // o si se actualiza la página, ya que se pierde el contexto de la selección que
+    // se había hecho.
+    useEffect(() => {
+
+        if (course === null)
+            window.location.replace(`${process.env.REACT_APP_DOMAIN_URL}/profile?redirected`);
+
+    }, []);
 
     // Tipos de eventos que siempre deben ser obligatorios.
     const EVENTOS_OBLIGATORIOS = ["3", "6", "8", "9"];
@@ -48,7 +59,7 @@ export function EventRegistering() {
     return (
         <PageLayout>
             <h1 id="page-title" className="content__title">
-                Registro de eventos
+                Crear evento
             </h1>
             <h2 className="selected-course-info">
                 {

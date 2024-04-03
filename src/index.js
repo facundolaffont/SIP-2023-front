@@ -1,9 +1,14 @@
+// Componentes externos.
 import React from "react";
 import ReactDOM from "react-dom";
 import { BrowserRouter } from "react-router-dom";
+
+// Componentes internos.
 import { App } from "./app";
 import { Auth0ProviderWithHistory } from "./auth0-provider-with-history";
 import CourseProvider from "./contexts/course/course-provider";
+
+// Estilos.
 import "./styles/styles.css";
 
 ReactDOM.render(

@@ -652,7 +652,7 @@ export function CalificationRegistering() {
 
     return (
         <PageLayout>
-            <h1 id="page-title" className="content__title">Registro de calificaciones</h1>
+            <h1 id="page-title" className="content__title">Registrar calificaciones</h1>
             <h2 className="selected-course-info">
                 {
                     course !== null && `Cursada seleccionada: (${course.getSubjectCode()}) ${course.getSubject()}, comisión ${course.getCommission()}, año ${course.getYear()}`

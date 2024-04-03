@@ -1,6 +1,9 @@
+// Componentes externos.
 import { useAuth0 } from "@auth0/auth0-react";
 import React, { useState, useEffect } from "react";
 import { Route, Switch } from "react-router-dom";
+
+// Componentes internos.
 import { PageLoader } from "./components/page-loader";
 import { ProtectedRoute } from "./components/protected-route";
 import { CallbackPage } from "./pages/callback-page";
@@ -20,7 +23,8 @@ import { CourseStudentRegistering } from "./pages/register-students-in-course";
 import { FinalCondition } from "./pages/final-condition";
 import { CreateCriterion } from "./pages/create-criterion";
 import { ModificateCriterion } from "./pages/modificate-criterion";
-import { EventRegistering } from "./pages/register-events";
+import { EventRegistering } from "./pages/register-event";
+import { EventsBulkRegistering } from "./pages/register-events-bulk";
 import { SearchStudent } from "./pages/search-student";
 import { ListCourseStudents } from "./pages/list-course-students";
 import { ListCourseEvents } from "./pages/list-course-events";
@@ -73,6 +77,7 @@ export const App = () => {
             {isProfessor && <ProtectedRoute path="/register-students-in-course" component={CourseStudentRegistering} />}
             {isProfessor && <ProtectedRoute path="/register-students" component={StudentRegistering} />}
             {isProfessor && <ProtectedRoute path="/register-event" component={EventRegistering} />}
+            {isProfessor && <ProtectedRoute path="/register-events-bulk" component={EventsBulkRegistering} />}
             {isProfessor && <ProtectedRoute path="/final-condition" component={FinalCondition} />}
             {isProfessor && <ProtectedRoute path="/modificate-criterion" component={ModificateCriterion} />}
             {isProfessor && <ProtectedRoute path="/search-student" component={SearchStudent} />}

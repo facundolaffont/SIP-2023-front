@@ -158,7 +158,7 @@ export const ModificateCriterion = () => {
     return (
         <PageLayout>
         {console.debug("Dentro de return")}
-            <h1 id="page-title" className="content__title">Criterios de evaluación</h1>
+            <h1 id="page-title" className="content__title">Modificar criterios de evaluación</h1>
             <form>
                 <table className="criteria-table">
                     <thead>

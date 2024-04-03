@@ -8,7 +8,6 @@ import React, { useEffect } from "react";
 import { PageLayout } from "../components/page-layout";
 import SpreadsheetManipulator from "../services/spreadsheet-manipulator.service";
 import HTMLTableManipulator from "../services/html-table-manipulator";
-import { useSelectedCourse } from "../contexts/course/course-provider";
 
 // Estilos.
 import "../styles/components/table.css";
@@ -27,8 +26,6 @@ export function StudentRegistering() {
     const [tableManualUpdateTrigger, setTableManualUpdateTrigger] = useState(true);
     const [error, setError] = useState(null);
     const { getAccessTokenSilently } = useAuth0();
-    const [, changeCourse] = useSelectedCourse(true);
-    /** @type {CourseDTO} */ const course = useSelectedCourse(false);
 
     // Actualiza las tablas.
     useEffect(() => {
@@ -510,16 +507,8 @@ export function StudentRegistering() {
     return (
         <PageLayout>
             <h1 id="page-title" className="content__title">
-                Alta de estudiantes
+                Registrar estudiantes
             </h1>
-            <h2 className="selected-course-info">
-                {
-                    course !== null && `Cursada seleccionada: (${course.getSubjectCode()}) ${course.getSubject()}, comisión ${course.getCommission()}, año ${course.getYear()}`
-                }
-                {
-                    course === null && 'Sin cursada seleccionada'
-                }
-            </h2>
             <div className="info-msg-container not-displayed">
                 <div className="info-msg-desc-container">
                     <p className="info-msg-description"></p>

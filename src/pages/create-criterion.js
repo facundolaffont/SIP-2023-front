@@ -35,7 +35,7 @@ export function CreateCriterion() {
     <PageLayout>
 
       <h1 id="page-title" className="content__title">
-        Alta de criterio
+        Crear criterio de evaluación
       </h1>
     
       <form onSubmit={handleSubmit}>

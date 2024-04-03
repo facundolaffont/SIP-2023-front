@@ -98,6 +98,10 @@ small {
   font-size: 1.2rem;
 }
 
+div.nav-bar__tab span {
+    cursor: pointer;
+}
+
 blockquote {
   padding: 1.6rem 3.2rem;
   margin: 0 0 3.2rem;

@@ -116,7 +116,7 @@ export function CourseStudentRegistering() {
                         "studiedPreviously:centered",
                     ]
                 },
-                `Estudiantes para registrar en la comisión (${okStudentsList.length})`
+                `Estudiantes para registrar en la cursada (${okStudentsList.length})`
             );
                okStudentsTableContainer.classList.remove("not-displayed");
         } else okStudentsTableContainer.classList.add("not-displayed");
@@ -559,7 +559,7 @@ export function CourseStudentRegistering() {
     return (
         <PageLayout>
             <h1 id="page-title" className="content__title">
-                Registro de estudiantes en comisión
+                Vincular estudiantes con cursada
             </h1>
             <h2 className="selected-course-info">
                 {

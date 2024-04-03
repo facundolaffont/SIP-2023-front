@@ -10,7 +10,7 @@ import { useSelectedCourse } from "../contexts/course/course-provider.js";
 import CourseDTO from "../contexts/course/course-d-t-o";
 
 // Estilos.
-import '../styles/search-student.css';
+import '../styles/list-course-events.css';
 
 export const ListCourseEvents = () => {
     const [eventsList, setEventsList] = useState([]);
@@ -71,7 +71,7 @@ export const ListCourseEvents = () => {
 
         // Realiza la petición al back para obtener la lista de eventos de la cursada.
         axios.get(
-            `${process.env.REACT_APP_API_SERVER_URL}/api/v1/course/get-events?course-id=${course.getId()}`,
+            `${process.env.REACT_APP_API_SERVER_URL}/api/v1/course/get-all-events?course-id=${course.getId()}`,
             {
                 headers: {
                     Authorization: `Bearer ${auth0Token}`,
