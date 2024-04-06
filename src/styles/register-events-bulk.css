@@ -27,3 +27,16 @@ form button {
 input[type="date"] {
     display: block;
 }
+
+div.label_button {
+    display: inline-block;
+}
+
+img.help_icon {
+    display: inline-block;
+    color: black;
+    font-size: 2rem;
+    margin-left: 1rem;
+    margin-bottom: 0.5rem;
+    cursor: pointer;
+}
