@@ -34,7 +34,7 @@ export function EventRegistering() {
     const handleSubmit = async (event) => {
         event.preventDefault();
         const data = {
-            idCursada: 1,
+            idCursada: course.getId(),
             tipoEvento: tipoEvento,
             obligatorio: obligatorio || forzarObligatorio,
             fechaInicio: fechaInicio,
