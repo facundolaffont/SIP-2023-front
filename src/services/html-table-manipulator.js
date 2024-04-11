@@ -77,36 +77,6 @@ export default class HTMLTableManipulator {
             console.debug(htmlTable.outerHTML);
         };
 
-        // (BB)
-        let tableColumnsParentTag =
-            htmlTableTheadTag
-            .appendChild(
-                document.createElement("tr")
-            );
-            tableBodyData.columnNames.forEach((value, index) => {
-            tableColumnsParentTag // thead.tr[1]
-                .appendChild(
-                    document.createElement("td")
-                ).appendChild(
-                    document.createTextNode(
-                        tableBodyData
-                            .columnNames
-                            .at(index)
-                            .substring(
-                                tableBodyData
-                                    .columnNames
-                                    .at(index)
-                                    .indexOf(':') + 1
-                            )
-                    )
-                );
-        });
-        
-        // (BC)
-        let tableBody = htmlTable.appendChild(
-            document.createElement("tbody")
-        );
-
         // Crea un arreglo con las clases de las columnas, si las hubiere.
         if (typeof tableBodyData.columnClasses !== 'undefined') {
             var columnClasses = {};
@@ -135,6 +105,41 @@ export default class HTMLTableManipulator {
 
                 });
         }
+
+        // (BB) Crea la sección de los títulos de columna.
+        let tableColumnsParentTag = htmlTableTheadTag
+        .appendChild(
+            document.createElement("tr")
+        );
+        tableBodyData.columnNames.forEach((value, index) => {
+
+            // Crea el elemento.
+            let newColumnHeader = document.createElement("td");
+            newColumnHeader
+            .appendChild(
+                document.createTextNode(
+                    tableBodyData
+                    .columnNames
+                    .at(index)
+                    .substring(
+                        tableBodyData
+                        .columnNames
+                        .at(index)
+                        .indexOf(':') + 1
+                    )
+                )
+            );
+
+            // Añade el elemento a la cabecera.
+            tableColumnsParentTag // thead.tr[1]
+            .appendChild(newColumnHeader);
+
+        });
+        
+        // (BC) Crea la estructura del cuerpo.
+        let tableBody = htmlTable.appendChild(
+            document.createElement("tbody")
+        );
 
         // (C)
         for (let register = 0; register < tableBodyData.tableRows.length; register++) {
@@ -179,7 +184,9 @@ export default class HTMLTableManipulator {
                 // Si se especificaron clases para la columna, las agrega.
                 if (typeof columnClasses !== 'undefined') {
                     if (typeof columnClasses[columnName] !== 'undefined') {
-                        columnDataTag.classList.add(columnClasses[columnName]);
+                        columnClasses[columnName].forEach(className => {
+                            columnDataTag.classList.add(className);
+                        });
                     }
                 }
 

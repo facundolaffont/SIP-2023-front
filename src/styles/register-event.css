@@ -20,10 +20,6 @@ form button {
     display: inline;
 }
 
-.register-student-button {
-    margin-left: 2rem;
-}
-
 input[type="date"] {
     display: block;
 }

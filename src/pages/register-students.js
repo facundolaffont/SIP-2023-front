@@ -1,13 +1,16 @@
-// Imports externos.
+// Componentes externos.
 import { useState } from "react";
 import axios from "axios";
 import { useAuth0 } from "@auth0/auth0-react";
 import React, { useEffect } from "react";
 
-// Imports internos.
+// Componentes internos.
 import { PageLayout } from "../components/page-layout";
+import { mergeArrays } from "../services/sets-service.js"
 import SpreadsheetManipulator from "../services/spreadsheet-manipulator.service";
 import HTMLTableManipulator from "../services/html-table-manipulator";
+import { useSelectedCourse } from "../contexts/course/course-provider.js";
+import CourseDTO from "../contexts/course/course-d-t-o.js";
 
 // Estilos.
 import "../styles/components/table.css";
@@ -20,12 +23,24 @@ export function StudentRegistering() {
     const [sheetNameValue, setSheetNameValue] = useState("");
     const [cellRangeName, setCellRangeName] = useState("");
     const [spreadsheetManipulator, setSpreadsheetManipulator] = useState(null);
-    const [okStudentsList, setOkStudentsList] = useState([]);
-    const [notOkStudentsList, setNotOkStudentsList] = useState([]);
+    const [okList, setOkList] = useState([]);
+    const [notOkList, setNotOkList] = useState([]);
     const [invalidRegistersList, setInvalidRegistersList] = useState([]);
     const [tableManualUpdateTrigger, setTableManualUpdateTrigger] = useState(true);
     const [error, setError] = useState(null);
+    const [commissionDataLoaded, setCommissionDataLoaded] = useState(false);
     const { getAccessTokenSilently } = useAuth0();
+    /** @type {CourseDTO} */ const course = useSelectedCourse(false);
+
+    // Redirige a la página de selección de cursada, si todavía no se seleccionó una,
+    // o si se actualiza la página, ya que se pierde el contexto de la selección que
+    // se había hecho.
+    useEffect(() => {
+
+        if (course === null)
+            window.location.replace(`${process.env.REACT_APP_DOMAIN_URL}/profile?redirected`);
+
+    }, []);
 
     // Actualiza las tablas.
     useEffect(() => {
@@ -41,16 +56,16 @@ export function StudentRegistering() {
                 {
                     columnNames: [
                         "_row:Fila",
-                        "dossier:Legajo",
+                        /*"dossier:Legajo",
                         "id:DNI",
                         "name:Nombre",
                         "surname:Apellido",
-                        "email:Email",
+                        "email:Email",*/
                         "formatInfo:Error de formato",
                     ],
                     tableRows: invalidRegistersList,
                     columnClasses: [
-                        "_row:centered",
+                        "_row:id",
                     ],
                 },
                 `Registros con formato inválido (${invalidRegistersList.length})`
@@ -60,9 +75,9 @@ export function StudentRegistering() {
 
         // Actualiza la tabla de estudiantes que no están aptos para ser registrados.
         let notOkStudentsTable = document.getElementsByClassName(
-            "not-ok-students-table"
+            "not-ok-table"
         )[0];
-        if (notOkStudentsList.length !== 0) {
+        if (notOkList.length !== 0) {
             HTMLTableManipulator.insertDataIntoTable(
                 notOkStudentsTable,
                 {
@@ -71,24 +86,24 @@ export function StudentRegistering() {
                         "dossier:Legajo",
                         "errorDescription:Descripción del error",
                     ],
-                    tableRows: notOkStudentsList,
+                    tableRows: notOkList,
                     columnClasses: [
-                        "_row:centered",
+                        "_row:id centered",
                     ],
                 },
-                `Legajos que no se pueden registrar (${notOkStudentsList.length})`
+                `Legajos que no se pueden registrar (${notOkList.length})`
             );
             notOkStudentsTable.classList.remove("not-displayed");
         } else notOkStudentsTable.classList.add("not-displayed");
 
         // Actualiza la tabla de estudiantes que están aptos para ser registrados.
         let okStudentsTable = document.getElementsByClassName(
-            "ok-students-table"
+            "ok-table"
         )[0];
         let okStudentsTableContainer = document.getElementsByClassName(
-            "ok-students-table-container"
+            "ok-table-container"
         )[0];
-        if (okStudentsList.length !== 0) {
+        if (okList.length !== 0) {
             HTMLTableManipulator.insertDataIntoTable(
                 okStudentsTable,
                 {
@@ -100,19 +115,21 @@ export function StudentRegistering() {
                         "name:Nombre",
                         "surname:Apellido",
                         "email:Email",
+                        "allPreviousSubjectsApproved:Correlativas",
+                        "alreadyStudied:Recursante",
                     ],
-                    tableRows: okStudentsList,
+                    tableRows: okList,
                     columnClasses: [
-                        "_row:centered",
+                        "_row:id centered",
                         "state:wrapped",
                     ],
                 },
-                `Estudiantes para registrar en la comisión (${okStudentsList.length})`
+                `Estudiantes para registrar en la comisión (${okList.length})`
             );
                okStudentsTableContainer.classList.remove("not-displayed");
         } else okStudentsTableContainer.classList.add("not-displayed");
 
-    }, [okStudentsList, notOkStudentsList, invalidRegistersList, tableManualUpdateTrigger]);
+    }, [okList, notOkList, invalidRegistersList, tableManualUpdateTrigger]);
 
     // Actualiza el mensaje de error que se mostrará al usuario.
     useEffect(() => {
@@ -127,8 +144,8 @@ export function StudentRegistering() {
         } else {
 
             // Oculta las tablas.
-            setOkStudentsList([]);
-            setNotOkStudentsList([]);
+            setOkList([]);
+            setNotOkList([]);
             setInvalidRegistersList([]);
 
             // Obtiene el elemento HTML que contendrá el texto del mensaje.
@@ -148,6 +165,35 @@ export function StudentRegistering() {
     useState(() => {
         setSpreadsheetManipulator(new SpreadsheetManipulator());
     }, []);
+
+
+    /**
+     * Manejador del evento que surge cuando se carga un
+     * nuevo archivo con el explorador de archivos.
+     *
+     * @param {Event} event Evento de cambio de la etiqueta input.
+     */
+    const handleFileSelection = event => {
+
+        // Obtiene y almacena el nombre del archivo.
+        const file = event.target.files[0];
+        setFileName(file.name);
+        setFileHandle(file);
+        
+        // Limpia la pantalla.
+        setError(null);
+        setOkList([]);
+        setNotOkList([]);
+        setInvalidRegistersList([]);
+
+        // Carga el archivo Excel.
+        spreadsheetManipulator.loadFile(file, loadSheetNames);
+
+        // Permite que se vuelva a cargar el mismo archivo.
+        const inputElement = document.getElementById("file");
+        inputElement.value = '';
+
+    };
 
     /**
      * Manejador del evento clic en el botón de carga de archivo a memoria.
@@ -185,6 +231,8 @@ export function StudentRegistering() {
                 "name",
                 "surname",
                 "email",
+                "allPreviousSubjectsApproved",
+                "alreadyStudied",
             ]);
 
             // Obtiene el rango seleccionado del Excel.
@@ -235,6 +283,20 @@ export function StudentRegistering() {
                 ) {
                     row.formatInfo = "El mail no tiene el formato adecuado.";
                     invalidFormat = true;
+                } else if (!(
+                    row.allPreviousSubjectsApproved.trim() === ''
+                    ||
+                    row.allPreviousSubjectsApproved.trim().toLowerCase() === 'x'
+                )) {
+                    row.formatInfo = "El campo de correlativas debe estar vacío o debe contener el valor 'x'.";
+                    invalidFormat = true;
+                } else if (!(
+                    row.alreadyStudied.trim() === ''
+                    ||
+                    row.alreadyStudied.trim().toLowerCase() === 'x'
+                )) {
+                    row.formatInfo = "El campo de recursante debe estar vacío o debe contener el valor 'x'.";
+                    invalidFormat = true;
                 }
 
                 // Separa los registros con formato válido de los que tienen formato inválido.
@@ -259,7 +321,7 @@ export function StudentRegistering() {
                 });
 
             // 2
-            const studentsCheckedInfo = await axios
+            const checkedInfo = await axios
                 .post(
                     `${process.env.REACT_APP_API_SERVER_URL}/api/v1/students/new-dossiers-check`,
                     {
@@ -275,7 +337,7 @@ export function StudentRegistering() {
                 .catch(error => error.response);
 
             // 2.A
-            if (studentsCheckedInfo.status !== 200) {
+            if (checkedInfo.status !== 200) {
                 
                 // 2.A.1
                 // Guarda el mensaje de error traído del back al usuario, y
@@ -290,8 +352,8 @@ export function StudentRegistering() {
                 );
 
                 // 4
-                setOkStudentsList(
-                    studentsCheckedInfo.data.ok.map(
+                setOkList(
+                    checkedInfo.data.ok.map(
                         dossier => {
 
                             // Obtiene el registro de readRange que tiene mismo legajo.
@@ -306,6 +368,8 @@ export function StudentRegistering() {
                             studentInfo.name = studentLoadedData.name.trim();
                             studentInfo.surname = studentLoadedData.surname.trim();
                             studentInfo.email = studentLoadedData.email.trim();
+                            studentInfo.alreadyStudied = studentLoadedData.alreadyStudied.trim().toLowerCase();
+                            studentInfo.allPreviousSubjectsApproved = studentLoadedData.allPreviousSubjectsApproved.trim().toLowerCase();
 
                             // Agrega el estado de registración en sistema.
                             studentInfo.state = 'Pendiente';
@@ -317,8 +381,8 @@ export function StudentRegistering() {
                 );
 
                 // 3.A.1
-                setNotOkStudentsList(
-                    studentsCheckedInfo.data.nok.map(
+                setNotOkList(
+                    checkedInfo.data.nok.map(
                         dossierInfo => {
 
                             // Establece el mensaje de error, según el código.
@@ -376,34 +440,6 @@ export function StudentRegistering() {
     }
 
     /**
-     * Manejador del evento que surge cuando se carga un
-     * nuevo archivo con el explorador de archivos.
-     *
-     * @param {Event} event Evento de cambio de la etiqueta input.
-     */
-    const handleFileSelection = event => {
-
-        // Obtiene y almacena el nombre del archivo.
-        const file = event.target.files[0];
-        setFileName(file.name);
-        setFileHandle(file);
-        
-        // Limpia la pantalla.
-        setError(null);
-        setOkStudentsList([]);
-        setNotOkStudentsList([]);
-        setInvalidRegistersList([]);
-
-        // Carga el archivo Excel.
-        spreadsheetManipulator.loadFile(file, loadSheetNames);
-
-        // Permite que se vuelva a cargar el mismo archivo.
-        const inputElement = document.getElementById("file");
-        inputElement.value = '';
-
-    };
-
-    /**
      * Manejador del evento de cambio del campo de selección
      * de nombre de pestaña.
      */
@@ -431,7 +467,7 @@ export function StudentRegistering() {
         /*** Procedimiento: HU003.001.001/CU01. ***/
 
         // Prepara la lista de estudiantes para ser enviada.
-        const studentsRegistrationInfo = okStudentsList
+        const studentsRegistrationInfo = okList
             .map(studentRegistrationInfo => {
                 return {
                     dossier: studentRegistrationInfo.dossier,
@@ -439,6 +475,14 @@ export function StudentRegistering() {
                     name: studentRegistrationInfo.name,
                     surname: studentRegistrationInfo.surname,
                     email: studentRegistrationInfo.email,
+                    alreadyStudied:
+                        studentRegistrationInfo.alreadyStudied == 'x'
+                        ? true
+                        : false,
+                    allPreviousSubjectsApproved:
+                        studentRegistrationInfo.allPreviousSubjectsApproved == 'x'
+                        ? true
+                        : false,
                 }
             });
 
@@ -455,6 +499,7 @@ export function StudentRegistering() {
             .post(
                 `${process.env.REACT_APP_API_SERVER_URL}/api/v1/students/register-students`,
                 {
+                    courseId: course.getId(),
                     newStudentsList: studentsRegistrationInfo,
                 },
                 {
@@ -478,18 +523,18 @@ export function StudentRegistering() {
 
             // 3
             // El front inserta un símbolo en la primera columna de cada registro para indicar
-            // que se registró en el sistema. [usar okStudentsList y notOkStudentsList]
+            // que se registró en el sistema. [usar okList y notOkList]
 
             // Actualiza la información de los estudiantes que se registraron correctamente.
             response.data.ok.forEach(registeredStudentDossier => {
-                let registeredStudent = okStudentsList
+                let registeredStudent = okList
                     .find(student => student.dossier === registeredStudentDossier);
                 registeredStudent.state = "Registrado";
             });
 
             // Actualiza la información de los estudiantes que no se registraron correctamente.
             response.data.nok.forEach(notRegisteredStudentInfo => {
-                let notRegisteredStudent = okStudentsList
+                let notRegisteredStudent = okList
                     .find(student => student.dossier === notRegisteredStudentInfo.dossier);
                 switch(notRegisteredStudentInfo.errorCode) {
                     case 1: notRegisteredStudent.state = "No registrado: el legajo ya existe en sistema.";
@@ -509,6 +554,14 @@ export function StudentRegistering() {
             <h1 id="page-title" className="content__title">
                 Registrar estudiantes
             </h1>
+            <h2 className="selected-course-info">
+                {
+                    course !== null && `Cursada seleccionada: (${course.getSubjectCode()}) ${course.getSubject()}, comisión ${course.getCommission()}, año ${course.getYear()}`
+                }
+                {
+                    course === null && 'Sin cursada seleccionada'
+                }
+            </h2>
             <div className="info-msg-container not-displayed">
                 <div className="info-msg-desc-container">
                     <p className="info-msg-description"></p>
@@ -553,13 +606,13 @@ export function StudentRegistering() {
                 <table className="not-valid-format-table table-container not-displayed"></table>
             </div>
             <div>
-                <table className="not-ok-students-table table-container not-displayed"></table>
+                <table className="not-ok-table table-container not-displayed"></table>
             </div>
-            <div className="ok-students-table-container table-container not-displayed">
-                <table className="ok-students-table"></table>
+            <div className="ok-table-container table-container not-displayed">
+                <table className="ok-table"></table>
                 <button
                     type="button"
-                    className="register-student-button"
+                    className="register-button"
                     onClick={handleRegistering}
                 >
                     Registrar estudiantes

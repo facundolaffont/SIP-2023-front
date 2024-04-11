@@ -1,29 +1,26 @@
-.student-table {
-    width: 20rem;
-    margin: 3rem auto 3rem auto;
-}
-
-.student-table td {
-    font-size: 16px;
-    text-wrap: nowrap;
-}
-
-.student-table tbody td {
-    text-align: left;
-}
-
-.student-table thead td {
-    text-align: center;
-}
-
 form button {
     display: inline;
 }
 
-.register-student-button {
-    margin-left: 2rem;
-}
-
 input[type="date"] {
     display: block;
+}
+
+.register-button {
+    margin-top: 2rem;
+    display: inline-block;
+}
+
+input[type="checkbox"] {
+    margin-left: 2rem;
+    margin-right: 0.7rem;
+    width: 15px;
+    height: 15px;
+}
+
+div.ok-table-container > label {
+    font-style: italic;
+    color: #666;
+    margin-top: 10px;
+    font-size: 16px;
 }
