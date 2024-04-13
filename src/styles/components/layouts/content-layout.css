@@ -323,6 +323,18 @@ h2 {
   background-color: #255f27;
 }
 
+.condition-cell span {
+  margin-right: 10px;
+}
+
+.condition-cell button {
+  display: inline-block;
+}
+
+.condition-cell p {
+  color: white;
+}
+
 /* Estilos para las celdas con contenido "L", "R" y "P" */
 .normal-cell {
   color: black; /* Por defecto, texto en negro */
