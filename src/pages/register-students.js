@@ -6,7 +6,6 @@ import React, { useEffect } from "react";
 
 // Componentes internos.
 import { PageLayout } from "../components/page-layout";
-import { mergeArrays } from "../services/sets-service.js"
 import SpreadsheetManipulator from "../services/spreadsheet-manipulator.service";
 import HTMLTableManipulator from "../services/html-table-manipulator";
 import { useSelectedCourse } from "../contexts/course/course-provider.js";
@@ -28,7 +27,6 @@ export function StudentRegistering() {
     const [invalidRegistersList, setInvalidRegistersList] = useState([]);
     const [tableManualUpdateTrigger, setTableManualUpdateTrigger] = useState(true);
     const [error, setError] = useState(null);
-    const [commissionDataLoaded, setCommissionDataLoaded] = useState(false);
     const { getAccessTokenSilently } = useAuth0();
     /** @type {CourseDTO} */ const course = useSelectedCourse(false);
 
@@ -165,7 +163,6 @@ export function StudentRegistering() {
     useState(() => {
         setSpreadsheetManipulator(new SpreadsheetManipulator());
     }, []);
-
 
     /**
      * Manejador del evento que surge cuando se carga un

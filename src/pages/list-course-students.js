@@ -1,10 +1,11 @@
-// Imports externos.
+// Componentes externos.
 import React, { useState, useEffect } from "react";
 
-// Imports internos.
+// Componentes internos.
 import { PageLayout } from "../components/page-layout";
 import { useSelectedCourse } from "../contexts/course/course-provider.js";
 import CourseDTO from "../contexts/course/course-d-t-o";
+import SpreadsheetManipulator from "../services/spreadsheet-manipulator.service";
 
 // Estilos.
 import '../styles/search-student.css';
@@ -12,7 +13,13 @@ import '../styles/search-student.css';
 export const ListCourseStudents = () => {
     const [estudiantesCursada, setData] = useState(null);
     const [, changeCourse] = useSelectedCourse(true);
+    const [spreadsheetManipulator, setSpreadsheetManipulator] = useState(null);
     /** @type {CourseDTO} */ const course = useSelectedCourse(false);
+
+    // Inicializa el objeto que manipula las planillas.
+    useState(() => {
+        setSpreadsheetManipulator(new SpreadsheetManipulator());
+    }, []);
 
     // Redirige a la página de selección de cursada, si todavía no se seleccionó una,
     // o si se actualiza la página, ya que se pierde el contexto de la selección que
@@ -26,7 +33,7 @@ export const ListCourseStudents = () => {
 
     useEffect(() => {
         // Realizar la solicitud al backend cuando el componente se monta
-        fetch(`${process.env.REACT_APP_API_SERVER_URL}/api/v1/course/getStudents?courseId=${course.getId()}`)
+        fetch(`${process.env.REACT_APP_API_SERVER_URL}/api/v1/course/get-students?courseId=${course.getId()}`)
             .then(response => response.json())
             .then(data => {
                 console.log(data)
@@ -46,6 +53,15 @@ export const ListCourseStudents = () => {
             });
     }, []); // El array vacío asegura que el efecto se ejecute solo una vez después del montaje del componente
 
+    /**
+     * Maneja el evento clic en el botón de exportar.
+     */
+    const handleExport = () => {
+        spreadsheetManipulator.export(
+            document.getElementById("condition-table")
+        );
+    }
+
     return (
         <PageLayout>
             <h1 id="page-title" className="content__title">
@@ -61,13 +77,14 @@ export const ListCourseStudents = () => {
             </h2>
             {estudiantesCursada && (
                 <div>
-                    <table className="condition-table">
+                    <table id="condition-table" className="condition-table">
                         <thead>
                             <tr>
                                 <th>Legajo</th>
                                 <th>DNI</th>
                                 <th>Nombre</th>
                                 <th>Apellido</th>
+                                <th>Email</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -77,10 +94,18 @@ export const ListCourseStudents = () => {
                                     <td>{estudianteCursada.alumno.dni}</td>
                                     <td>{estudianteCursada.alumno.nombre}</td>
                                     <td>{estudianteCursada.alumno.apellido}</td>
+                                    <td>{estudianteCursada.alumno.email}</td>
                                 </tr>
                             ))}
                         </tbody>
                     </table>
+                    <button
+                        type="button"
+                        className="export-button"
+                        onClick={handleExport}
+                    >
+                        Exportar a Excel
+                    </button>
                 </div>
             )}
         </PageLayout>

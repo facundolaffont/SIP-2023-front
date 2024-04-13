@@ -28,6 +28,8 @@ import { EventsBulkRegistering } from "./pages/register-events-bulk";
 import { SearchStudent } from "./pages/search-student";
 import { ListCourseStudents } from "./pages/list-course-students";
 import { ListCourseEvents } from "./pages/list-course-events";
+import { ListAttendance } from "./pages/list-events-attendance";
+import { ListCalifications } from "./pages/list-events-califications";
 
 export const App = () => {
     const { isLoading, isAuthenticated, getIdTokenClaims } = useAuth0();
@@ -84,6 +86,8 @@ export const App = () => {
             {isProfessor && <ProtectedRoute path="/create-criterion" component={CreateCriterion} />}
             {isProfessor && <ProtectedRoute path="/list-course-students" component={ListCourseStudents} />}
             {isProfessor && <ProtectedRoute path="/list-course-events" component={ListCourseEvents} />}
+            {isProfessor && <ProtectedRoute path="/list-events-attendance" component={ListAttendance} />}
+            {isProfessor && <ProtectedRoute path="/list-events-califications" component={ListCalifications} />}
 
             {/* Rutas para administradores. */}
             {isAdmin && <ProtectedRoute path="/profile" component={HomePageAdmin} />}

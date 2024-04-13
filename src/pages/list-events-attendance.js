@@ -5,15 +5,15 @@ import { useAuth0 } from "@auth0/auth0-react";
 
 // Componentes internos.
 import { PageLayout } from "../components/page-layout.js";
-import HTMLTableManipulator from "../services/html-table-manipulator";
-import SpreadsheetManipulator from "../services/spreadsheet-manipulator.service";
+import HTMLTableManipulator from "../services/html-table-manipulator.js";
+import SpreadsheetManipulator from "../services/spreadsheet-manipulator.service.js";
 import { useSelectedCourse } from "../contexts/course/course-provider.js";
-import CourseDTO from "../contexts/course/course-d-t-o";
+import CourseDTO from "../contexts/course/course-d-t-o.js";
 
 // Estilos.
-import '../styles/list-course-events.css';
+import '../styles/list-events-attendance.css';
 
-export const ListCourseEvents = () => {
+export const ListAttendance = () => {
     const [eventsList, setEventsList] = useState([]);
     const { getAccessTokenSilently } = useAuth0();
     const [, changeCourse] = useSelectedCourse(true);

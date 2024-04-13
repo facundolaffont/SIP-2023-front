@@ -105,7 +105,15 @@ export const NavBarTabs = () => {
                                         path="/list-course-students"
                                         label="Listar alumnos"
                                     />
-                                    <NavBarTab path="/search-student" label="Buscar alumno" />
+                                    <NavBarTab
+                                        path="/list-events-attendance"
+                                        label="Listar asistencia"
+                                    />
+                                    <NavBarTab
+                                        path="/list-events-califications"
+                                        label="Listar calificaciones"
+                                    />
+                                    <NavBarTab path="/search-student" label="Consultar eventos por alumno" />
                                 </div>
                             )}
                         </div>

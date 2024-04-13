@@ -6,10 +6,25 @@ import * as XLSX from 'xlsx';
 class SpreadsheetManipulator {
 
     /**
+     * Exporta una tabla a Excel.
+     * 
+     * @param {HTMLTableElement} table - La tabla HTML que será
+     * exportada en un archivo Excel.
+     */
+    export(table) {
+
+        // Crea el objeto de la planilla, a partir del objeto tabla HTML.
+        var workbook = XLSX.utils.table_to_book(table);
+
+        // Genera y exporta el archivo.
+        XLSX.writeFile(workbook, "Report.xlsx");
+
+    }
+
+    /**
      * @callback onFileLoadCallback Función callback que se llamará cuando se termine de cargar la planilla.
      * @return {void}
      */
-
     /**
      * Carga un archivo Excel o OpenDocument en memoria, para
      * posteriormente extraer información por rangos.
