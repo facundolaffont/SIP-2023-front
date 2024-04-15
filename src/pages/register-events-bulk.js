@@ -564,13 +564,13 @@ export function EventsBulkRegistering() {
                         Cargar archivo
                     </label>
                 </div>
-                <img
+                {/*<img
                     src={icono}
                     width="35"
                     height="35"
                     title="Campos: Código de tipo de evento (entero mayor a cero); Fecha y hora inicial (DD/MM/AAAA HH:MM); Fecha y hora final (DD/MM/AAAA HH:MM); Obligatorio (marcar con 'x' cuando el evento es obligatorio)."
                     className="help_icon"
-                />
+                />*/}
                 <input
                     type="file"
                     id="file"
@@ -588,13 +588,13 @@ export function EventsBulkRegistering() {
                 >
                 </select>
                 <p>Rango de celdas a cargar</p>
-                <img
+                {/*<img
                     src={icono}
                     width="30"
                     height="30"
                     title="Ejemplo: A2:D9."
                     className="help_icon"
-                />
+                />*/}
                 <input
                     type="text"
                     id="cell-range"
