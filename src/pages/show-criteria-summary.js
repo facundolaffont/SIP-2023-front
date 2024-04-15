@@ -11,10 +11,10 @@ import { useSelectedCourse } from "../contexts/course/course-provider.js";
 import CourseDTO from "../contexts/course/course-d-t-o";
 
 // Estilos.
-import '../styles/list-course-events.css';
+import '../styles/show-criteria-summary.css';
 
-export const ListCourseEvents = () => {
-    const [eventsList, setEventsList] = useState([]);
+export const ShowCriteriaSummary = () => {
+    const [criteriaList, setCriteriaList] = useState([]);
     const { getAccessTokenSilently } = useAuth0();
     const [, changeCourse] = useSelectedCourse(true);
     const [spreadsheetManipulator, setSpreadsheetManipulator] = useState(null);
@@ -39,16 +39,16 @@ export const ListCourseEvents = () => {
     // Actualiza la tabla.
     useEffect(() => {
 
-        let eventsTable = document.getElementsByClassName(
-            "events-table"
+        let criteriaTable = document.getElementsByClassName(
+            "criteria-table"
         )[0];
-        if (eventsList.length !== 0) {
+        if (criteriaList.length !== 0) {
             HTMLTableManipulator.insertDataIntoTable(
-                eventsTable,
+                criteriaTable,
                 {
-                    tableRows: eventsList,
+                    tableRows: criteriaList,
                     columnNames: [
-                        "eventId:ID",
+                        "criteria:Criterio",
                         "type:Tipo de evento",
                         "datetime:Fecha y hora",
                         "mandatory:Obligatorio",
@@ -59,12 +59,12 @@ export const ListCourseEvents = () => {
                     ],*/
                 },
             );
-            eventsTable.classList.remove("not-displayed");
-        } else eventsTable.classList.add("not-displayed");
+            criteriaTable.classList.remove("not-displayed");
+        } else criteriaTable.classList.add("not-displayed");
 
-    }, [eventsList]);
+    }, [criteriaList]);
 
-    // Obtiene las cursadas de la comisión seleccionada.
+    // Obtiene el resumen de los criterios respecto de la comisión seleccionada.
     useEffect(async () => {
 
         // Obtiene el token Auth0.
@@ -74,9 +74,9 @@ export const ListCourseEvents = () => {
                 throw error;
             });
 
-        // Realiza la petición al back para obtener la lista de eventos de la cursada.
+        // Realiza la petición al back para obtener el resumen de criterios.
         axios.get(
-            `${process.env.REACT_APP_API_SERVER_URL}/api/v1/course/get-all-events?course-id=${course.getId()}`,
+            `${process.env.REACT_APP_API_SERVER_URL}/api/v1/course/get-criteria-summary?course-id=${course.getId()}`,
             {
                 headers: {
                     Authorization: `Bearer ${auth0Token}`,
@@ -86,13 +86,12 @@ export const ListCourseEvents = () => {
 
         // Si la petición fue exitosa, se guarda la información obtenida.
         .then(response => {
-            //setEventosCursada(response.data);
 
-            setEventsList(response.data.eventList.map(event => {
+            setCriteriaList(response.data.criteriaList.map(event => {
                 return {
                     eventId: event.eventId,
                     type: event.type,
-                    datetime: getFormattedDateAndTime(event.initialDateTime, event.endDateTime),
+                    //datetime: getFormattedDateAndTime(event.initialDateTime, event.endDateTime),
                     mandatory: event.mandatory,
                 }
             }));
@@ -106,63 +105,19 @@ export const ListCourseEvents = () => {
 
     }, []); // El array vacío asegura que el efecto se ejecute solo una vez después del montaje del componente.
 
-    function getFormattedDateAndTime(initialDateAndTime, endDateAndTime) {
-
-        const initialDate =
-            Intl.DateTimeFormat(
-                'es-AR',
-                {
-                    weekday: 'short',
-                    day: '2-digit',
-                    month: '2-digit',
-                    year: '2-digit',
-                }
-            ).format(new Date(initialDateAndTime));
-        const initialTime = 
-            Intl.DateTimeFormat(
-                'es-AR',
-                {
-                    hour: '2-digit',
-                    minute: '2-digit',
-                }
-            ).format(new Date(initialDateAndTime));
-        const endDate =
-            Intl.DateTimeFormat(
-                'es-AR',
-                {
-                    weekday: 'short',
-                    day: '2-digit',
-                    month: '2-digit',
-                    year: '2-digit',
-                }
-            ).format(new Date(endDateAndTime));
-        const endTime = 
-            Intl.DateTimeFormat(
-                'es-AR',
-                {
-                    hour: '2-digit',
-                    minute: '2-digit',
-                }
-            ).format(new Date(endDateAndTime));
-
-        return initialDate.valueOf() === endDate.valueOf()
-            ? `${initialDate} de ${initialTime} a ${endTime}`
-            : `${initialDate} ${initialTime} - ${endDate} ${endTime}`;
-    }
-
     /**
      * Maneja el evento clic en el botón de exportar.
      */
     const handleExport = () => {
         spreadsheetManipulator.export(
-            document.getElementById("events-table")
+            document.getElementById("criteria-table")
         );
     }
 
     return (
         <PageLayout>
             <h1 id="page-title" className="content__title">
-                Eventos de la cursada
+                Resumen de criterios
             </h1>
             <h2 className="selected-course-info">
                 {
@@ -172,9 +127,9 @@ export const ListCourseEvents = () => {
                     course === null && 'Sin cursada seleccionada'
                 }
             </h2>
-            {eventsList && (
+            {criteriaList && (
                 <div>
-                    <table id="events-table" className="events-table table-container not-displayed"></table>
+                    <table id="criteria-table" className="criteria-table not-displayed"></table>
                     <button
                         type="button"
                         className="export-button"

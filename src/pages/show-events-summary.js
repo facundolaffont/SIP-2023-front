@@ -11,9 +11,9 @@ import { useSelectedCourse } from "../contexts/course/course-provider.js";
 import CourseDTO from "../contexts/course/course-d-t-o";
 
 // Estilos.
-import '../styles/list-course-events.css';
+import '../styles/show-events-summary.css';
 
-export const ListCourseEvents = () => {
+export const ShowEventsSummary = () => {
     const [eventsList, setEventsList] = useState([]);
     const { getAccessTokenSilently } = useAuth0();
     const [, changeCourse] = useSelectedCourse(true);
@@ -64,7 +64,7 @@ export const ListCourseEvents = () => {
 
     }, [eventsList]);
 
-    // Obtiene las cursadas de la comisión seleccionada.
+    // Obtiene el resumen de los eventos, respecto de la cursada seleccionada.
     useEffect(async () => {
 
         // Obtiene el token Auth0.
@@ -74,9 +74,9 @@ export const ListCourseEvents = () => {
                 throw error;
             });
 
-        // Realiza la petición al back para obtener la lista de eventos de la cursada.
+        // Realiza la petición al back para obtener el resumen de eventos.
         axios.get(
-            `${process.env.REACT_APP_API_SERVER_URL}/api/v1/course/get-all-events?course-id=${course.getId()}`,
+            `${process.env.REACT_APP_API_SERVER_URL}/api/v1/course/get-events-summary?course-id=${course.getId()}`,
             {
                 headers: {
                     Authorization: `Bearer ${auth0Token}`,
@@ -86,7 +86,6 @@ export const ListCourseEvents = () => {
 
         // Si la petición fue exitosa, se guarda la información obtenida.
         .then(response => {
-            //setEventosCursada(response.data);
 
             setEventsList(response.data.eventList.map(event => {
                 return {
@@ -162,7 +161,7 @@ export const ListCourseEvents = () => {
     return (
         <PageLayout>
             <h1 id="page-title" className="content__title">
-                Eventos de la cursada
+                Resumen de eventos
             </h1>
             <h2 className="selected-course-info">
                 {
@@ -174,7 +173,7 @@ export const ListCourseEvents = () => {
             </h2>
             {eventsList && (
                 <div>
-                    <table id="events-table" className="events-table table-container not-displayed"></table>
+                    <table id="events-table" className="events-table not-displayed"></table>
                     <button
                         type="button"
                         className="export-button"

@@ -12,8 +12,8 @@ form button {
     display: inline;
 }
 
-.register-calification-button {
-    margin-left: 2rem;
+.register-califications-button {
+    margin-top: 2rem;
 }
 
 input[type="date"] {

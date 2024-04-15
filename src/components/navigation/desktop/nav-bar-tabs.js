@@ -106,6 +106,21 @@ export const NavBarTabs = () => {
                                         label="Listar alumnos"
                                     />
                                     <NavBarTab
+                                        path="/search-student"
+                                        label="Consultar eventos por alumno"
+                                    />
+                                    <NavBarTab
+                                        path="/show-criteria-summary"
+                                        label="Mostrar resumen por criterio"
+                                    />
+                                    <NavBarTab
+                                        path="/show-events-summary"
+                                        label="Mostrar resumen por evento"
+                                    />
+                                </div>
+                            )}
+                            {/* Para agregar en la sección de arriba
+                                    <NavBarTab
                                         path="/list-events-attendance"
                                         label="Listar asistencia"
                                     />
@@ -113,9 +128,7 @@ export const NavBarTabs = () => {
                                         path="/list-events-califications"
                                         label="Listar calificaciones"
                                     />
-                                    <NavBarTab path="/search-student" label="Consultar eventos por alumno" />
-                                </div>
-                            )}
+                            */}
                         </div>
                     )}
                     {isProfessor && (

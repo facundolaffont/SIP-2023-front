@@ -436,16 +436,16 @@ export function CalificationRegistering() {
                     row.formatInfo = "El legajo no es un entero positivo.";
                     invalidFormat = true;
                 } else {
-
-                    // Con letra: trabajos prácticos (2), recu. de trabajo práctico (5), recu. de parcial (6), autoeval. (4), recu. autoeval. (7)
-                    // Con número: parciales (3), integrador (8).
-
-                    var regex = new RegExp("^(a-?|d|[0-9]((\\.|,)\\d+)?|10)$");
-                    if (!regex.test(String(row.calification).trim().toLowerCase())) {
+                    var regex = new RegExp("^(A-?|D|[0-9]((\\.|,)\\d+)?|10|)$");
+                    if (!regex.test(String(row.calification).trim().toUpperCase())) {
                         row.formatInfo = "El campo de calificación debe contener un valor de 0 a 10, ó D, A o A-";
                         invalidFormat = true;
                     }
                 }
+
+                // Acomoda los datos para ser registrados.
+                row.calification = String(row.calification).trim().toUpperCase();
+                if (String(row.calification) == '') row.calification = 'AUSENTE';
 
                 // Separa los registros con formato válido de los que tienen formato inválido.
                 if (invalidFormat) {
@@ -546,7 +546,10 @@ export function CalificationRegistering() {
                                 return {
                                     _row: studentLoadedData._row,
                                     dossier: dossierInfo.dossier,
-                                    errorDescription: dossierInfo.errorCode == 3 ? "La calificación del legajo ya está registrada en el evento." : dossierInfo.errorDescription,
+                                    errorDescription:
+                                        dossierInfo.errorCode == 3
+                                        ? "La calificación del legajo ya está registrada en el evento."
+                                        : dossierInfo.errorDescription,
                                 };
 
                             }
@@ -585,7 +588,7 @@ export function CalificationRegistering() {
         // Realiza la solicitud al endpoint para registrar la calificación.
         const response = await axios
             .post(
-                `${process.env.REACT_APP_API_SERVER_URL}/api/v1/course/register-calification`,
+                `${process.env.REACT_APP_API_SERVER_URL}/api/v1/course/register-califications`,
                 {
                     eventId: selectedEvent.eventId,
                     calificationList: calificationRegistrationInfo,
@@ -720,7 +723,7 @@ export function CalificationRegistering() {
                 <table className="ok-students-table"></table>
                 <button
                     type="button"
-                    className="register-calification-button"
+                    className="register-califications-button"
                     onClick={handleRegistering}
                 >
                     Registrar calificaciones
