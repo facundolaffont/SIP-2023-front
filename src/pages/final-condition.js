@@ -3,6 +3,8 @@ import axios from "axios";
 import { useAuth0 } from "@auth0/auth0-react";
 import { useState } from "react";
 import React, { useEffect } from "react";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faPencilAlt } from "@fortawesome/free-solid-svg-icons";
 
 // Imports internos.
 import { PageLayout } from "../components/page-layout";
@@ -12,6 +14,9 @@ export const FinalCondition = () => {
     const { getAccessTokenSilently } = useAuth0();
     const [sortedFinalConditions, setSortedFinalConditions] = useState([]);
     const [saveMessage, setSaveMessage] = useState("");
+    const [editedConditions, setEditedConditions] = useState({}); // Estado para manejar las condiciones editadas
+    const [errorMessage, setErrorMessage] = useState(""); // Estado para manejar mensajes de error
+    const [selectedLegajo, setSelectedLegajo] = useState(null); // Estado para almacenar el legajo de la celda seleccionada para editar
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
     useEffect(async () => {
@@ -68,7 +73,11 @@ export const FinalCondition = () => {
 
                 const sortedConditions = data.sort((a, b) => a.Legajo - b.Legajo);
                 setSortedFinalConditions(sortedConditions);
-
+                const initialEditedConditions = {};
+                sortedConditions.forEach(student => {
+                    initialEditedConditions[student.Legajo] = student.Condición;
+                });
+                setEditedConditions(initialEditedConditions);
             })
             .catch((error) => console.error(error));
 
@@ -85,7 +94,7 @@ export const FinalCondition = () => {
                 courseId: 1, // ID de la cursada
                 finalConditions: sortedFinalConditions.map(student => ({
                     legajo: student.Legajo,
-                    nota: student.Condición // Asegúrate de que "Nota" sea el nombre correcto de la propiedad que representa la nota del estudiante
+                    nota: editedConditions[student.Legajo] || student.Condición // Utilizar la condición editada si existe
                 }))
             };
 
@@ -106,6 +115,25 @@ export const FinalCondition = () => {
             console.warn("No hay datos para enviar al backend.");
         }
     }
+
+    const handleEditClick = (legajo) => {
+        setSelectedLegajo(legajo); // Establecer el legajo de la celda seleccionada para editar
+    };
+
+    const handleConfirmChange = (legajo) => {
+        setSelectedLegajo(null); // Desactivar el modo de edición
+    };
+
+    const handleCancelChange = () => {
+        setSelectedLegajo(null); // Restablecer el estado de la celda seleccionada
+    };
+
+    const handleConditionChange = (legajo, value) => {
+        setEditedConditions(prevState => ({
+            ...prevState,
+            [legajo]: value
+        }));
+    };
 
     return (
         <PageLayout>
@@ -184,7 +212,40 @@ export const FinalCondition = () => {
                                             </td>
                                         );
                                     })}
-                                    <td className="condition-cell">{student.Condición}</td>
+                                    <td className="condition-cell">
+                                        {/* Utilizar un input en lugar de solo mostrar el valor */}
+                                        {/* Mostrar el texto o el input dependiendo del modo de edición */}
+                                        {selectedLegajo  === student.Legajo ? (
+                                            <input
+                                                type="text"
+                                                value={editedConditions[student.Legajo] || ""}
+                                                onChange={(e) => {
+                                                    const newValue = e.target.value.trim().toUpperCase(); // Convertimos el valor a mayúsculas y eliminamos espacios en blanco al inicio y al final
+                                                    if (newValue === "" || ["P", "R", "L", "A"].includes(newValue)) { // Validamos que el valor sea una de las letras permitidas o una cadena vacía
+                                                        setErrorMessage(""); // Limpiamos el mensaje de error si la entrada es válida
+                                                        handleConditionChange(student.Legajo, newValue !== "" ? newValue : undefined);
+                                                    } else {
+                                                        setErrorMessage("Solo se permiten las letras 'P', 'R', 'A' o 'L'"); // Establecemos el mensaje de error si la entrada no es válida
+                                                    }
+                                                }}
+                                            />
+                                        ) : (
+                                            <span>{editedConditions[student.Legajo] || student.Condición}</span>
+                                        )}
+                                        {/* Mostrar el botón "Editar" si no estamos en modo de edición */}
+                                        {!selectedLegajo && (
+                                            <button onClick={() => handleEditClick(student.Legajo)}>
+                                                <FontAwesomeIcon icon={faPencilAlt} /> {/* Ícono de lápiz */}
+                                            </button>                                        )}
+                                        {selectedLegajo === student.Legajo && (
+                                            <td className="edit-buttons">
+                                                <button onClick={handleConfirmChange}>✔️</button>
+                                                <button onClick={handleCancelChange}>❌</button>
+                                            </td>
+                                        )}
+                                        {errorMessage && selectedLegajo === student.Legajo &&
+                                            <p>{errorMessage}</p>} {/* Mostramos el mensaje de error si existe */}
+                                    </td>
                                 </tr>
                             ))}
                         </tbody>
