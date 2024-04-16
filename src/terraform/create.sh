@@ -36,7 +36,8 @@ else
     echo "Terraform init..."
     docker run --rm -it --mount type=bind,src=./,dst=/tmp hashicorp/terraform \
         -chdir=/tmp/00-base init \
-        --backend-config bucket="spgda-fg" \
+        -reconfigure \
+        --backend-config bucket="spgda-ac-bucket" \
         --backend-config prefix="state/base" \
         --backend-config credentials=/tmp/gcloud-key.json
 
@@ -68,7 +69,7 @@ else
 
     # Establece el proyecto adecuado, si no está establecido aún.
     echo "Configurando el proyecto..."
-    gcloud config set project spheric-almanac-409420
+    gcloud config set project ultimate-flare-420416
     echo "Proyecto configurado."
 
     # Obtiene el archivo config de Kubernetes, que permite utilizar Kubernetes, y lo almacena en ~/.kube/.
@@ -164,7 +165,7 @@ else
     docker run --rm -it --mount type=bind,src=./,dst=/tmp hashicorp/terraform \
     docker run --rm -it --mount type=bind,src=./,dst=/tmp hashicorp/terraform \
         -chdir=/tmp init \
-        --backend-config bucket="spgda-fg" \
+        --backend-config bucket="spgda-ac-bucket" \
         --backend-config prefix="state/dns" \
         --backend-config credentials=/tmp/gcloud-key.json
 

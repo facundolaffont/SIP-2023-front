@@ -89,7 +89,7 @@ export const App = () => {
             {isProfessor && <ProtectedRoute path="/list-course-students" component={ListCourseStudents} />}
             {isProfessor && <ProtectedRoute path="/list-course-events" component={ListCourseEvents} />}
             {/*isProfessor && <ProtectedRoute path="/show-criteria-summary" component={ShowCriteriaSummary} />*/}
-            {/*isProfessor && <ProtectedRoute path="/show-events-summary" component={ShowEventsSummary} />*/}
+            {isProfessor && <ProtectedRoute path="/show-events-summary" component={ShowEventsSummary} />}
             {/*isProfessor && <ProtectedRoute path="/list-events-attendance" component={ListAttendance} />*/}
             {/*isProfessor && <ProtectedRoute path="/list-events-califications" component={ListCalifications} />*/}
 

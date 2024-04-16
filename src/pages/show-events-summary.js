@@ -14,7 +14,9 @@ import CourseDTO from "../contexts/course/course-d-t-o";
 import '../styles/show-events-summary.css';
 
 export const ShowEventsSummary = () => {
-    const [eventsList, setEventsList] = useState([]);
+    const [attendanceSummaryList, setAttendanceSummaryList] = useState([]);
+    const [noteSummaryList, setNoteSummaryList] = useState([]);
+    const [approvalRateSummaryList, setApprovalRateSummaryList] = useState([]);
     const { getAccessTokenSilently } = useAuth0();
     const [, changeCourse] = useSelectedCourse(true);
     const [spreadsheetManipulator, setSpreadsheetManipulator] = useState(null);
@@ -36,33 +38,52 @@ export const ShowEventsSummary = () => {
 
     });
 
-    // Actualiza la tabla.
+    // Actualiza las tablas.
     useEffect(() => {
 
-        let eventsTable = document.getElementsByClassName(
-            "events-table"
+        // Actualiza la tabla de asistencias.
+        let attendanceSummaryTable = document.getElementsByClassName(
+            "attendance-summary-table"
         )[0];
-        if (eventsList.length !== 0) {
+        if (attendanceSummaryList.length !== 0) {
             HTMLTableManipulator.insertDataIntoTable(
-                eventsTable,
+                attendanceSummaryTable,
                 {
-                    tableRows: eventsList,
+                    tableRows: attendanceSummaryList,
                     columnNames: [
                         "eventId:ID",
-                        "type:Tipo de evento",
-                        "datetime:Fecha y hora",
-                        "mandatory:Obligatorio",
+                        "attended:Presentes",
+                        "notAttended:Ausentes",
+                        "missingRegisters:Sin registro",
                     ],
-                    /*columnClasses: [
-                        "eventId:centered",
-                        "mandatory:centered",
-                    ],*/
                 },
+                "Resumen de asistencias."
             );
-            eventsTable.classList.remove("not-displayed");
-        } else eventsTable.classList.add("not-displayed");
+            attendanceSummaryTable.classList.remove("not-displayed");
+        } else attendanceSummaryTable.classList.add("not-displayed");
 
-    }, [eventsList]);
+        // Actualiza la tabla de resumen de eventos por nota.
+        let noteSummaryTable = document.getElementsByClassName(
+            "note-summary-table"
+        )[0];
+        if (noteSummaryList.length !== 0) {
+            HTMLTableManipulator.insertDataIntoTable(
+                noteSummaryTable,
+                {
+                    tableRows: noteSummaryList,
+                    columnNames: [
+                        "eventId:ID",
+                        "attended:Presentes",
+                        "notAttended:Ausentes",
+                        "missingRegisters:Sin registro",
+                    ],
+                },
+                "Resumen de asistencias."
+            );
+            noteSummaryTable.classList.remove("not-displayed");
+        } else noteSummaryTable.classList.add("not-displayed");
+
+    }, [attendanceSummaryList]);
 
     // Obtiene el resumen de los eventos, respecto de la cursada seleccionada.
     useEffect(async () => {
@@ -87,14 +108,9 @@ export const ShowEventsSummary = () => {
         // Si la petición fue exitosa, se guarda la información obtenida.
         .then(response => {
 
-            setEventsList(response.data.eventList.map(event => {
-                return {
-                    eventId: event.eventId,
-                    type: event.type,
-                    datetime: getFormattedDateAndTime(event.initialDateTime, event.endDateTime),
-                    mandatory: event.mandatory,
-                }
-            }));
+            setAttendanceSummaryList(response.data.classEventsSummaryList);
+            setNoteSummaryList(response.data.evaluationEventsByNoteSummaryList);
+            setApprovalRateSummaryList(response.data.evaluationEventsByApprovalRateSummaryList);
 
         })
 
@@ -152,9 +168,9 @@ export const ShowEventsSummary = () => {
     /**
      * Maneja el evento clic en el botón de exportar.
      */
-    const handleExport = () => {
+    const handleExport = tableId => {
         spreadsheetManipulator.export(
-            document.getElementById("events-table")
+            document.getElementById(tableId)
         );
     }
 
@@ -171,13 +187,37 @@ export const ShowEventsSummary = () => {
                     course === null && 'Sin cursada seleccionada'
                 }
             </h2>
-            {eventsList && (
+            {attendanceSummaryList && (
                 <div>
-                    <table id="events-table" className="events-table not-displayed"></table>
+                    <table id="attendance-summary-table" className="attendance-summary-table table-container not-displayed"></table>
                     <button
                         type="button"
                         className="export-button"
-                        onClick={handleExport}
+                        onClick={handleExport("attendance-summary-table")}
+                    >
+                        Exportar a Excel
+                    </button>
+                </div>
+            )}
+            {noteSummaryList && (
+                <div>
+                    <table id="note-summary-table" className="note-summary-table table-container not-displayed"></table>
+                    <button
+                        type="button"
+                        className="export-button"
+                        onClick={handleExport("note-summary-table")}
+                    >
+                        Exportar a Excel
+                    </button>
+                </div>
+            )}
+            {approvalRateSummaryList && (
+                <div>
+                    <table id="approval-rate-summary-table" className="approval-rate-summary-table table-container not-displayed"></table>
+                    <button
+                        type="button"
+                        className="export-button"
+                        onClick={handleExport("approval-rate-summary-table")}
                     >
                         Exportar a Excel
                     </button>

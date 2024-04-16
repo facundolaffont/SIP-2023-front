@@ -10,7 +10,7 @@ variable "zone" {
 
 variable "project_id" {
   type    = string
-  default = "spheric-almanac-409420"
+  default = "ultimate-flare-420416"
 }
 
 variable "credentials_file_path" {

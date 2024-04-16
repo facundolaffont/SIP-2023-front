@@ -112,12 +112,12 @@ export const NavBarTabs = () => {
                                     {/*<NavBarTab
                                         path="/show-criteria-summary"
                                         label="Mostrar resumen por criterio"
-                                    />
+                                    />*/}
                                     <NavBarTab
                                         path="/show-events-summary"
                                         label="Mostrar resumen por evento"
                                     />
-                                    <NavBarTab
+                                    {/*<NavBarTab
                                         path="/list-events-attendance"
                                         label="Listar asistencia"
                                     />
