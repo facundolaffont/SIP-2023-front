@@ -17,6 +17,7 @@ import { ChangePasswordForm } from "./pages/change-password";
 import { DownUser } from "./pages/down-user";
 import { AssignRole } from "./pages/assign-role";
 import { AttendanceRegistering } from "./pages/register-attendance";
+import { CourseAttendanceRegistering } from "./pages/register-course-attendance";
 import { CalificationRegistering } from "./pages/register-califications";
 import { StudentRegistering } from "./pages/register-students";
 import { CourseStudentRegistering } from "./pages/register-students-in-course";
@@ -77,6 +78,7 @@ export const App = () => {
             {/* Rutas para docentes. */}
             {isProfessor && <ProtectedRoute path="/profile" component={HomePageProfessor} />}
             {isProfessor && <ProtectedRoute path="/register-attendance" component={AttendanceRegistering} />}
+            {isProfessor && <ProtectedRoute path="/register-course-attendance" component={CourseAttendanceRegistering} />}
             {isProfessor && <ProtectedRoute path="/register-califications" component={CalificationRegistering} />}
             {isProfessor && <ProtectedRoute path="/register-students-in-course" component={CourseStudentRegistering} />}
             {isProfessor && <ProtectedRoute path="/register-students" component={StudentRegistering} />}

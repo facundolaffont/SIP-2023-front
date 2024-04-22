@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useAuth0 } from "@auth0/auth0-react";
+import { VictoryPie } from "victory-pie";
 
 // Componentes internos.
 import { PageLayout } from "../components/page-layout.js";
@@ -45,13 +46,20 @@ export const ShowEventsSummary = () => {
         let attendanceSummaryTable = document.getElementsByClassName(
             "attendance-summary-table"
         )[0];
+        let attendanceSummaryTableContainer = document.getElementsByClassName(
+            "attendance-summary-table-container"
+        )[0];
         if (attendanceSummaryList.length !== 0) {
             HTMLTableManipulator.insertDataIntoTable(
                 attendanceSummaryTable,
                 {
                     tableRows: attendanceSummaryList,
                     columnNames: [
-                        "eventId:ID",
+                        "eventId:ID de evento",
+                        "eventType:Tipo de evento",
+                        "initialDatetime:Fecha de inicio",
+                        "endDatetime:Fecha de fin",
+                        "obligatory:Obligatorio",
                         "attended:Presentes",
                         "notAttended:Ausentes",
                         "missingRegisters:Sin registro",
@@ -59,12 +67,15 @@ export const ShowEventsSummary = () => {
                 },
                 "Resumen de asistencias."
             );
-            attendanceSummaryTable.classList.remove("not-displayed");
-        } else attendanceSummaryTable.classList.add("not-displayed");
+            attendanceSummaryTableContainer.classList.remove("not-displayed");
+        } else attendanceSummaryTableContainer.classList.add("not-displayed");
 
-        // Actualiza la tabla de resumen de eventos por nota.
+        /*// Actualiza la tabla de resumen de eventos de evaluación por nota.
         let noteSummaryTable = document.getElementsByClassName(
             "note-summary-table"
+        )[0];
+        let noteSummaryTableContainer = document.getElementsByClassName(
+            "note-summary-table-container"
         )[0];
         if (noteSummaryList.length !== 0) {
             HTMLTableManipulator.insertDataIntoTable(
@@ -72,18 +83,50 @@ export const ShowEventsSummary = () => {
                 {
                     tableRows: noteSummaryList,
                     columnNames: [
-                        "eventId:ID",
-                        "attended:Presentes",
-                        "notAttended:Ausentes",
+                        "eventId:ID de evento",
+                        "eventType:Tipo de evento",
+                        "initialDatetime:Fecha de inicio",
+                        "endDatetime:Fecha de fin",
+                        "obligatory:Obligatorio",
+                        "noteSummaryList:Notas",
                         "missingRegisters:Sin registro",
                     ],
                 },
-                "Resumen de asistencias."
+                "Resumen de notas en evaluaciones."
             );
-            noteSummaryTable.classList.remove("not-displayed");
-        } else noteSummaryTable.classList.add("not-displayed");
+            noteSummaryTableContainer.classList.remove("not-displayed");
+        } else noteSummaryTableContainer.classList.add("not-displayed");*/
 
-    }, [attendanceSummaryList]);
+        // Actualiza la tabla de resumen de eventos de evaluación por aprobados.
+        let approvalRateSummaryTable = document.getElementsByClassName(
+            "approval-rate-summary-table"
+        )[0];
+        let approvalRateSummaryTableContainer = document.getElementsByClassName(
+            "approval-rate-summary-table-container"
+        )[0];
+        if (approvalRateSummaryList.length !== 0) {
+            HTMLTableManipulator.insertDataIntoTable(
+                approvalRateSummaryTable,
+                {
+                    tableRows: approvalRateSummaryList,
+                    columnNames: [
+                        "eventId:ID de evento",
+                        "eventType:Tipo de evento",
+                        "initialDatetime:Fecha de inicio",
+                        "endDatetime:Fecha de fin",
+                        "obligatory:Obligatorio",
+                        "approvedStudents:Aprobados",
+                        "disapprovedStudents:Desaprobados",
+                        "nonAttendingStudents:Ausentes",
+                        "missingRegisters:Sin registro",
+                    ],
+                },
+                "Resumen de aprobados en evaluaciones."
+            );
+            approvalRateSummaryTableContainer.classList.remove("not-displayed");
+        } else approvalRateSummaryTableContainer.classList.add("not-displayed");
+
+    }, [attendanceSummaryList, noteSummaryList, approvalRateSummaryList]);
 
     // Obtiene el resumen de los eventos, respecto de la cursada seleccionada.
     useEffect(async () => {
@@ -107,6 +150,34 @@ export const ShowEventsSummary = () => {
 
         // Si la petición fue exitosa, se guarda la información obtenida.
         .then(response => {
+
+            response
+            .data
+            .classEventsSummaryList
+            .forEach(element => {
+                element.initialDatetime = element.initialDatetime.replace("T", " ");
+                element.endDatetime = element.endDatetime.replace("T", " ");
+                element.initialDatetime = element.initialDatetime.substring(0, 16);
+                element.endDatetime = element.endDatetime.substring(0, 16);
+            });
+            response
+            .data
+            .evaluationEventsByNoteSummaryList
+            .forEach(element => {
+                element.initialDatetime = element.initialDatetime.replace("T", " ");
+                element.endDatetime = element.endDatetime.replace("T", " ");
+                element.initialDatetime = element.initialDatetime.substring(0, 16);
+                element.endDatetime = element.endDatetime.substring(0, 16);
+            });
+            response
+            .data
+            .evaluationEventsByApprovalRateSummaryList
+            .forEach(element => {
+                element.initialDatetime = element.initialDatetime.replace("T", " ");
+                element.endDatetime = element.endDatetime.replace("T", " ");
+                element.initialDatetime = element.initialDatetime.substring(0, 16);
+                element.endDatetime = element.endDatetime.substring(0, 16);
+            });
 
             setAttendanceSummaryList(response.data.classEventsSummaryList);
             setNoteSummaryList(response.data.evaluationEventsByNoteSummaryList);
@@ -174,6 +245,12 @@ export const ShowEventsSummary = () => {
         );
     }
 
+    /*const myData = [
+        { x: "Group A", y: 900 },
+        { x: "Group B", y: 400 },
+        { x: "Group C", y: 300 },
+    ];*/
+
     return (
         <PageLayout>
             <h1 id="page-title" className="content__title">
@@ -188,36 +265,41 @@ export const ShowEventsSummary = () => {
                 }
             </h2>
             {attendanceSummaryList && (
-                <div>
-                    <table id="attendance-summary-table" className="attendance-summary-table table-container not-displayed"></table>
+                <div className="attendance-summary-table-container table-container not-displayed">
+                    <table id="attendance-summary-table" className="attendance-summary-table"></table>
                     <button
                         type="button"
                         className="export-button"
-                        onClick={handleExport("attendance-summary-table")}
+                        onClick={() => handleExport("attendance-summary-table")}
                     >
                         Exportar a Excel
                     </button>
                 </div>
             )}
-            {noteSummaryList && (
-                <div>
-                    <table id="note-summary-table" className="note-summary-table table-container not-displayed"></table>
+            {/*noteSummaryList && (
+                <div className="note-summary-table-container table-container not-displayed">
+                    <table id="note-summary-table" className="note-summary-table"></table>
                     <button
                         type="button"
                         className="export-button"
-                        onClick={handleExport("note-summary-table")}
+                        onClick={() => handleExport("note-summary-table")}
                     >
                         Exportar a Excel
                     </button>
                 </div>
-            )}
+            )*/}
             {approvalRateSummaryList && (
-                <div>
-                    <table id="approval-rate-summary-table" className="approval-rate-summary-table table-container not-displayed"></table>
+                <div className="approval-rate-summary-table-container table-container not-displayed">
+                    {/*<VictoryPie
+                        data={myData}
+                        colorScale={["blue", "yellow", "red"]}
+                        radius={100}
+                    />*/}
+                    <table id="approval-rate-summary-table" className="approval-rate-summary-table"></table>
                     <button
                         type="button"
                         className="export-button"
-                        onClick={handleExport("approval-rate-summary-table")}
+                        onClick={() => handleExport("approval-rate-summary-table")}
                     >
                         Exportar a Excel
                     </button>

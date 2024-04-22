@@ -81,6 +81,10 @@ export const NavBarTabs = () => {
                                         label="Registrar asistencias"
                                     />
                                     <NavBarTab
+                                        path="/register-course-attendance"
+                                        label="Registrar asistencias del curso"
+                                    />
+                                    <NavBarTab
                                         path="/register-califications"
                                         label="Registrar calificaciones"
                                     />
