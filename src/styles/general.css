@@ -1,5 +1,9 @@
 /* General */
 
+.white-background {
+    background-color: white;
+}
+
 * {
   box-sizing: border-box;
 }

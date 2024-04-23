@@ -21,6 +21,10 @@ export const ShowEventsSummary = () => {
     const { getAccessTokenSilently } = useAuth0();
     const [, changeCourse] = useSelectedCourse(true);
     const [spreadsheetManipulator, setSpreadsheetManipulator] = useState(null);
+    const [approvedStudentsPercent, setApprovedStudentsPercent] = useState(25);
+    const [disapprovedStudentsPercent, setDisapprovedStudentsPercent] = useState(25);
+    const [nonAttendingStudentsPercent, setNonAttendingStudentsPercent] = useState(25);
+    const [noRegisterPercent, setNoRegisterPercent] = useState(25);
     /** @type {CourseDTO} */ const course = useSelectedCourse(false);
 
     // Inicializa el objeto que manipula las planillas.
@@ -64,6 +68,7 @@ export const ShowEventsSummary = () => {
                         "notAttended:Ausentes",
                         "missingRegisters:Sin registro",
                     ],
+                    onClickEventHandler: "alert",
                 },
                 "Resumen de asistencias."
             );
@@ -192,6 +197,14 @@ export const ShowEventsSummary = () => {
 
     }, []); // El array vacío asegura que el efecto se ejecute solo una vez después del montaje del componente.
 
+    // Inicializa los datos que se van a mostrar en el gráfico de torta.
+    const piechartData = [
+        { x: "Aprobados", y: approvedStudentsPercent },
+        { x: "Desaprobados", y: disapprovedStudentsPercent },
+        { x: "Ausentes", y: nonAttendingStudentsPercent },
+        { x: "Sin registro", y: noRegisterPercent },
+    ];
+
     function getFormattedDateAndTime(initialDateAndTime, endDateAndTime) {
 
         const initialDate =
@@ -245,11 +258,19 @@ export const ShowEventsSummary = () => {
         );
     }
 
-    /*const myData = [
-        { x: "Group A", y: 900 },
-        { x: "Group B", y: 400 },
-        { x: "Group C", y: 300 },
-    ];*/
+    const changePiechartData = (
+        approvedStudentsPercent,
+        disapprovedStudentsPercent,
+        nonAttendingStudentsPercent,
+        noRegisterPercent
+    ) => {
+
+        setApprovedStudentsPercent(approvedStudentsPercent);
+        setDisapprovedStudentsPercent(disapprovedStudentsPercent);
+        setNonAttendingStudentsPercent(nonAttendingStudentsPercent);
+        setNoRegisterPercent(noRegisterPercent);
+
+    }
 
     return (
         <PageLayout>
@@ -264,6 +285,13 @@ export const ShowEventsSummary = () => {
                     course === null && 'Sin cursada seleccionada'
                 }
             </h2>
+            <div className="white-background">
+                <VictoryPie
+                    data={piechartData}
+                    colorScale={["green", "red", "blue", "gray"]}
+                    radius={100}
+                />
+            </div>
             {attendanceSummaryList && (
                 <div className="attendance-summary-table-container table-container not-displayed">
                     <table id="attendance-summary-table" className="attendance-summary-table"></table>
@@ -290,11 +318,6 @@ export const ShowEventsSummary = () => {
             )*/}
             {approvalRateSummaryList && (
                 <div className="approval-rate-summary-table-container table-container not-displayed">
-                    {/*<VictoryPie
-                        data={myData}
-                        colorScale={["blue", "yellow", "red"]}
-                        radius={100}
-                    />*/}
                     <table id="approval-rate-summary-table" className="approval-rate-summary-table"></table>
                     <button
                         type="button"

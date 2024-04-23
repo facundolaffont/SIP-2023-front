@@ -5,15 +5,23 @@ export default class HTMLTableManipulator {
 
     /**
      * @typedef {Object} TableBodyDataType Contiene los nombres y datos de las columnas de una tabla.
-     * @property {!Array.<Object.<string,(string|number|boolean)>>} tableRows Debe contener las filas de la tabla, de forma tal
-     * que cada propiedad de cada objeto del arreglo contendrá el valor de una columna para la fila que representa el objeto y los
-     * nombres de las propiedades y la cantidad deben ser los mismos que en {@link columnNames}.
-     * @property {!Array.<string>} columnNames Debe contener un arreglo de cadenas de caracteres con el siguiente format:
-     * nombre-de-propiedad:nombre-de-columna. El nombre-de-propiedad será el de la propiedad de cada objecto de {@link tableRows}
-     * que contiene el valor de la columna nombre-de-columna. Este último nombre se utilizará para la cabecera de la columna.
-     * @property {Array.<string>} [columnClasses] Tendrá la información necesaria para agregar clases a las diferentes columnas
-     * de la tabla. El formato debe ser el siguiente: nombre-de-propiedad:lista-de-clases-separadas-por-espacios.
-     * El nombre-de-propiedad tiene el mismo objetivo que el descrito en la propiedad {@link columnNames}.
+     * 
+     * @property {!Array.<Object.<string,(string|number|boolean)>>} tableRows Debe contener las filas de
+     * la tabla, de forma tal que cada propiedad de cada objeto del arreglo contendrá el valor de una
+     * columna para la fila que representa el objeto y los nombres de las propiedades y la cantidad deben
+     * ser los mismos que en {@link columnNames}.
+     * 
+     * @property {!Array.<string>} columnNames Debe contener un arreglo de cadenas de caracteres con el
+     * siguiente format: nombre-de-propiedad:nombre-de-columna. El nombre-de-propiedad será el de la
+     * propiedad de cada objecto de {@link tableRows} que contiene el valor de la columna nombre-de-columna.
+     * Este último nombre se utilizará para la cabecera de la columna.
+     * 
+     * @property {Array.<string>} [columnClasses] Tendrá la información necesaria para agregar clases a las
+     * diferentes columnas de la tabla. El formato debe ser el siguiente:
+     * nombre-de-propiedad:lista-de-clases-separadas-por-espacios. El nombre-de-propiedad tiene el mismo
+     * objetivo que el descrito en la propiedad {@link columnNames}.
+     * 
+     * @property {Object} [onClickEventHandler] Será la función que se ejecutará si se hace clic en una fila.
      */
     /**
      * Inserta, dentro de la tabla {@link htmlTable}, los registros de {@link tableBodyData} y agrega a las
@@ -54,12 +62,12 @@ export default class HTMLTableManipulator {
          * (C) Posteriormente, agrega el contenido de tableBodyData dentro del cuerpo de la tabla.
          */
 
-        // (A)
+        // Elimina los hijos que pueda tener la tabla que se pasa por argumento.
         while (htmlTable.firstChild) {
             htmlTable.removeChild(htmlTable.firstChild);
         }
 
-        // (BA)
+        // Crea la sección del título de la tabla, si fue especificada.
         let htmlTableTheadTag = htmlTable.appendChild(
             document.createElement("thead")
         );
@@ -74,7 +82,6 @@ export default class HTMLTableManipulator {
             htmlTableTheadTag
                 .childNodes[0].childNodes[0] // thead.tr[0].td
                 .setAttribute("colSpan", tableBodyData.columnNames.length);
-            console.debug(htmlTable.outerHTML);
         };
 
         // Crea un arreglo con las clases de las columnas, si las hubiere.
@@ -106,7 +113,7 @@ export default class HTMLTableManipulator {
                 });
         }
 
-        // (BB) Crea la sección de los títulos de columna.
+        // Crea la sección de los títulos de columna.
         let tableColumnsParentTag = htmlTableTheadTag
         .appendChild(
             document.createElement("tr")
@@ -136,15 +143,25 @@ export default class HTMLTableManipulator {
 
         });
         
-        // (BC) Crea la estructura del cuerpo.
+        // Crea la estructura del cuerpo.
         let tableBody = htmlTable.appendChild(
             document.createElement("tbody")
         );
 
-        // (C)
+        // Agrega el contenido de tableBodyData dentro del cuerpo de la tabla.
         for (let register = 0; register < tableBodyData.tableRows.length; register++) {
 
             let tableRow = document.createElement("tr");
+
+            // Añade, si hubiere, el manejador para el evento indicado por parámetro.
+            if(typeof tableBodyData.onClickEventHandler !== 'undefined') {
+                //tableRow.addEventListener(tableBodyData.event, () => alert("hola")/*tableBodyData.eventHandler('hola')*/);
+                //tableRow.onclick = () => tableBodyData.eventHandler("hola");
+
+                tableRow.addEventListener('onclick', function() {
+                    window[tableBodyData.onClickEventHandler]("hola");
+                });
+            }
 
             // Añade la clase 'even-row' para las filas impares.
             if (register % 2 !== 0) tableRow.classList.add("even-row");
@@ -190,7 +207,7 @@ export default class HTMLTableManipulator {
                     }
                 }
 
-                // Agrega la celda
+                // Agrega la celda.
                 tableRow.appendChild(columnDataTag);
 
             }
@@ -198,8 +215,6 @@ export default class HTMLTableManipulator {
             tableBody.appendChild(tableRow);
 
         }
-
-        console.debug(htmlTable.outerHTML);
 
     }
 
