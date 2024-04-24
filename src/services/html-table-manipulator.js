@@ -21,7 +21,17 @@ export default class HTMLTableManipulator {
      * nombre-de-propiedad:lista-de-clases-separadas-por-espacios. El nombre-de-propiedad tiene el mismo
      * objetivo que el descrito en la propiedad {@link columnNames}.
      * 
-     * @property {Object} [onClickEventHandler] Será la función que se ejecutará si se hace clic en una fila.
+     * @property {*} [onClickEventHandler] La función que se ejecutará si se hace clic en una fila.
+     * @property {*} [onClickEventHandlerParameters] Los parámetros que se pasan al manejador del evento click.
+     * 
+     * onMousemoveEventHandler
+     * @property {*} [onMousemoveEventHandler] La función que se ejecutará si se pasa el mouse sobre una fila.
+     * @property {*} [onMousemoveEventHandlerParameters] Los parámetros que se pasan al manejador del evento mousemove.
+     * 
+     * @property {*} [onMouseoverEventHandler] La función que se ejecutará si se posa el mouse en una fila.
+     * @property {*} [onMouseoverEventHandlerParameters] Los parámetros que se pasan al manejador del evento mouseover.
+     * 
+     * @property {*} [onMouseoutEventHandler] La función que se ejecutará si se quita el mouse de una fila.
      */
     /**
      * Inserta, dentro de la tabla {@link htmlTable}, los registros de {@link tableBodyData} y agrega a las
@@ -153,14 +163,66 @@ export default class HTMLTableManipulator {
 
             let tableRow = document.createElement("tr");
 
-            // Añade, si hubiere, el manejador para el evento indicado por parámetro.
+            // Añade, si se hubiere pasado por argumento, el manejador para el evento
+            // click.
             if(typeof tableBodyData.onClickEventHandler !== 'undefined') {
-                //tableRow.addEventListener(tableBodyData.event, () => alert("hola")/*tableBodyData.eventHandler('hola')*/);
-                //tableRow.onclick = () => tableBodyData.eventHandler("hola");
-
-                tableRow.addEventListener('onclick', function() {
-                    window[tableBodyData.onClickEventHandler]("hola");
+                
+                // Obtiene los datos a guardar de la misma tabla.
+                let values = [];
+                tableBodyData.onClickEventHandlerParameters.forEach(columnName => {
+                    values.push(tableBodyData.tableRows.at(register)[columnName]);
                 });
+
+                // Registra el manejador.
+                tableRow.addEventListener('click', function() {
+                    tableBodyData.onClickEventHandler(...values);
+                });
+
+            }
+
+            // Añade, si se hubiere pasado por argumento, el manejador para el evento
+            // mousemove.
+            if(typeof tableBodyData.onMousemoveEventHandler !== 'undefined') {
+                
+                // Obtiene los datos a guardar de la misma tabla.
+                let values = [];
+                tableBodyData.onMousemoveEventHandlerParameters.forEach(columnName => {
+                    values.push(tableBodyData.tableRows.at(register)[columnName]);
+                });
+
+                // Registra el manejador.
+                tableRow.addEventListener('mouseover', function() {
+                    tableBodyData.onMousemoveEventHandler(...values);
+                });
+
+            }
+
+            // Añade, si se hubiere pasado por argumento, el manejador para el evento
+            // mouseover.
+            if(typeof tableBodyData.onMouseoverEventHandler !== 'undefined') {
+                
+                // Obtiene los datos a guardar de la misma tabla.
+                let values = [];
+                tableBodyData.onMouseoverEventHandlerParameters.forEach(columnName => {
+                    values.push(tableBodyData.tableRows.at(register)[columnName]);
+                });
+
+                // Registra el manejador.
+                tableRow.addEventListener('mouseover', function() {
+                    tableBodyData.onMouseoverEventHandler(...values);
+                });
+
+            }
+
+            // Añade, si se hubiere pasado por argumento, el manejador para el evento
+            // mouseout.
+            if(typeof tableBodyData.onMouseoutEventHandler !== 'undefined') {
+
+                // Registra el manejador.
+                tableRow.addEventListener('mouseout', function() {
+                    tableBodyData.onMouseoutEventHandler();
+                });
+
             }
 
             // Añade la clase 'even-row' para las filas impares.

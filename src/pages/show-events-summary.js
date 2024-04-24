@@ -15,17 +15,37 @@ import CourseDTO from "../contexts/course/course-d-t-o";
 import '../styles/show-events-summary.css';
 
 export const ShowEventsSummary = () => {
+
+    const { getAccessTokenSilently } = useAuth0();
+
+    const [, changeCourse] = useSelectedCourse(true);
+    /** @type {CourseDTO} */ const course = useSelectedCourse(false);
+
+    const [spreadsheetManipulator, setSpreadsheetManipulator] = useState(null);
+
     const [attendanceSummaryList, setAttendanceSummaryList] = useState([]);
     const [noteSummaryList, setNoteSummaryList] = useState([]);
     const [approvalRateSummaryList, setApprovalRateSummaryList] = useState([]);
-    const { getAccessTokenSilently } = useAuth0();
-    const [, changeCourse] = useSelectedCourse(true);
-    const [spreadsheetManipulator, setSpreadsheetManipulator] = useState(null);
-    const [approvedStudentsPercent, setApprovedStudentsPercent] = useState(25);
-    const [disapprovedStudentsPercent, setDisapprovedStudentsPercent] = useState(25);
-    const [nonAttendingStudentsPercent, setNonAttendingStudentsPercent] = useState(25);
-    const [noRegisterPercent, setNoRegisterPercent] = useState(25);
-    /** @type {CourseDTO} */ const course = useSelectedCourse(false);
+
+    /*const [classPiechartData, setClassPiechartData] = useState([]);
+    const [classPiechartColorScale, setClassPiechartColorScale] = useState([]);
+
+    const [evaluationPiechartData, setEvaluationPiechartData] = useState([]);
+    const [evaluationPiechartColorScale, setEvaluationPiechartColorScale] = useState([]);*/
+
+    const [piechartData, setPiechartData] = useState([]);
+    const [piechartColorScale, setPiechartColorScale] = useState([]);
+
+    const [evaluationPiechartChangeFlag, setEvaluationPiechartChangeFlag] = useState(false);
+    const [evaluationPercentData, setEvaluationPercentData] = useState({});
+    /*const [evaluationEventApprovedPercent, setEvaluationEventApprovedPercent] = useState(25);
+    const [evaluationEventDisapprovedPercent, setEvaluationEventDisapprovedPercent] = useState(25);
+    const [evaluationEventNonAttendingPercent, setEvaluationEventNonAttendingPercent] = useState(25);
+    const [evaluationEventNoRegisterPercent, setEvaluationEventNoRegisterPercent] = useState(25);*/
+
+    const [classAttendingPercent, setClassAttendingPercent] = useState(25);
+    const [classNonAttendingPercent, setClassNonAttendingPercent] = useState(25);
+    const [classNoRegisterPercent, setClassNoRegisterPercent] = useState(25);
 
     // Inicializa el objeto que manipula las planillas.
     useState(() => {
@@ -42,96 +62,6 @@ export const ShowEventsSummary = () => {
             window.location.replace(`${process.env.REACT_APP_DOMAIN_URL}/profile?redirected`);
 
     });
-
-    // Actualiza las tablas.
-    useEffect(() => {
-
-        // Actualiza la tabla de asistencias.
-        let attendanceSummaryTable = document.getElementsByClassName(
-            "attendance-summary-table"
-        )[0];
-        let attendanceSummaryTableContainer = document.getElementsByClassName(
-            "attendance-summary-table-container"
-        )[0];
-        if (attendanceSummaryList.length !== 0) {
-            HTMLTableManipulator.insertDataIntoTable(
-                attendanceSummaryTable,
-                {
-                    tableRows: attendanceSummaryList,
-                    columnNames: [
-                        "eventId:ID de evento",
-                        "eventType:Tipo de evento",
-                        "initialDatetime:Fecha de inicio",
-                        "endDatetime:Fecha de fin",
-                        "obligatory:Obligatorio",
-                        "attended:Presentes",
-                        "notAttended:Ausentes",
-                        "missingRegisters:Sin registro",
-                    ],
-                    onClickEventHandler: "alert",
-                },
-                "Resumen de asistencias."
-            );
-            attendanceSummaryTableContainer.classList.remove("not-displayed");
-        } else attendanceSummaryTableContainer.classList.add("not-displayed");
-
-        /*// Actualiza la tabla de resumen de eventos de evaluación por nota.
-        let noteSummaryTable = document.getElementsByClassName(
-            "note-summary-table"
-        )[0];
-        let noteSummaryTableContainer = document.getElementsByClassName(
-            "note-summary-table-container"
-        )[0];
-        if (noteSummaryList.length !== 0) {
-            HTMLTableManipulator.insertDataIntoTable(
-                noteSummaryTable,
-                {
-                    tableRows: noteSummaryList,
-                    columnNames: [
-                        "eventId:ID de evento",
-                        "eventType:Tipo de evento",
-                        "initialDatetime:Fecha de inicio",
-                        "endDatetime:Fecha de fin",
-                        "obligatory:Obligatorio",
-                        "noteSummaryList:Notas",
-                        "missingRegisters:Sin registro",
-                    ],
-                },
-                "Resumen de notas en evaluaciones."
-            );
-            noteSummaryTableContainer.classList.remove("not-displayed");
-        } else noteSummaryTableContainer.classList.add("not-displayed");*/
-
-        // Actualiza la tabla de resumen de eventos de evaluación por aprobados.
-        let approvalRateSummaryTable = document.getElementsByClassName(
-            "approval-rate-summary-table"
-        )[0];
-        let approvalRateSummaryTableContainer = document.getElementsByClassName(
-            "approval-rate-summary-table-container"
-        )[0];
-        if (approvalRateSummaryList.length !== 0) {
-            HTMLTableManipulator.insertDataIntoTable(
-                approvalRateSummaryTable,
-                {
-                    tableRows: approvalRateSummaryList,
-                    columnNames: [
-                        "eventId:ID de evento",
-                        "eventType:Tipo de evento",
-                        "initialDatetime:Fecha de inicio",
-                        "endDatetime:Fecha de fin",
-                        "obligatory:Obligatorio",
-                        "approvedStudents:Aprobados",
-                        "disapprovedStudents:Desaprobados",
-                        "nonAttendingStudents:Ausentes",
-                        "missingRegisters:Sin registro",
-                    ],
-                },
-                "Resumen de aprobados en evaluaciones."
-            );
-            approvalRateSummaryTableContainer.classList.remove("not-displayed");
-        } else approvalRateSummaryTableContainer.classList.add("not-displayed");
-
-    }, [attendanceSummaryList, noteSummaryList, approvalRateSummaryList]);
 
     // Obtiene el resumen de los eventos, respecto de la cursada seleccionada.
     useEffect(async () => {
@@ -197,13 +127,211 @@ export const ShowEventsSummary = () => {
 
     }, []); // El array vacío asegura que el efecto se ejecute solo una vez después del montaje del componente.
 
-    // Inicializa los datos que se van a mostrar en el gráfico de torta.
-    const piechartData = [
-        { x: "Aprobados", y: approvedStudentsPercent },
-        { x: "Desaprobados", y: disapprovedStudentsPercent },
-        { x: "Ausentes", y: nonAttendingStudentsPercent },
-        { x: "Sin registro", y: noRegisterPercent },
-    ];
+    // Actualiza las tablas.
+    useEffect(() => {
+
+        // Actualiza la tabla de asistencias.
+        let attendanceSummaryTable = document.getElementsByClassName(
+            "attendance-summary-table"
+        )[0];
+        let attendanceSummaryTableContainer = document.getElementsByClassName(
+            "attendance-summary-table-container"
+        )[0];
+        if (attendanceSummaryList.length !== 0) {
+            HTMLTableManipulator.insertDataIntoTable(
+                attendanceSummaryTable,
+                {
+                    tableRows: attendanceSummaryList,
+                    columnNames: [
+                        "eventId:ID de evento",
+                        "eventType:Tipo de evento",
+                        "initialDatetime:Fecha de inicio",
+                        "endDatetime:Fecha de fin",
+                        "obligatory:Obligatorio",
+                        "attended:Presentes",
+                        "notAttended:Ausentes",
+                        "missingRegisters:Sin registro",
+                    ],
+                    onMouseoverEventHandler: showClassPiechart,
+                    onMouseoverEventHandlerParameters: ["attended", "notAttended", "missingRegisters"],
+                    onMouseoutEventHandler: hideClassPiechart,
+                },
+                "Resumen de asistencias."
+            );
+            attendanceSummaryTableContainer.classList.remove("not-displayed");
+        } else attendanceSummaryTableContainer.classList.add("not-displayed");
+
+        // Actualiza la tabla de resumen de eventos de evaluación por aprobados.
+        let approvalRateSummaryTable = document.getElementsByClassName(
+            "approval-rate-summary-table"
+        )[0];
+        let approvalRateSummaryTableContainer = document.getElementsByClassName(
+            "approval-rate-summary-table-container"
+        )[0];
+        if (approvalRateSummaryList.length !== 0) {
+            HTMLTableManipulator.insertDataIntoTable(
+                approvalRateSummaryTable,
+                {
+                    tableRows: approvalRateSummaryList,
+                    columnNames: [
+                        "eventId:ID de evento",
+                        "eventType:Tipo de evento",
+                        "initialDatetime:Fecha de inicio",
+                        "endDatetime:Fecha de fin",
+                        "obligatory:Obligatorio",
+                        "approvedStudents:Aprobados",
+                        "disapprovedStudents:Desaprobados",
+                        "nonAttendingStudents:Ausentes",
+                        "missingRegisters:Sin registro",
+                    ],
+                    onMouseoverEventHandler: showEvaluationPiechart,
+                    onMouseoverEventHandlerParameters: ["approvedStudents", "disapprovedStudents", "nonAttendingStudents", "missingRegisters"],
+                    onMouseoutEventHandler: hideEvaluationPiechart,
+                },
+                "Resumen de evaluaciones."
+            );
+            approvalRateSummaryTableContainer.classList.remove("not-displayed");
+        } else approvalRateSummaryTableContainer.classList.add("not-displayed");
+
+    }, [attendanceSummaryList, noteSummaryList, approvalRateSummaryList]);
+
+    /**
+     * Actualiza el gráfico de torta.
+     */
+    useEffect(() => {
+
+        console.log("evaluationPiechartChangeFlag");
+        
+        let elementsToGraph = [];
+        let colorScale = [];
+        if(
+            evaluationPercentData.evaluationEventApprovedPercent !== 'undefined'
+            && evaluationPercentData.evaluationEventApprovedPercent > 0
+        ) {
+            elementsToGraph.push({ x: "Aprobados", y: evaluationPercentData.evaluationEventApprovedPercent });
+            colorScale.push("green");
+        }
+        if(
+            evaluationPercentData.evaluationEventDisapprovedPercent !== 'undefined'
+            && evaluationPercentData.evaluationEventDisapprovedPercent > 0
+        ) {
+            elementsToGraph.push({ x: "Desaprobados", y: evaluationPercentData.evaluationEventDisapprovedPercent });
+            colorScale.push("tomato");
+        }
+        if(
+            evaluationPercentData.evaluationEventNonAttendingPercent !== 'undefined'
+            && evaluationPercentData.evaluationEventNonAttendingPercent > 0
+        ) {
+            elementsToGraph.push({ x: "Ausentes", y: evaluationPercentData.evaluationEventNonAttendingPercent });
+            colorScale.push("navy");
+        }
+        if(
+            evaluationPercentData.evaluationEventNoRegisterPercent !== 'undefined'
+            && evaluationPercentData.evaluationEventNoRegisterPercent > 0
+        ) {
+            elementsToGraph.push({ x: "Sin registro", y: evaluationPercentData.evaluationEventNoRegisterPercent });
+            colorScale.push("gray");
+        }
+        if(
+            evaluationPercentData.classAttendingPercent !== 'undefined'
+            && evaluationPercentData.classAttendingPercent > 0
+        ) {
+            elementsToGraph.push({ x: "Presentes", y: evaluationPercentData.classAttendingPercent });
+            colorScale.push("gold");
+        }
+        if(
+            evaluationPercentData.classNonAttendingPercent !== 'undefined'
+            && evaluationPercentData.classNonAttendingPercent > 0
+        ) {
+            elementsToGraph.push({ x: "Ausentes", y: evaluationPercentData.classNonAttendingPercent });
+            colorScale.push("navy");
+        }
+        if(
+            evaluationPercentData.classNoRegisterPercent !== 'undefined'
+            && evaluationPercentData.classNoRegisterPercent > 0
+        ) {
+            elementsToGraph.push({ x: "Sin registro", y: evaluationPercentData.classNoRegisterPercent });
+            colorScale.push("gray");
+        }
+
+        setPiechartColorScale(colorScale);
+        setPiechartData(elementsToGraph);
+
+    }, [evaluationPercentData]);
+
+    /**
+     * Actualiza el gráfico de torta de evento de clase.
+     /
+    useEffect(() => {
+
+        let elementsToGraph = [];
+        let colorScale = [];
+        if(classAttendingPercent > 0) {
+            elementsToGraph.push({ x: "Presentes", y: classAttendingPercent });
+            colorScale.push("gold");
+        }
+        if(classNonAttendingPercent > 0) {
+            elementsToGraph.push({ x: "Ausentes", y: classNonAttendingPercent });
+            colorScale.push("navy");
+        }
+        if(classNoRegisterPercent > 0) {
+            elementsToGraph.push({ x: "Sin registro", y: classNoRegisterPercent });
+            colorScale.push("gray");
+        }
+
+        setClassPiechartColorScale(colorScale);
+        setClassPiechartData(elementsToGraph);
+
+    }, [
+        classAttendingPercent,
+        classNonAttendingPercent,
+        classNoRegisterPercent
+    ]);
+
+    /**
+     * Actualiza el gráfico de torta de evento de evaluación.
+     /
+    useEffect(() => {
+
+        console.log("evaluationPiechartChangeFlag");
+        
+        let elementsToGraph = [];
+        let colorScale = [];
+        if(evaluationPercentData.evaluationEventApprovedPercent > 0) {
+            elementsToGraph.push({ x: "Aprobados", y: evaluationPercentData.evaluationEventApprovedPercent });
+            colorScale.push("green");
+        }
+        if(evaluationPercentData.evaluationEventDisapprovedPercent > 0) {
+            elementsToGraph.push({ x: "Desaprobados", y: evaluationPercentData.evaluationEventDisapprovedPercent });
+            colorScale.push("tomato");
+        }
+        if(evaluationPercentData.evaluationEventNonAttendingPercent > 0) {
+            elementsToGraph.push({ x: "Ausentes", y: evaluationPercentData.evaluationEventNonAttendingPercent });
+            colorScale.push("navy");
+        }
+        if(evaluationPercentData.evaluationEventNoRegisterPercent > 0) {
+            elementsToGraph.push({ x: "Sin registro", y: evaluationPercentData.evaluationEventNoRegisterPercent });
+            colorScale.push("gray");
+        }
+
+        setEvaluationPiechartColorScale(colorScale);
+        setEvaluationPiechartData(elementsToGraph);
+
+    }, [evaluationPercentData]);*/
+
+    /**
+     * Agrega manejadores de evento para que los gráficos sigan al mouse.
+     */
+    useEffect(() => {
+        
+        // Agrega el manejador para el gráfico de torta.
+        var piechart = document.getElementById("piechart");
+        document.addEventListener("mousemove", function(e) {
+            piechart.style.left = e.screenX + "px";
+            piechart.style.top = e.screenY + "px";
+        });
+
+    }, []);
 
     function getFormattedDateAndTime(initialDateAndTime, endDateAndTime) {
 
@@ -258,17 +386,89 @@ export const ShowEventsSummary = () => {
         );
     }
 
-    const changePiechartData = (
-        approvedStudentsPercent,
-        disapprovedStudentsPercent,
-        nonAttendingStudentsPercent,
-        noRegisterPercent
+    /**
+     * Cambia los valores del gráfico de torta de los eventos de clase y
+     * lo muestra en pantalla.
+     * 
+     * @param {number} classAttendingPercent 
+     * @param {number} classNonAttendingPercent 
+     * @param {number} classNoRegisterPercent
+     */
+    const showClassPiechart = (
+        classAttendingPercent,
+        classNonAttendingPercent,
+        classNoRegisterPercent,
     ) => {
 
-        setApprovedStudentsPercent(approvedStudentsPercent);
-        setDisapprovedStudentsPercent(disapprovedStudentsPercent);
-        setNonAttendingStudentsPercent(nonAttendingStudentsPercent);
-        setNoRegisterPercent(noRegisterPercent);
+        let localEvaluationPercentData = {
+            classAttendingPercent,
+            classNonAttendingPercent,
+            classNoRegisterPercent,
+        }
+
+        /*setClassAttendingPercent(classAttendingPercent);
+        setClassNonAttendingPercent(classNonAttendingPercent);
+        setClassNoRegisterPercent(classNoRegisterPercent);*/
+        setEvaluationPercentData(localEvaluationPercentData);
+
+        const piechart = document.getElementById("piechart");
+        piechart.classList.remove("not-displayed");
+
+    }
+
+    /**
+     * Esconde el gráfico de torta de los eventos de clase.
+     */
+    const hideClassPiechart = () => {
+
+        const piechart = document.getElementById("piechart");
+        piechart.classList.add("not-displayed");
+
+    }
+
+    /**
+     * Cambia los valores del gráfico de torta de los eventos de evaluación y
+     * lo muestra en pantalla.
+     * 
+     * @param {number} evaluationEventApprovedPercent 
+     * @param {number} evaluationEventDisapprovedPercent 
+     * @param {number} evaluationEventNonAttendingPercent 
+     * @param {number} evaluationEventNoRegisterPercent 
+     */
+    const showEvaluationPiechart = (
+        evaluationEventApprovedPercent,
+        evaluationEventDisapprovedPercent,
+        evaluationEventNonAttendingPercent,
+        evaluationEventNoRegisterPercent
+    ) => {
+
+        let localEvaluationPercentData = {
+            evaluationEventApprovedPercent,
+            evaluationEventDisapprovedPercent,
+            evaluationEventNonAttendingPercent,
+            evaluationEventNoRegisterPercent,
+        }
+
+        /*setEvaluationEventApprovedPercent(evaluationEventApprovedPercent);
+        setEvaluationEventDisapprovedPercent(evaluationEventDisapprovedPercent);
+        setEvaluationEventNonAttendingPercent(evaluationEventNonAttendingPercent);
+        setEvaluationEventNoRegisterPercent(evaluationEventNoRegisterPercent);*/
+        setEvaluationPercentData(localEvaluationPercentData);
+
+        //setEvaluationPiechartChangeFlag(!evaluationPiechartChangeFlag);
+
+        const piechart = document.getElementById("piechart");
+        piechart.classList.remove("not-displayed");
+
+    }
+
+    /**
+     * Esconde el gráfico de torta de los eventos de evaluación.
+     */
+    const hideEvaluationPiechart = () => {
+
+        const piechart = document.getElementById("piechart");
+        piechart.classList.add("not-displayed");
 
     }
 
@@ -285,15 +485,29 @@ export const ShowEventsSummary = () => {
                     course === null && 'Sin cursada seleccionada'
                 }
             </h2>
-            <div className="white-background">
+            <div id="piechart" className="piechart-container black-border white-background center-fixed not-displayed">
                 <VictoryPie
                     data={piechartData}
-                    colorScale={["green", "red", "blue", "gray"]}
-                    radius={100}
+                    colorScale={piechartColorScale}
+                    radius={120}
                 />
             </div>
+            {/*<div id="class-piechart" className="piechart-container black-border white-background center-fixed not-displayed">
+                <VictoryPie
+                    data={classPiechartData}
+                    colorScale={classPiechartColorScale}
+                    radius={120}
+                />
+            </div>
+            <div id="evaluation-piechart" className="piechart-container black-border white-background center-fixed not-displayed">
+                <VictoryPie
+                    data={evaluationPiechartData}
+                    colorScale={evaluationPiechartColorScale}
+                    radius={120}
+                />
+            </div>*/}
             {attendanceSummaryList && (
-                <div className="attendance-summary-table-container table-container not-displayed">
+                <div id="hola" className="attendance-summary-table-container table-container not-displayed">
                     <table id="attendance-summary-table" className="attendance-summary-table"></table>
                     <button
                         type="button"
@@ -304,18 +518,6 @@ export const ShowEventsSummary = () => {
                     </button>
                 </div>
             )}
-            {/*noteSummaryList && (
-                <div className="note-summary-table-container table-container not-displayed">
-                    <table id="note-summary-table" className="note-summary-table"></table>
-                    <button
-                        type="button"
-                        className="export-button"
-                        onClick={() => handleExport("note-summary-table")}
-                    >
-                        Exportar a Excel
-                    </button>
-                </div>
-            )*/}
             {approvalRateSummaryList && (
                 <div className="approval-rate-summary-table-container table-container not-displayed">
                     <table id="approval-rate-summary-table" className="approval-rate-summary-table"></table>

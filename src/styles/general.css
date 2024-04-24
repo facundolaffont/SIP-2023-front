@@ -1,7 +1,23 @@
 /* General */
 
+.piechart-container {
+    width: 60rem;
+    height: 50rem;
+}
+
+.center-fixed {
+    position: fixed;
+    /*top: 50%;
+    left: 50%;*/
+    transform: translate(-50%, -80%);
+}
+
 .white-background {
     background-color: white;
+}
+
+.black-border {
+    border: black 2px solid;
 }
 
 * {
