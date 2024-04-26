@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useAuth0 } from "@auth0/auth0-react";
+import { useHistory } from 'react-router-dom';
 
 // Componentes internos.
 import { PageLayout } from "../components/page-layout.js";
@@ -20,24 +21,33 @@ export const ListCourseEvents = () => {
     const [spreadsheetManipulator, setSpreadsheetManipulator] = useState(null);
     /** @type {CourseDTO} */ const course = useSelectedCourse(false);
 
-    // Inicializa el objeto que manipula las planillas.
-    useState(() => {
-        setSpreadsheetManipulator(new SpreadsheetManipulator());
-    }, []);
+    const history = useHistory();
 
     // Verifica que se haya seleccionado una cursada.
     useEffect(() => {
 
+        console.debug(1);
+
         // Redirige a la página de selección de cursada, si todavía no se seleccionó una,
         // o si se actualiza la página, ya que se pierde el contexto de la selección que
         // se había hecho.
-        if (course === null)
-            window.location.replace(`${process.env.REACT_APP_DOMAIN_URL}/profile?redirected`);
+        if (course === null) history.push('/profile?course-missing');
 
     });
 
+    // Inicializa el objeto que manipula las planillas.
+    useState(() => {
+
+        console.debug(2);
+
+        setSpreadsheetManipulator(new SpreadsheetManipulator());
+
+    }, []);
+
     // Actualiza la tabla.
     useEffect(() => {
+
+        console.debug(3);
 
         let eventsTable = document.getElementsByClassName(
             "events-table"
@@ -66,6 +76,8 @@ export const ListCourseEvents = () => {
 
     // Obtiene las cursadas de la comisión seleccionada.
     useEffect(async () => {
+
+        console.debug(4);
 
         // Obtiene el token Auth0.
         const auth0Token = await getAccessTokenSilently()

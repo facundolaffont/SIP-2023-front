@@ -1,9 +1,10 @@
-// Imports externos.
+// Componentes externos.
 import { useState } from "react";
 import { PageLayout } from "../components/page-layout";
 import React, { useEffect } from "react";
+import { useHistory } from 'react-router-dom';
 
-// Imports internos.
+// Componentes internos.
 import { useSelectedCourse } from "../contexts/course/course-provider";
 
 // Estilos.
@@ -17,13 +18,14 @@ export function EventRegistering() {
     const [, changeCourse] = useSelectedCourse(true);
     /** @type {CourseDTO} */ const course = useSelectedCourse(false);
 
+    const history = useHistory();
+
     // Redirige a la página de selección de cursada, si todavía no se seleccionó una,
     // o si se actualiza la página, ya que se pierde el contexto de la selección que
     // se había hecho.
     useEffect(() => {
 
-        if (course === null)
-            window.location.replace(`${process.env.REACT_APP_DOMAIN_URL}/profile?redirected`);
+        if (course === null) history.push('/profile?course-missing');
 
     }, []);
 

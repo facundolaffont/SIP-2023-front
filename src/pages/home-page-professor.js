@@ -18,7 +18,8 @@ export const HomePageProfessor = () => {
     /** @type {CourseDTO} */ const course = useSelectedCourse(false);
 
     const urlSearchParams = new URLSearchParams(window.location.search);
-    const isRedirected = urlSearchParams.has("redirected");
+    const courseMissing = urlSearchParams.has("course-missing");
+    const noEvents = urlSearchParams.has("no-events");
 
     useEffect(async () => {
 
@@ -93,11 +94,19 @@ export const HomePageProfessor = () => {
                     course === null && 'Sin cursada seleccionada'
                 }
             </h2>
-            {isRedirected && (
+            {courseMissing && (
             <div className="info-msg-container">
                 <div className="info-msg-desc-container">
-                    <p className="info-msg-description">Usted fue redirigido porque debe seleccionar una cursada para operar en la página en la que estaba.</p>
+                    <p className="info-msg-description">Debe seleccionar una cursada para operar en la página en la que quiso ingresar.</p>
                     <p className="info-msg-description">Seleccione una cursada y diríjase nuevamente a dicha página.</p>
+                </div>
+            </div>
+            )}
+            {noEvents && (
+            <div className="info-msg-container">
+                <div className="info-msg-desc-container">
+                    <p className="info-msg-description">La cursada seleccionada no tiene eventos.</p>
+                    <p className="info-msg-description">Primero debe crear al menos un evento.</p>
                 </div>
             </div>
             )}

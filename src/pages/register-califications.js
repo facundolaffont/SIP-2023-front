@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useAuth0 } from '@auth0/auth0-react';
+import { useHistory } from 'react-router-dom';
 
 // Imports de componentes internos.
 import { PageLayout } from "../components/page-layout";
@@ -32,18 +33,18 @@ export function CalificationRegistering() {
     const [, changeCourse] = useSelectedCourse(true);
     /** @type {CourseDTO} */ const course = useSelectedCourse(false);
 
+    const history = useHistory();
+
     // Obtiene la lista de eventos de evaluación de la cursada.
     useEffect(async () => {
 
         // Redirige a la página de selección de cursada, si todavía no se seleccionó una,
         // o si se actualiza la página, ya que se pierde el contexto de la selección que
         // se había hecho.
-        if (course === null) {
-
-            window.location.replace(`${process.env.REACT_APP_DOMAIN_URL}/profile?redirected`);
+        if (course === null) history.push('/profile?course-missing');
 
         // Obtiene la lista de eventos de evaluación de la cursada y actualiza el campo de selección de cursada.
-        } else {
+        else {
 
             // Obtiene el token Auth0.
             const auth0Token = await getAccessTokenSilently()
@@ -77,7 +78,7 @@ export function CalificationRegistering() {
 
                 // Redirige a la página de selección de eventos, si la cursada no tiene eventos
                 // asociados.
-                window.location.replace(`${process.env.REACT_APP_DOMAIN_URL}/register-event?redirected`);
+                if (course === null) history.push('/profile?no-events');
 
             } else {
 

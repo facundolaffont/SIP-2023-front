@@ -32,7 +32,7 @@ export const ListAttendance = () => {
         // o si se actualiza la página, ya que se pierde el contexto de la selección que
         // se había hecho.
         if (course === null)
-            window.location.replace(`${process.env.REACT_APP_DOMAIN_URL}/profile?redirected`);
+            window.location.replace(`${process.env.REACT_APP_DOMAIN_URL}/profile?course-missing`);
 
     });
 

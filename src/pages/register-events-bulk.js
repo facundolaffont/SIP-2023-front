@@ -1,10 +1,11 @@
-// Imports externos.
+// Componentes externos.
 import { useState } from "react";
 import axios from "axios";
 import { useAuth0 } from "@auth0/auth0-react";
 import React, { useEffect } from "react";
+import { useHistory } from 'react-router-dom';
 
-// Imports internos.
+// Componentes internos.
 import { PageLayout } from "../components/page-layout.js";
 import SpreadsheetManipulator from "../services/spreadsheet-manipulator.service.js";
 import HTMLTableManipulator from "../services/html-table-manipulator.js";
@@ -34,13 +35,14 @@ export function EventsBulkRegistering() {
     const [, changeCourse] = useSelectedCourse(true);
     /** @type {CourseDTO} */ const course = useSelectedCourse(false);
 
+    const history = useHistory();
+
     // Redirige a la página de selección de cursada, si todavía no se seleccionó una,
     // o si se actualiza la página, ya que se pierde el contexto de la selección que
     // se había hecho.
     useEffect(() => {
 
-        if (course === null)
-            window.location.replace(`${process.env.REACT_APP_DOMAIN_URL}/profile?redirected`);
+        if (course === null) history.push('/profile?course-missing');
 
     }, []);
 

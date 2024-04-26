@@ -1,5 +1,6 @@
 // Componentes externos.
 import React, { useState, useEffect } from "react";
+import { useHistory } from 'react-router-dom';
 
 // Componentes internos.
 import { PageLayout } from "../components/page-layout";
@@ -16,6 +17,8 @@ export const ListCourseStudents = () => {
     const [spreadsheetManipulator, setSpreadsheetManipulator] = useState(null);
     /** @type {CourseDTO} */ const course = useSelectedCourse(false);
 
+    const history = useHistory();
+
     // Inicializa el objeto que manipula las planillas.
     useState(() => {
         setSpreadsheetManipulator(new SpreadsheetManipulator());
@@ -26,8 +29,7 @@ export const ListCourseStudents = () => {
     // se había hecho.
     useEffect(() => {
 
-        if (course === null)
-            window.location.replace(`${process.env.REACT_APP_DOMAIN_URL}/profile?redirected`);
+        if (course === null) history.push('/profile?course-missing');
 
     }, []);
 

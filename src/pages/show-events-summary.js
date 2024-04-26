@@ -59,7 +59,7 @@ export const ShowEventsSummary = () => {
         // o si se actualiza la página, ya que se pierde el contexto de la selección que
         // se había hecho.
         if (course === null)
-            window.location.replace(`${process.env.REACT_APP_DOMAIN_URL}/profile?redirected`);
+            window.location.replace(`${process.env.REACT_APP_DOMAIN_URL}/profile?course-missing`);
 
     });
 
@@ -260,66 +260,6 @@ export const ShowEventsSummary = () => {
     }, [evaluationPercentData]);
 
     /**
-     * Actualiza el gráfico de torta de evento de clase.
-     /
-    useEffect(() => {
-
-        let elementsToGraph = [];
-        let colorScale = [];
-        if(classAttendingPercent > 0) {
-            elementsToGraph.push({ x: "Presentes", y: classAttendingPercent });
-            colorScale.push("gold");
-        }
-        if(classNonAttendingPercent > 0) {
-            elementsToGraph.push({ x: "Ausentes", y: classNonAttendingPercent });
-            colorScale.push("navy");
-        }
-        if(classNoRegisterPercent > 0) {
-            elementsToGraph.push({ x: "Sin registro", y: classNoRegisterPercent });
-            colorScale.push("gray");
-        }
-
-        setClassPiechartColorScale(colorScale);
-        setClassPiechartData(elementsToGraph);
-
-    }, [
-        classAttendingPercent,
-        classNonAttendingPercent,
-        classNoRegisterPercent
-    ]);
-
-    /**
-     * Actualiza el gráfico de torta de evento de evaluación.
-     /
-    useEffect(() => {
-
-        console.log("evaluationPiechartChangeFlag");
-        
-        let elementsToGraph = [];
-        let colorScale = [];
-        if(evaluationPercentData.evaluationEventApprovedPercent > 0) {
-            elementsToGraph.push({ x: "Aprobados", y: evaluationPercentData.evaluationEventApprovedPercent });
-            colorScale.push("green");
-        }
-        if(evaluationPercentData.evaluationEventDisapprovedPercent > 0) {
-            elementsToGraph.push({ x: "Desaprobados", y: evaluationPercentData.evaluationEventDisapprovedPercent });
-            colorScale.push("tomato");
-        }
-        if(evaluationPercentData.evaluationEventNonAttendingPercent > 0) {
-            elementsToGraph.push({ x: "Ausentes", y: evaluationPercentData.evaluationEventNonAttendingPercent });
-            colorScale.push("navy");
-        }
-        if(evaluationPercentData.evaluationEventNoRegisterPercent > 0) {
-            elementsToGraph.push({ x: "Sin registro", y: evaluationPercentData.evaluationEventNoRegisterPercent });
-            colorScale.push("gray");
-        }
-
-        setEvaluationPiechartColorScale(colorScale);
-        setEvaluationPiechartData(elementsToGraph);
-
-    }, [evaluationPercentData]);*/
-
-    /**
      * Agrega manejadores de evento para que los gráficos sigan al mouse.
      */
     useEffect(() => {
@@ -406,9 +346,6 @@ export const ShowEventsSummary = () => {
             classNoRegisterPercent,
         }
 
-        /*setClassAttendingPercent(classAttendingPercent);
-        setClassNonAttendingPercent(classNonAttendingPercent);
-        setClassNoRegisterPercent(classNoRegisterPercent);*/
         setEvaluationPercentData(localEvaluationPercentData);
 
         const piechart = document.getElementById("piechart");
@@ -449,13 +386,7 @@ export const ShowEventsSummary = () => {
             evaluationEventNoRegisterPercent,
         }
 
-        /*setEvaluationEventApprovedPercent(evaluationEventApprovedPercent);
-        setEvaluationEventDisapprovedPercent(evaluationEventDisapprovedPercent);
-        setEvaluationEventNonAttendingPercent(evaluationEventNonAttendingPercent);
-        setEvaluationEventNoRegisterPercent(evaluationEventNoRegisterPercent);*/
         setEvaluationPercentData(localEvaluationPercentData);
-
-        //setEvaluationPiechartChangeFlag(!evaluationPiechartChangeFlag);
 
         const piechart = document.getElementById("piechart");
         piechart.classList.remove("not-displayed");
@@ -492,20 +423,6 @@ export const ShowEventsSummary = () => {
                     radius={120}
                 />
             </div>
-            {/*<div id="class-piechart" className="piechart-container black-border white-background center-fixed not-displayed">
-                <VictoryPie
-                    data={classPiechartData}
-                    colorScale={classPiechartColorScale}
-                    radius={120}
-                />
-            </div>
-            <div id="evaluation-piechart" className="piechart-container black-border white-background center-fixed not-displayed">
-                <VictoryPie
-                    data={evaluationPiechartData}
-                    colorScale={evaluationPiechartColorScale}
-                    radius={120}
-                />
-            </div>*/}
             {attendanceSummaryList && (
                 <div id="hola" className="attendance-summary-table-container table-container not-displayed">
                     <table id="attendance-summary-table" className="attendance-summary-table"></table>
