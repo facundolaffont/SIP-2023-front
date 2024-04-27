@@ -21,15 +21,18 @@ export const HomePageProfessor = () => {
     const courseMissing = urlSearchParams.has("course-missing");
     const noEvents = urlSearchParams.has("no-events");
 
-    useEffect(async () => {
+    useEffect(() => {
 
-        // Obtiene el token Auth0.
-        const auth0Token = await getAccessTokenSilently()
+        // Obtiene las cursadas del docente.
+        const getUserCourses = async () => {
+
+            // Obtiene el token Auth0.
+            const auth0Token = await getAccessTokenSilently()
             .then(response => response)
             .catch(error => { throw error; });
 
-        // Obtiene las cursadas del docente.
-        const userCourses = await axios.get(`${process.env.REACT_APP_API_SERVER_URL}/api/v1/course/get-professor-courses`,
+            // Solicita las cursadas del docente.
+            const userCourses = await axios.get(`${process.env.REACT_APP_API_SERVER_URL}/api/v1/course/get-professor-courses`,
             {
                 headers: {
                     Authorization: `Bearer ${auth0Token}`
@@ -44,42 +47,46 @@ export const HomePageProfessor = () => {
                 return response;
 
             })
-            .catch(error => { throw error; }
+            .catch(
+                error => { throw error; }
             );
 
-        // Obtiene y limpia el contenedor HTML de las cursadas.
-        const cursadasContainer = document.getElementById('cursadas-container');
-        cursadasContainer.innerHTML = '';
+            // Obtiene y limpia el contenedor HTML de las cursadas.
+            const cursadasContainer = document.getElementById('cursadas-container');
+            cursadasContainer.innerHTML = '';
 
-        // Iterar sobre las cursadas y crear un cuadro para cada una.
-        userCourses.data.forEach((cursada, index) => {
+            // Iterar sobre las cursadas y crear un cuadro para cada una.
+            userCourses.data.forEach((cursada, index) => {
 
-            const cuadroCursada = document.createElement('div');
-            cuadroCursada.classList.add('cuadro-cursada');
+                const cuadroCursada = document.createElement('div');
+                cuadroCursada.classList.add('cuadro-cursada');
 
-            // Agrega un atributo de datos para almacenar el índice del elemento gráfico que representa una cursada (https://www.w3schools.com/TAGS/att_data-.asp).
-            cuadroCursada.setAttribute('data-index', index);
+                // Agrega un atributo de datos para almacenar el índice del elemento gráfico que representa una cursada (https://www.w3schools.com/TAGS/att_data-.asp).
+                cuadroCursada.setAttribute('data-index', index);
 
-            // Muestra los detalles de la cursada dentro del cuadro.
-            const nombreCursada = document.createElement('h3');
-            const detallesCursada = document.createElement('p');
-            nombreCursada.textContent = `Asignatura: ` + cursada.nombreAsignatura;
-            detallesCursada.textContent = `Año de la cursada: ${cursada.anio} - Número de comisión: ${cursada.numeroComision}`;
-            cuadroCursada.appendChild(nombreCursada);
-            cuadroCursada.appendChild(detallesCursada);
+                // Muestra los detalles de la cursada dentro del cuadro.
+                const nombreCursada = document.createElement('h3');
+                const detallesCursada = document.createElement('p');
+                nombreCursada.textContent = `Asignatura: ` + cursada.nombreAsignatura;
+                detallesCursada.textContent = `Año de la cursada: ${cursada.anio} - Número de comisión: ${cursada.numeroComision}`;
+                cuadroCursada.appendChild(nombreCursada);
+                cuadroCursada.appendChild(detallesCursada);
 
-            // Agrega un evento de clic al cuadro de la cursada.
-            cuadroCursada.addEventListener('click', () => {
+                // Agrega un evento de clic al cuadro de la cursada.
+                cuadroCursada.addEventListener('click', () => {
 
-                // Obtiene la cursada seleccionada.
-                const selectedIndex = parseInt(cuadroCursada.getAttribute('data-index'), 10);
-                const selectedCursada = userCourses.data[selectedIndex];
-                changeCourse(CourseDTO.createFrom(selectedCursada));
+                    // Obtiene la cursada seleccionada.
+                    const selectedIndex = parseInt(cuadroCursada.getAttribute('data-index'), 10);
+                    const selectedCursada = userCourses.data[selectedIndex];
+                    changeCourse(CourseDTO.createFrom(selectedCursada));
+
+                });
+                cursadasContainer.appendChild(cuadroCursada);
 
             });
-            cursadasContainer.appendChild(cuadroCursada);
 
-        });
+        }
+        getUserCourses();
 
     });
 

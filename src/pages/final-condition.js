@@ -19,17 +19,19 @@ export const FinalCondition = () => {
     const [selectedLegajo, setSelectedLegajo] = useState(null); // Estado para almacenar el legajo de la celda seleccionada para editar
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    useEffect(async () => {
+    useEffect(() => {
 
-        // Obtiene el token Auth0.
-        const auth0Token = await getAccessTokenSilently()
+        const getEvaluationCriterias = async () => {
+
+            // Obtiene el token Auth0.
+            const auth0Token = await getAccessTokenSilently()
             .then(response => response)
             .catch(error => {
                 throw error;
             });
 
-        // 2
-        await axios
+            // 2
+            await axios
             .get(
                 `${process.env.REACT_APP_API_SERVER_URL}/api/v1/criterion-course/evaluationCriterias?courseId=1`,
                 {
@@ -42,6 +44,8 @@ export const FinalCondition = () => {
                 setCriterias(criteria.data);
             })
             .catch(error => error.response);
+
+        }
 
     }, [getAccessTokenSilently]);
 

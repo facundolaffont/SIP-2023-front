@@ -40,47 +40,52 @@ export const ModificateCriterion = () => {
 
     console.debug("Antes de useEffect");
 
-    useEffect(async () => {
+    useEffect(() => {
 
-        console.debug("Dentro de useEffect");
+        const getEvaluationCriteria = async () => {
 
-        // Obtiene el token Auth0.
-        const auth0Token = await getAccessTokenSilently()
-            .then(response => response)
-            .catch(error => {
-                throw error;
-            });
+            console.debug("Dentro de useEffect");
 
-        // 2
-        await axios
-            .get(
-                `${process.env.REACT_APP_API_SERVER_URL}/api/v1/criterion-course/evaluationCriterias?courseId=1`,
-                {
-                    headers: {
-                        Authorization: `Bearer ${auth0Token}`,
-                    },
-                }
-            )
-            .then(criteria => {
-                setCriterias(criteria.data);
-            })
-            .catch(error => error.response);
+            // Obtiene el token Auth0.
+            const auth0Token = await getAccessTokenSilently()
+                .then(response => response)
+                .catch(error => {
+                    throw error;
+                });
+    
+            // 2
+            await axios
+                .get(
+                    `${process.env.REACT_APP_API_SERVER_URL}/api/v1/criterion-course/evaluationCriterias?courseId=1`,
+                    {
+                        headers: {
+                            Authorization: `Bearer ${auth0Token}`,
+                        },
+                    }
+                )
+                .then(criteria => {
+                    setCriterias(criteria.data);
+                })
+                .catch(error => error.response);
+    
+            
+            //     // Enviamos petición al backend para obtener los criterios de evaluación asociados a la cursada
+            //     fetch(`${process.env.REACT_APP_API_SERVER_URL}/api/v1/criterion-course/evaluationCriterias?courseId=1`, {
+            //       method: "GET",
+            //       headers: {
+            //         "Content-Type": "application/json",
+            //       },
+            //     })
+            //       .then((response) => response.json())
+            //       .then((criteria) => {
+            //         // Aquí puedes hacer algo con los criterios recibidos, como actualizar el estado del componente
+            //         console.log(criteria);
+            //         setCriterias(criteria);
+            //       })
+            //       .catch((error) => console.error(error));    
 
-        
-        //     // Enviamos petición al backend para obtener los criterios de evaluación asociados a la cursada
-        //     fetch(`${process.env.REACT_APP_API_SERVER_URL}/api/v1/criterion-course/evaluationCriterias?courseId=1`, {
-        //       method: "GET",
-        //       headers: {
-        //         "Content-Type": "application/json",
-        //       },
-        //     })
-        //       .then((response) => response.json())
-        //       .then((criteria) => {
-        //         // Aquí puedes hacer algo con los criterios recibidos, como actualizar el estado del componente
-        //         console.log(criteria);
-        //         setCriterias(criteria);
-        //       })
-        //       .catch((error) => console.error(error));
+        }
+        getEvaluationCriteria();
 
     }, []);
 

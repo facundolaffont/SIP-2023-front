@@ -54,15 +54,11 @@ export function AttendanceRegistering() {
         // se había hecho.
         if (course === null) {
 
-            console.debug("1 (course === null)");
-
             // Redirige al usuario a la página de selección de cursada.
             history.push('/profile?course-missing');
 
         // Obtiene la lista de eventos de la cursada y actualiza el campo de selección de cursada.
         } else {
-
-            console.debug("1 (course !== null)");
 
             // Obtiene los eventos de la cursada.
             const getEventsList = async () => {

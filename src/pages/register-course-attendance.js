@@ -36,7 +36,7 @@ export function CourseAttendanceRegistering() {
     const history = useHistory();
 
     // Obtiene la lista de eventos de la cursada.
-    useEffect(async () => {
+    useEffect(() => {
 
         // Redirige a la página de selección de cursada, si todavía no se seleccionó una,
         // o si se actualiza la página, ya que se pierde el contexto de la selección que

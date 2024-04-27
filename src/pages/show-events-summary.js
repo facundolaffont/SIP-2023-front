@@ -27,25 +27,9 @@ export const ShowEventsSummary = () => {
     const [noteSummaryList, setNoteSummaryList] = useState([]);
     const [approvalRateSummaryList, setApprovalRateSummaryList] = useState([]);
 
-    /*const [classPiechartData, setClassPiechartData] = useState([]);
-    const [classPiechartColorScale, setClassPiechartColorScale] = useState([]);
-
-    const [evaluationPiechartData, setEvaluationPiechartData] = useState([]);
-    const [evaluationPiechartColorScale, setEvaluationPiechartColorScale] = useState([]);*/
-
     const [piechartData, setPiechartData] = useState([]);
     const [piechartColorScale, setPiechartColorScale] = useState([]);
-
-    const [evaluationPiechartChangeFlag, setEvaluationPiechartChangeFlag] = useState(false);
     const [evaluationPercentData, setEvaluationPercentData] = useState({});
-    /*const [evaluationEventApprovedPercent, setEvaluationEventApprovedPercent] = useState(25);
-    const [evaluationEventDisapprovedPercent, setEvaluationEventDisapprovedPercent] = useState(25);
-    const [evaluationEventNonAttendingPercent, setEvaluationEventNonAttendingPercent] = useState(25);
-    const [evaluationEventNoRegisterPercent, setEvaluationEventNoRegisterPercent] = useState(25);*/
-
-    const [classAttendingPercent, setClassAttendingPercent] = useState(25);
-    const [classNonAttendingPercent, setClassNonAttendingPercent] = useState(25);
-    const [classNoRegisterPercent, setClassNoRegisterPercent] = useState(25);
 
     // Inicializa el objeto que manipula las planillas.
     useState(() => {
@@ -64,66 +48,71 @@ export const ShowEventsSummary = () => {
     });
 
     // Obtiene el resumen de los eventos, respecto de la cursada seleccionada.
-    useEffect(async () => {
+    useEffect(() => {
 
-        // Obtiene el token Auth0.
-        const auth0Token = await getAccessTokenSilently()
+        const getEventsSummary = async () => {
+
+            // Obtiene el token Auth0.
+            const auth0Token = await getAccessTokenSilently()
             .then(response => response)
             .catch(error => {
                 throw error;
             });
 
-        // Realiza la petición al back para obtener el resumen de eventos.
-        axios.get(
-            `${process.env.REACT_APP_API_SERVER_URL}/api/v1/course/get-events-summary?course-id=${course.getId()}`,
-            {
-                headers: {
-                    Authorization: `Bearer ${auth0Token}`,
-                },
-            }
-        )
+            // Realiza la petición al back para obtener el resumen de eventos.
+            axios.get(
+                `${process.env.REACT_APP_API_SERVER_URL}/api/v1/course/get-events-summary?course-id=${course.getId()}`,
+                {
+                    headers: {
+                        Authorization: `Bearer ${auth0Token}`,
+                    },
+                }
+            )
 
-        // Si la petición fue exitosa, se guarda la información obtenida.
-        .then(response => {
+            // Si la petición fue exitosa, se guarda la información obtenida.
+            .then(response => {
 
-            response
-            .data
-            .classEventsSummaryList
-            .forEach(element => {
-                element.initialDatetime = element.initialDatetime.replace("T", " ");
-                element.endDatetime = element.endDatetime.replace("T", " ");
-                element.initialDatetime = element.initialDatetime.substring(0, 16);
-                element.endDatetime = element.endDatetime.substring(0, 16);
-            });
-            response
-            .data
-            .evaluationEventsByNoteSummaryList
-            .forEach(element => {
-                element.initialDatetime = element.initialDatetime.replace("T", " ");
-                element.endDatetime = element.endDatetime.replace("T", " ");
-                element.initialDatetime = element.initialDatetime.substring(0, 16);
-                element.endDatetime = element.endDatetime.substring(0, 16);
-            });
-            response
-            .data
-            .evaluationEventsByApprovalRateSummaryList
-            .forEach(element => {
-                element.initialDatetime = element.initialDatetime.replace("T", " ");
-                element.endDatetime = element.endDatetime.replace("T", " ");
-                element.initialDatetime = element.initialDatetime.substring(0, 16);
-                element.endDatetime = element.endDatetime.substring(0, 16);
-            });
+                response
+                .data
+                .classEventsSummaryList
+                .forEach(element => {
+                    element.initialDatetime = element.initialDatetime.replace("T", " ");
+                    element.endDatetime = element.endDatetime.replace("T", " ");
+                    element.initialDatetime = element.initialDatetime.substring(0, 16);
+                    element.endDatetime = element.endDatetime.substring(0, 16);
+                });
+                response
+                .data
+                .evaluationEventsByNoteSummaryList
+                .forEach(element => {
+                    element.initialDatetime = element.initialDatetime.replace("T", " ");
+                    element.endDatetime = element.endDatetime.replace("T", " ");
+                    element.initialDatetime = element.initialDatetime.substring(0, 16);
+                    element.endDatetime = element.endDatetime.substring(0, 16);
+                });
+                response
+                .data
+                .evaluationEventsByApprovalRateSummaryList
+                .forEach(element => {
+                    element.initialDatetime = element.initialDatetime.replace("T", " ");
+                    element.endDatetime = element.endDatetime.replace("T", " ");
+                    element.initialDatetime = element.initialDatetime.substring(0, 16);
+                    element.endDatetime = element.endDatetime.substring(0, 16);
+                });
 
-            setAttendanceSummaryList(response.data.classEventsSummaryList);
-            setNoteSummaryList(response.data.evaluationEventsByNoteSummaryList);
-            setApprovalRateSummaryList(response.data.evaluationEventsByApprovalRateSummaryList);
+                setAttendanceSummaryList(response.data.classEventsSummaryList);
+                setNoteSummaryList(response.data.evaluationEventsByNoteSummaryList);
+                setApprovalRateSummaryList(response.data.evaluationEventsByApprovalRateSummaryList);
 
-        })
+            })
 
-        // Si la petición no fue exitosa, se genera una excepción.
-        .catch(
-            error => error.response
-        );
+            // Si la petición no fue exitosa, se genera una excepción.
+            .catch(
+                error => error.response
+            );
+
+        }
+        getEventsSummary();
 
     }, []); // El array vacío asegura que el efecto se ejecute solo una vez después del montaje del componente.
 

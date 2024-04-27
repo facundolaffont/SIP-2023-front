@@ -75,46 +75,49 @@ export const ListCourseEvents = () => {
     }, [eventsList]);
 
     // Obtiene las cursadas de la comisión seleccionada.
-    useEffect(async () => {
+    useEffect(() => {
 
-        console.debug(4);
+        const getCommissionCourses = async () => {
 
-        // Obtiene el token Auth0.
-        const auth0Token = await getAccessTokenSilently()
-            .then(response => response)
-            .catch(error => {
-                throw error;
-            });
+            // Obtiene el token Auth0.
+            const auth0Token = await getAccessTokenSilently()
+                .then(response => response)
+                .catch(error => {
+                    throw error;
+                });
 
-        // Realiza la petición al back para obtener la lista de eventos de la cursada.
-        axios.get(
-            `${process.env.REACT_APP_API_SERVER_URL}/api/v1/course/get-all-events?course-id=${course.getId()}`,
-            {
-                headers: {
-                    Authorization: `Bearer ${auth0Token}`,
-                },
-            }
-        )
-
-        // Si la petición fue exitosa, se guarda la información obtenida.
-        .then(response => {
-            //setEventosCursada(response.data);
-
-            setEventsList(response.data.eventList.map(event => {
-                return {
-                    eventId: event.eventId,
-                    type: event.type,
-                    datetime: getFormattedDateAndTime(event.initialDateTime, event.endDateTime),
-                    mandatory: event.mandatory,
+            // Realiza la petición al back para obtener la lista de eventos de la cursada.
+            axios.get(
+                `${process.env.REACT_APP_API_SERVER_URL}/api/v1/course/get-all-events?course-id=${course.getId()}`,
+                {
+                    headers: {
+                        Authorization: `Bearer ${auth0Token}`,
+                    },
                 }
-            }));
+            )
 
-        })
+            // Si la petición fue exitosa, se guarda la información obtenida.
+            .then(response => {
+                //setEventosCursada(response.data);
 
-        // Si la petición no fue exitosa, se genera una excepción.
-        .catch(
-            error => error.response
-        );
+                setEventsList(response.data.eventList.map(event => {
+                    return {
+                        eventId: event.eventId,
+                        type: event.type,
+                        datetime: getFormattedDateAndTime(event.initialDateTime, event.endDateTime),
+                        mandatory: event.mandatory,
+                    }
+                }));
+
+            })
+
+            // Si la petición no fue exitosa, se genera una excepción.
+            .catch(
+                error => error.response
+            );
+
+        }
+        getCommissionCourses();
 
     }, []); // El array vacío asegura que el efecto se ejecute solo una vez después del montaje del componente.
 
