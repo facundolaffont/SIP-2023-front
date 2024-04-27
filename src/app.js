@@ -27,6 +27,7 @@ import { ModificateCriterion } from "./pages/modificate-criterion";
 import { EventRegistering } from "./pages/register-event";
 import { EventsBulkRegistering } from "./pages/register-events-bulk";
 import { SearchStudent } from "./pages/search-student";
+import { SearchEvent } from "./pages/search-event";
 import { ListCourseStudents } from "./pages/list-course-students";
 import { ListCourseEvents } from "./pages/list-course-events";
 import { ShowCriteriaSummary } from "./pages/show-criteria-summary";
@@ -87,6 +88,7 @@ export const App = () => {
             {isProfessor && <ProtectedRoute path="/final-condition" component={FinalCondition} />}
             {isProfessor && <ProtectedRoute path="/modificate-criterion" component={ModificateCriterion} />}
             {isProfessor && <ProtectedRoute path="/search-student" component={SearchStudent} />}
+            {isProfessor && <ProtectedRoute path="/search-event" component={SearchEvent} />}
             {isProfessor && <ProtectedRoute path="/create-criterion" component={CreateCriterion} />}
             {isProfessor && <ProtectedRoute path="/list-course-students" component={ListCourseStudents} />}
             {isProfessor && <ProtectedRoute path="/list-course-events" component={ListCourseEvents} />}

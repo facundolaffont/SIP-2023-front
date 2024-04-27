@@ -26,8 +26,6 @@ export const ListCourseEvents = () => {
     // Verifica que se haya seleccionado una cursada.
     useEffect(() => {
 
-        console.debug(1);
-
         // Redirige a la página de selección de cursada, si todavía no se seleccionó una,
         // o si se actualiza la página, ya que se pierde el contexto de la selección que
         // se había hecho.
@@ -38,16 +36,12 @@ export const ListCourseEvents = () => {
     // Inicializa el objeto que manipula las planillas.
     useState(() => {
 
-        console.debug(2);
-
         setSpreadsheetManipulator(new SpreadsheetManipulator());
 
     }, []);
 
     // Actualiza la tabla.
     useEffect(() => {
-
-        console.debug(3);
 
         let eventsTable = document.getElementsByClassName(
             "events-table"

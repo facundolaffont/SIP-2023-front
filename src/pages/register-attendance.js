@@ -42,12 +42,8 @@ export function AttendanceRegistering() {
 
     const history = useHistory();
 
-    console.debug(0);
-
     // Obtiene la lista de eventos de la cursada.
     useEffect(() => {
-
-        console.debug(1);
 
         // Condición que se cumple cuando todavía no se seleccionó una cursada o si se
         // actualiza la página, ya que se pierde el contexto de la selección que
@@ -172,8 +168,6 @@ export function AttendanceRegistering() {
     // Actualiza el mensaje de error que se mostrará al usuario.
     useEffect(() => {
 
-        console.debug(2);
-
         // Obtiene el contenedor principal del mensaje de error.
         const msgContainer = document.getElementsByClassName("info-msg-container")[0];
 
@@ -203,8 +197,6 @@ export function AttendanceRegistering() {
 
     // Actualiza las tablas.
     useEffect(() => {
-
-        console.debug(3);
 
         // Actualiza la tabla de registros con formato incorrecto.
         let notValidFormatTable = document.getElementsByClassName(
@@ -285,9 +277,8 @@ export function AttendanceRegistering() {
     // Inicializa el objeto que manipula las planillas.
     useState(() => {
 
-        console.debug(4);
-
         setSpreadsheetManipulator(new SpreadsheetManipulator());
+        
     }, []);
 
     /**
