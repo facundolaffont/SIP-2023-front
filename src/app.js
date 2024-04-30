@@ -34,6 +34,7 @@ import { ShowCriteriaSummary } from "./pages/show-criteria-summary";
 import { ShowEventsSummary } from "./pages/show-events-summary";
 import { ListAttendance } from "./pages/list-events-attendance";
 import { ListCalifications } from "./pages/list-events-califications";
+import { ShowAllEventsRegisters } from "./pages/show-all-events-registers";
 
 export const App = () => {
     const { isLoading, isAuthenticated, getIdTokenClaims } = useAuth0();
@@ -89,6 +90,7 @@ export const App = () => {
             {isProfessor && <ProtectedRoute path="/modificate-criterion" component={ModificateCriterion} />}
             {isProfessor && <ProtectedRoute path="/search-student" component={SearchStudent} />}
             {isProfessor && <ProtectedRoute path="/search-event" component={SearchEvent} />}
+            {isProfessor && <ProtectedRoute path="/show-all-events-registers" component={ShowAllEventsRegisters} />}
             {isProfessor && <ProtectedRoute path="/create-criterion" component={CreateCriterion} />}
             {isProfessor && <ProtectedRoute path="/list-course-students" component={ListCourseStudents} />}
             {isProfessor && <ProtectedRoute path="/list-course-events" component={ListCourseEvents} />}

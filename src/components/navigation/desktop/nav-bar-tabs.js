@@ -106,6 +106,10 @@ export const NavBarTabs = () => {
                                         label="Listar eventos"
                                     />
                                     <NavBarTab
+                                        path="/show-all-events-registers"
+                                        label="Listar detalle de eventos"
+                                    />
+                                    <NavBarTab
                                         path="/list-course-students"
                                         label="Listar alumnos"
                                     />

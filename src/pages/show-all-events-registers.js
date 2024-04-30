@@ -2,31 +2,77 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useAuth0 } from '@auth0/auth0-react';
+import { useHistory } from 'react-router-dom';
 
 // Componentes internos.
 import { PageLayout } from "../components/page-layout";
 import { useSelectedCourse } from "../contexts/course/course-provider.js";
 import SpreadsheetManipulator from "../services/spreadsheet-manipulator.service";
 import HTMLTableManipulator from "../services/html-table-manipulator";
+import CourseDTO from "../contexts/course/course-d-t-o.js";
 
 // Estilos.
-import '../styles/search-event.css';
+import '../styles/show-all-events-registers.css';
 
-export const SearchEvent = () => {
+export const ShowAllEventsRegisters = () => {
 
     const { getAccessTokenSilently } = useAuth0();
 
-    const [eventId, setEventId] = useState("");
-    const [eventRegistersList, setEventRegistersList] = useState([]);
+    const [eventsDetailsList, setEventsDetailsList] = useState([]);
 
     const [spreadsheetManipulator, setSpreadsheetManipulator] = useState(null);
 
+    const history = useHistory();
+
     /** @type {CourseDTO} */ const course = useSelectedCourse(false);
 
-    // Inicializa el objeto que manipula las planillas.
-    useState(() => {
+     // Inicializa el objeto que manipula las planillas.
+     useState(() => {
 
         setSpreadsheetManipulator(new SpreadsheetManipulator());
+
+    }, []);
+
+    // Condición que se cumple si todavía no se seleccionó una cursada, o
+    // si se actualiza la página, ya que se pierde el contexto de la
+    // selección que se había hecho.
+    useEffect(() => {
+
+        // Redirige a la página de selección de cursada.
+        if (course === null) history.push('/profile?course-missing');
+
+        // Ejecuta la consulta y muestra por tabla.
+        else {
+
+            // Realizar la solicitud al backend.
+            const getEventsDetails = async () => {
+
+                // Obtiene el token Auth0.
+                const auth0Token = await getAccessTokenSilently()
+                .catch(error => {
+                    throw error;
+                });
+
+                // Realiza la petición.
+                const eventsDetails = await axios.get(
+                    `${process.env.REACT_APP_API_SERVER_URL}/api/v1/events/get-events-details?course-id=${course.getId()}`,
+                    {
+                        headers: {
+                            Authorization: `Bearer ${auth0Token}`,
+                        },
+                    }
+                )
+                .catch(error => {
+                    throw error;
+                });
+
+                // Muestra la lista recibida por tabla.
+                setEventsDetailsList(eventsDetails.data.eventsDetailsList);
+
+            }
+            getEventsDetails();
+
+        }
 
     }, []);
 
@@ -39,12 +85,13 @@ export const SearchEvent = () => {
         let table = document.getElementsByClassName(
             "table"
         )[0];
-        if (eventRegistersList.length !== 0) {
+        if (eventsDetailsList.length !== 0) {
             HTMLTableManipulator.insertDataIntoTable(
                 table,
                 {
-                    tableRows: eventRegistersList,
+                    tableRows: eventsDetailsList,
                     columnNames: [
+                        "eventId:ID de evento",
                         "studentDossier:Legajo",
                         "studentId:DNI",
                         "studentName:Nombre",
@@ -57,48 +104,7 @@ export const SearchEvent = () => {
             tableContainer.classList.remove("not-displayed");
         } else tableContainer.classList.add("not-displayed");
 
-    }, [eventRegistersList]);
-
-    // Inicializa el objeto que manipula las planillas.
-    useState(() => {
-        setSpreadsheetManipulator(new SpreadsheetManipulator());
-    }, []);
-
-    const handleLegajoChange = (event) => {
-        setEventId(event.target.value);
-    };
-
-    const handleSearch = () => {
-
-        // Realizar la solicitud al backend.
-        const getEventInfo = async () => {
-
-            // Obtiene el token Auth0.
-            const auth0Token = await getAccessTokenSilently()
-            .catch(error => {
-                throw error;
-            });
-
-            // Realiza la petición.
-            const eventInfoResponse = await axios.get(
-                `${process.env.REACT_APP_API_SERVER_URL}/api/v1/events/get-event-info?event-id=${eventId}`,
-                {
-                    headers: {
-                        Authorization: `Bearer ${auth0Token}`,
-                    },
-                }
-            )
-            .catch(error => {
-                throw error;
-            });
-
-            // Muestra la lista recibida por tabla.
-            setEventRegistersList(eventInfoResponse.data.eventRegistersList);
-
-        }
-        getEventInfo();
-
-    };
+    }, [eventsDetailsList]);
 
     /**
      * Maneja el evento clic en el botón de exportar.
@@ -112,17 +118,8 @@ export const SearchEvent = () => {
     return (
         <PageLayout>
             <h1 id="page-title" className="content__title">
-                Consultar evento
+                Consultar registros de todos los eventos
             </h1>
-            <div>
-                <input
-                    type="text"
-                    placeholder="Ingrese el identificador del evento"
-                    value={eventId}
-                    onChange={handleLegajoChange}
-                />
-                <button onClick={handleSearch}>Buscar</button>
-            </div>
             <div id="table" className="table-container not-displayed">
                 <table className="table"></table>
                 <button
