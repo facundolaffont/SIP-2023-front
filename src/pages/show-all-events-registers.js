@@ -66,8 +66,26 @@ export const ShowAllEventsRegisters = () => {
                     throw error;
                 });
 
+                // Formatea las fechas de los eventos.
+                let formattedEventsDetailsList = eventsDetails.data.eventsDetailsList.map(eventDetailsRegister => {
+                    return {
+                        eventId: eventDetailsRegister.eventId,
+                        eventType: eventDetailsRegister.eventType,
+                        datetime: getFormattedDateAndTime(
+                            eventDetailsRegister.initialDatetime,
+                            eventDetailsRegister.endDatetime,
+                        ),
+                        studentDossier: eventDetailsRegister.studentDossier,
+                        studentId: eventDetailsRegister.studentId,
+                        studentName: eventDetailsRegister.studentName,
+                        studentSurname: eventDetailsRegister.studentSurname,
+                        attendance: eventDetailsRegister.attendance,
+                        note: eventDetailsRegister.note,
+                    };
+                });
+
                 // Muestra la lista recibida por tabla.
-                setEventsDetailsList(eventsDetails.data.eventsDetailsList);
+                setEventsDetailsList(formattedEventsDetailsList);
 
             }
             getEventsDetails();
@@ -92,6 +110,8 @@ export const ShowAllEventsRegisters = () => {
                     tableRows: eventsDetailsList,
                     columnNames: [
                         "eventId:ID de evento",
+                        "eventType:Tipo de evento",
+                        "datetime:Fecha y horario",
                         "studentDossier:Legajo",
                         "studentId:DNI",
                         "studentName:Nombre",
@@ -105,6 +125,52 @@ export const ShowAllEventsRegisters = () => {
         } else tableContainer.classList.add("not-displayed");
 
     }, [eventsDetailsList]);
+
+    // Formatea las fechas.
+    function getFormattedDateAndTime(initialDateAndTime, endDateAndTime) {
+
+        const initialDate =
+            Intl.DateTimeFormat(
+                'es-AR',
+                {
+                    weekday: 'short',
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: '2-digit',
+                }
+            ).format(new Date(initialDateAndTime));
+        const initialTime = 
+            Intl.DateTimeFormat(
+                'es-AR',
+                {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                }
+            ).format(new Date(initialDateAndTime));
+        const endDate =
+            Intl.DateTimeFormat(
+                'es-AR',
+                {
+                    weekday: 'short',
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: '2-digit',
+                }
+            ).format(new Date(endDateAndTime));
+        const endTime = 
+            Intl.DateTimeFormat(
+                'es-AR',
+                {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                }
+            ).format(new Date(endDateAndTime));
+
+        return initialDate.valueOf() === endDate.valueOf()
+            ? `${initialDate} de ${initialTime} a ${endTime}`
+            : `${initialDate} ${initialTime} - ${endDate} ${endTime}`;
+
+    }
 
     /**
      * Maneja el evento clic en el botón de exportar.

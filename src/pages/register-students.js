@@ -57,11 +57,6 @@ export function StudentRegistering() {
                 {
                     columnNames: [
                         "_row:Fila",
-                        /*"dossier:Legajo",
-                        "id:DNI",
-                        "name:Nombre",
-                        "surname:Apellido",
-                        "email:Email",*/
                         "formatInfo:Error de formato",
                     ],
                     tableRows: invalidRegistersList,
@@ -205,8 +200,6 @@ export function StudentRegistering() {
      */
     const handleRangeLoading = async event => {
 
-        /*** Procedimiento: HU003.001.001/CU01. ***/
-
         // Evita que se ejecute la llamada del submit.
         event.preventDefault();
 
@@ -243,7 +236,6 @@ export function StudentRegistering() {
             let invalidFormatRange = [];
             readRange.data.forEach(row => {
 
-                // 1c.A.
                 // Determina si el formato es inválido y añade una descripción del problema.
                 let emailRegEx = /^[a-zA-Z0-9.!#$%&'*+\/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/;
                 let properNameRegEx = /[a-zA-Z ]+/;
@@ -320,7 +312,6 @@ export function StudentRegistering() {
                     throw error;
                 });
 
-            // 2
             const checkedInfo = await axios
                 .post(
                     `${process.env.REACT_APP_API_SERVER_URL}/api/v1/students/new-dossiers-check`,
@@ -336,22 +327,18 @@ export function StudentRegistering() {
                 .then(okReponse => okReponse)
                 .catch(error => error.response);
 
-            // 2.A
             if (checkedInfo.status !== 200) {
                 
-                // 2.A.1
                 // Guarda el mensaje de error traído del back al usuario, y
                 // en el próximo renderizado se mostrará el mensaje.
                 setError("Hubo un error. Por favor, contactarse con Soporte Técnico.");
 
             } else {
 
-                // 1c.A.1
                 setInvalidRegistersList(
                     invalidFormatRange
                 );
 
-                // 4
                 setOkList(
                     checkedInfo.data.ok.map(
                         dossier => {
@@ -369,7 +356,10 @@ export function StudentRegistering() {
                             studentInfo.surname = studentLoadedData.surname.trim();
                             studentInfo.email = studentLoadedData.email.trim();
                             studentInfo.alreadyStudied = studentLoadedData.alreadyStudied.trim().toLowerCase();
-                            studentInfo.allPreviousSubjectsApproved = studentLoadedData.allPreviousSubjectsApproved.trim().toLowerCase();
+                            studentInfo.allPreviousSubjectsApproved =
+                                studentLoadedData.allPreviousSubjectsApproved.trim().toLowerCase() == 'x'
+                                ? 'P'
+                                : '';
 
                             // Agrega el estado de registración en sistema.
                             studentInfo.state = 'Pendiente';
@@ -380,7 +370,6 @@ export function StudentRegistering() {
                     )
                 );
 
-                // 3.A.1
                 setNotOkList(
                     checkedInfo.data.nok.map(
                         dossierInfo => {
@@ -464,8 +453,6 @@ export function StudentRegistering() {
      */
     const handleRegistering = async () => {
 
-        /*** Procedimiento: HU003.001.001/CU01. ***/
-
         // Prepara la lista de estudiantes para ser enviada.
         const studentsRegistrationInfo = okList
             .map(studentRegistrationInfo => {
@@ -480,7 +467,7 @@ export function StudentRegistering() {
                         ? true
                         : false,
                     allPreviousSubjectsApproved:
-                        studentRegistrationInfo.allPreviousSubjectsApproved == 'x'
+                        studentRegistrationInfo.allPreviousSubjectsApproved == 'P'
                         ? true
                         : false,
                 }
@@ -493,7 +480,6 @@ export function StudentRegistering() {
                 throw error;
             });
 
-        // 6
         // Realiza la solicitud al endpoint para registrar la calificación.
         const response = await axios
             .post(
