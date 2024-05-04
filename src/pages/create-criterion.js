@@ -5,10 +5,53 @@ export function CreateCriterion() {
   const [criterio, setCriterio] = useState("");
   const [vRegular, setVRegular] = useState("");
   const [vPromovido, setVPromovido] = useState("");
+  const [infoMessage, setInfoMessage] = useState("");
+  const [submitMessage, setSubmitMessage] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
+
+  const handleCriterioChange = (e) => {
+    setCriterio(e.target.value);
+    setSubmitMessage("");
+    setErrorMessage("");
+    // Verificar el tipo de criterio seleccionado y mostrar un mensaje informativo
+    if (e.target.value === "5") {
+      setInfoMessage("Ingrese números enteros de 1 a 10 para este criterio.");
+    } else {
+      setInfoMessage("Ingrese valores entre 0 y 100 para este criterio. Se evaluará en forma de porcentaje.");
+    }
+  };
 
   const handleSubmit = async (event) => {
 
     event.preventDefault();
+
+    const regularValue = parseFloat(vRegular);
+    const promovidoValue = parseFloat(vPromovido);
+
+    let isValid = true;
+
+    // Verificar el tipo de criterio seleccionado y validar los valores ingresados
+    if (criterio === "5") { // Promedio de parciales
+      if ((regularValue < 1 || regularValue > 10 || promovidoValue < 0 || promovidoValue > 10) || (regularValue > promovidoValue)){
+        isValid = false;
+      }
+    } else {
+        if (criterio === "4" || criterio === "2" || criterio === "6" || criterio === "1") {
+            if ((regularValue < 0 || regularValue > 100 || promovidoValue < 0 || promovidoValue > 100) || (regularValue > promovidoValue) ) {
+              isValid = false;
+            } 
+        }
+        else {
+          if ((regularValue < 0 || regularValue > 100 || promovidoValue < 0 || promovidoValue > 100) || (promovidoValue > regularValue)){
+            isValid = false;
+          }
+        }
+      }
+
+    if (!isValid) {
+      setErrorMessage("Valores incorrectos. Por favor, ingrese valores válidos.");
+      return;
+    } 
 
     const data = {
       criteria: {id: criterio },
@@ -24,10 +67,19 @@ export function CreateCriterion() {
       },
       body: JSON.stringify(data),
     })
-      .then((response) => response.json())
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("Error al cargar. Por favor, inténtalo de nuevo.");
+        }
+        setErrorMessage(""); // Limpiar cualquier mensaje de error anterior
+        setSubmitMessage("¡Carga exitosa!");
+      })
       .then((data) => console.log(data))
-      .catch((error) => console.error(error));
-
+      .catch((error) => {
+        console.error(error);
+        setSubmitMessage(""); // Limpiar cualquier mensaje de éxito anterior
+        setErrorMessage("Error al cargar. Por favor, inténtalo de nuevo.");
+      });
   };
 
   return (
@@ -44,17 +96,19 @@ export function CreateCriterion() {
         <p>Criterio de Evaluacion</p>
       </label>
     
-      <select value={criterio} onChange={(e) => setCriterio(e.target.value)} required>
-        <option value="">Seleccione un criterio</option>
-        <option value="4">Parciales aprobados</option>
-        <option value="8">Parciales recuperados</option>
-        <option value="2">Trabajos prácticos aprobados</option>
-        <option value="3">Trabajos prácticos recuperados</option>
-        <option value="6">Autoevaluaciones aprobadas</option>
-        <option value="7">Autoevaluaciones recuperadas</option>
-        <option value="1">Asistencias</option>
-        <option value="5">Promedio de parciales</option>
-      </select>
+      <select value={criterio} onChange={handleCriterioChange} required>
+          <option value="">Seleccione un criterio</option>
+          <option value="4">Parciales aprobados</option>
+          <option value="8">Parciales recuperados</option>
+          <option value="2">Trabajos prácticos aprobados</option>
+          <option value="3">Trabajos prácticos recuperados</option>
+          <option value="6">Autoevaluaciones aprobadas</option>
+          <option value="7">Autoevaluaciones recuperadas</option>
+          <option value="1">Asistencias</option>
+          <option value="5">Promedio de parciales</option>
+        </select>
+
+      {infoMessage && <p style={{ color: "blue" }}>{infoMessage}</p>}
 
       <label htmlFor="valorRegular">
         <p>Valor para regular</p>
@@ -79,7 +133,8 @@ export function CreateCriterion() {
       />
 
       <button type="submit">Cargar</button>
-
+      {submitMessage && <p style={{ color: "blue" }}>{submitMessage}</p>}
+      {errorMessage && <p style={{ color: "red" }}>{errorMessage}</p>}
       </form>
 
     </PageLayout>

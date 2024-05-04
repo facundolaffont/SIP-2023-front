@@ -47,6 +47,8 @@ export const FinalCondition = () => {
 
         }
 
+        getEvaluationCriterias();
+
     }, [getAccessTokenSilently]);
 
     const handleSubmit = async (event) => {
@@ -182,6 +184,7 @@ export const FinalCondition = () => {
                         <thead>
                             <tr>
                                 <th>Legajo</th>
+                                <th>Correlativas</th>
                                 {criterias.map((criteria, index) => (
                                     <th>{criteria.criteria.name}</th>
                                 ))}
@@ -192,6 +195,7 @@ export const FinalCondition = () => {
                             {sortedFinalConditions.map((student, index) => (
                                 <tr key={index}>
                                     <td>{student.Legajo}</td>
+                                    <td>{student.Correlativas ? 'P' : ''}</td>                                    
                                     {criterias.map((criteria, criteriaIndex) => {
                                         const conditionObj = student.Detalle.find(
                                             (item) => item.Criterio === criteria.criteria.name
