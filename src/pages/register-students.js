@@ -359,7 +359,7 @@ export function StudentRegistering() {
                             studentInfo.allPreviousSubjectsApproved =
                                 studentLoadedData.allPreviousSubjectsApproved.trim().toLowerCase() == 'x'
                                 ? 'P'
-                                : '';
+                                : false;
 
                             // Agrega el estado de registración en sistema.
                             studentInfo.state = 'Pendiente';

@@ -1,19 +1,23 @@
 // Componentes externos.
+import axios from "axios";
 import React, { useState, useEffect } from "react";
 import { useHistory } from 'react-router-dom';
+import { useAuth0 } from "@auth0/auth0-react";
 
 // Componentes internos.
 import { PageLayout } from "../components/page-layout";
 import { useSelectedCourse } from "../contexts/course/course-provider.js";
 import CourseDTO from "../contexts/course/course-d-t-o";
 import SpreadsheetManipulator from "../services/spreadsheet-manipulator.service";
+import HTMLTableManipulator from "../services/html-table-manipulator";
 
 // Estilos.
 import '../styles/search-student.css';
 
 export const ListCourseStudents = () => {
-    const [estudiantesCursada, setData] = useState(null);
+    const [studentsList, setStudentsList] = useState([]);
     const [, changeCourse] = useSelectedCourse(true);
+    const { getAccessTokenSilently } = useAuth0();
     const [spreadsheetManipulator, setSpreadsheetManipulator] = useState(null);
     /** @type {CourseDTO} */ const course = useSelectedCourse(false);
 
@@ -33,26 +37,83 @@ export const ListCourseStudents = () => {
 
     }, []);
 
+    // Actualiza la tabla.
     useEffect(() => {
-        // Realizar la solicitud al backend cuando el componente se monta
-        fetch(`${process.env.REACT_APP_API_SERVER_URL}/api/v1/course/get-students?courseId=${course.getId()}`)
-            .then(response => response.json())
-            .then(data => {
-                console.log(data)
-                // Verificar si se encontró un alumno
-                if (data) {
-                    // Establecer la información del alumno
-                    setData(data.estudiantesCursada);
-                } else {
-                    // Si no se encontró el alumno, mostrar un mensaje de error o manejarlo según tu necesidad
-                    console.log("No se encontró ningún alumno con ese legajo.");
-                    // También podrías establecer un mensaje de error para mostrar al usuario
-                }
-            })
+
+        let eventsTable = document.getElementsByClassName(
+            "students-table"
+        )[0];
+        if (studentsList.length !== 0) {
+            HTMLTableManipulator.insertDataIntoTable(
+                eventsTable,
+                {
+                    tableRows: studentsList,
+                    columnNames: [
+                        "dossier:legajo",
+                        "id:DNI",
+                        "name:Nombre",
+                        "surname:Apellido",
+                        "email:Email",
+                        "alreadyStudied:Recursante",
+                        "allPreviousSubjectsApproved:Correlativas",
+                    ],
+                },
+            );
+            eventsTable.classList.remove("not-displayed");
+        } else eventsTable.classList.add("not-displayed");
+
+    }, [studentsList]);
+
+    // Obtiene la lista de estudiantes de la cursada seleccionada.
+    useEffect(() => {
+        
+        const getCourseStudents = async () => {
+
+            // Obtiene el token Auth0.
+            const auth0Token = await getAccessTokenSilently()
+            .then(response => response)
             .catch(error => {
-                console.error("Error al realizar la búsqueda del alumno:", error);
-                // Manejar el error según tu necesidad (mostrar un mensaje al usuario, registrar el error, etc.)
+                throw error;
             });
+
+            // Realiza la petición al back para obtener la lista de alumnos de la cursada.
+            await axios.get(
+                `${process.env.REACT_APP_API_SERVER_URL}/api/v1/course/get-students?courseId=${course.getId()}`,
+                {
+                    headers: {
+                        Authorization: `Bearer ${auth0Token}`,
+                    },
+                }
+            )
+
+            // Si la petición fue exitosa, se guarda la información obtenida.
+            .then(response => {
+
+                setStudentsList(response.data.studentsList.map(student => {
+                    return {
+                        dossier: student.dossier,
+                        id: student.id,
+                        name: student.name,
+                        surname: student.surname,
+                        email: student.email,
+                        alreadyStudied: student.alreadyStudied,
+                        allPreviousSubjectsApproved:
+                            student.allPreviousSubjectsApproved == true
+                            ? 'P'
+                            : false,
+                    }
+                }));
+
+            })
+
+            // Si la petición no fue exitosa, se genera una excepción.
+            .catch(
+                error => error.response
+            );
+
+        }
+        getCourseStudents();
+
     }, []); // El array vacío asegura que el efecto se ejecute solo una vez después del montaje del componente
 
     /**
@@ -60,7 +121,7 @@ export const ListCourseStudents = () => {
      */
     const handleExport = () => {
         spreadsheetManipulator.export(
-            document.getElementById("condition-table")
+            document.getElementById("students-table")
         );
     }
 
@@ -77,30 +138,9 @@ export const ListCourseStudents = () => {
                     course === null && 'Sin cursada seleccionada'
                 }
             </h2>
-            {estudiantesCursada && (
+            {studentsList && (
                 <div>
-                    <table id="condition-table" className="condition-table">
-                        <thead>
-                            <tr>
-                                <th>Legajo</th>
-                                <th>DNI</th>
-                                <th>Nombre</th>
-                                <th>Apellido</th>
-                                <th>Email</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {estudiantesCursada.map(estudianteCursada => (
-                                <tr key={estudianteCursada.id}>
-                                    <td>{estudianteCursada.alumno.legajo}</td>
-                                    <td>{estudianteCursada.alumno.dni}</td>
-                                    <td>{estudianteCursada.alumno.nombre}</td>
-                                    <td>{estudianteCursada.alumno.apellido}</td>
-                                    <td>{estudianteCursada.alumno.email}</td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
+                    <table id="students-table" className="students-table table-container not-displayed"></table>
                     <button
                         type="button"
                         className="export-button"
