@@ -23,22 +23,21 @@ export const ListCourseEvents = () => {
 
     const history = useHistory();
 
-    // Verifica que se haya seleccionado una cursada.
-    useEffect(() => {
-
-        // Redirige a la página de selección de cursada, si todavía no se seleccionó una,
-        // o si se actualiza la página, ya que se pierde el contexto de la selección que
-        // se había hecho.
-        if (course === null) history.push('/profile?course-missing');
-
-    });
-
     // Inicializa el objeto que manipula las planillas.
     useState(() => {
 
         setSpreadsheetManipulator(new SpreadsheetManipulator());
 
     }, []);
+
+    // Redirige a la página de selección de cursada, si todavía no se seleccionó una,
+    // o si se actualiza la página, ya que se pierde el contexto de la selección que
+    // se había hecho.
+    useEffect(() => {
+
+        if (course === null) history.push('/profile?course-missing');
+
+    });
 
     // Actualiza la tabla.
     useEffect(() => {
@@ -57,10 +56,6 @@ export const ListCourseEvents = () => {
                         "datetime:Fecha y hora",
                         "mandatory:Obligatorio",
                     ],
-                    /*columnClasses: [
-                        "eventId:centered",
-                        "mandatory:centered",
-                    ],*/
                 },
             );
             eventsTable.classList.remove("not-displayed");
@@ -68,17 +63,17 @@ export const ListCourseEvents = () => {
 
     }, [eventsList]);
 
-    // Obtiene las cursadas de la comisión seleccionada.
+    // Obtiene los eventos de la cursada seleccionada.
     useEffect(() => {
 
-        const getCommissionCourses = async () => {
+        const getCourseEvents = async () => {
 
             // Obtiene el token Auth0.
             const auth0Token = await getAccessTokenSilently()
-                .then(response => response)
-                .catch(error => {
-                    throw error;
-                });
+            .then(response => response)
+            .catch(error => {
+                throw error;
+            });
 
             // Realiza la petición al back para obtener la lista de eventos de la cursada.
             axios.get(
@@ -92,7 +87,6 @@ export const ListCourseEvents = () => {
 
             // Si la petición fue exitosa, se guarda la información obtenida.
             .then(response => {
-                //setEventosCursada(response.data);
 
                 setEventsList(response.data.eventList.map(event => {
                     return {
@@ -111,7 +105,7 @@ export const ListCourseEvents = () => {
             );
 
         }
-        getCommissionCourses();
+        getCourseEvents();
 
     }, []); // El array vacío asegura que el efecto se ejecute solo una vez después del montaje del componente.
 
