@@ -26,19 +26,26 @@
 // Imports externos.
 import axios from "axios";
 import { useAuth0 } from "@auth0/auth0-react";
-import { useState } from "react";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
+import { useHistory } from 'react-router-dom';
 
 // Imports internos.
 import { PageLayout } from "../components/page-layout";
+import { useSelectedCourse } from "../contexts/course/course-provider.js";
 
 export const ModificateCriterion = () => {
     const [criterias, setCriterias] = useState([]);
     const { getAccessTokenSilently } = useAuth0();
     const [editedCriterias, setEditedCriterias] = useState([]);
-    const [sortedFinalConditions, setSortedFinalConditions] = useState([]);
+    const course = useSelectedCourse();
+    const history = useHistory();
 
-    console.debug("Antes de useEffect");
+    // Redirige a la página de selección de cursada, si todavía no se seleccionó una,
+    // o si se actualiza la página, ya que se pierde el contexto de la selección que
+    // se había hecho.
+    useEffect(() => {
+        if (course === null) history.push('/profile?course-missing');
+    }, []);
 
     useEffect(() => {
 
@@ -56,7 +63,7 @@ export const ModificateCriterion = () => {
             // 2
             await axios
                 .get(
-                    `${process.env.REACT_APP_API_SERVER_URL}/api/v1/criterion-course/evaluationCriterias?courseId=1`,
+                    `${process.env.REACT_APP_API_SERVER_URL}/api/v1/criterion-course/evaluationCriterias?courseId=${course.getId()}`,
                     {
                         headers: {
                             Authorization: `Bearer ${auth0Token}`,
@@ -67,22 +74,6 @@ export const ModificateCriterion = () => {
                     setCriterias(criteria.data);
                 })
                 .catch(error => error.response);
-    
-            
-            //     // Enviamos petición al backend para obtener los criterios de evaluación asociados a la cursada
-            //     fetch(`${process.env.REACT_APP_API_SERVER_URL}/api/v1/criterion-course/evaluationCriterias?courseId=1`, {
-            //       method: "GET",
-            //       headers: {
-            //         "Content-Type": "application/json",
-            //       },
-            //     })
-            //       .then((response) => response.json())
-            //       .then((criteria) => {
-            //         // Aquí puedes hacer algo con los criterios recibidos, como actualizar el estado del componente
-            //         console.log(criteria);
-            //         setCriterias(criteria);
-            //       })
-            //       .catch((error) => console.error(error));    
 
         }
         getEvaluationCriteria();

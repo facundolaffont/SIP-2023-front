@@ -1,13 +1,14 @@
 // Imports externos.
 import axios from "axios";
 import { useAuth0 } from "@auth0/auth0-react";
-import { useState } from "react";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
+import { useHistory } from 'react-router-dom';
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPencilAlt } from "@fortawesome/free-solid-svg-icons";
 
 // Imports internos.
 import { PageLayout } from "../components/page-layout";
+import { useSelectedCourse } from "../contexts/course/course-provider.js";
 
 export const FinalCondition = () => {
     const [criterias, setCriterias] = useState([]);
@@ -17,6 +18,15 @@ export const FinalCondition = () => {
     const [editedConditions, setEditedConditions] = useState({}); // Estado para manejar las condiciones editadas
     const [errorMessage, setErrorMessage] = useState(""); // Estado para manejar mensajes de error
     const [selectedLegajo, setSelectedLegajo] = useState(null); // Estado para almacenar el legajo de la celda seleccionada para editar
+    const course = useSelectedCourse();
+    const history = useHistory();
+
+    // Redirige a la página de selección de cursada, si todavía no se seleccionó una,
+    // o si se actualiza la página, ya que se pierde el contexto de la selección que
+    // se había hecho.
+    useEffect(() => {
+        if (course === null) history.push('/profile?course-missing');
+    }, []);
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
     useEffect(() => {
@@ -33,7 +43,7 @@ export const FinalCondition = () => {
             // 2
             await axios
             .get(
-                `${process.env.REACT_APP_API_SERVER_URL}/api/v1/criterion-course/evaluationCriterias?courseId=1`,
+                `${process.env.REACT_APP_API_SERVER_URL}/api/v1/criterion-course/evaluationCriterias?courseId=${course.getId()}`,
                 {
                     headers: {
                         Authorization: `Bearer ${auth0Token}`,
@@ -65,7 +75,7 @@ export const FinalCondition = () => {
             });
 
         // Enviamos petición al back para calcular condicion final de los alumnos de la cursada
-        fetch(`${process.env.REACT_APP_API_SERVER_URL}/api/v1/course/finalCondition?courseId=1`, {
+        fetch(`${process.env.REACT_APP_API_SERVER_URL}/api/v1/course/finalCondition?courseId=${course.getId()}`, {
             method: "GET",
             headers: {
                 "Content-Type": "application/json",
@@ -97,7 +107,7 @@ export const FinalCondition = () => {
         if (sortedFinalConditions) {
             console.log(sortedFinalConditions);
             const dataToSend = {
-                courseId: 1, // ID de la cursada
+                courseId: course.getId(),
                 finalConditions: sortedFinalConditions.map(student => ({
                     legajo: student.Legajo,
                     nota: editedConditions[student.Legajo] || student.Condición // Utilizar la condición editada si existe
