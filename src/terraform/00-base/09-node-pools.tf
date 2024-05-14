@@ -50,18 +50,26 @@ resource "google_container_node_pool" "spot" {
   }
 
   node_config {
-    preemptible  = true
+
+    # Si se establece el valor true en el campo preemtible,
+    # puede traer problemas con la planificación del controlador
+    # NGINX. Cualquier cosa, establecer el valor a false.
+    preemptible  = false
+
     machine_type = "e2-medium"
 
     labels = {
       team = "devops"
     }
 
-    taint {
-      key    = "instance_type"
-      value  = "spot"
-      effect = "NO_SCHEDULE"
-    }
+    # Si se habilita el siguiente bloque, puede traer problemas
+    # en la planificación del controlador NGINX. Cualquier cosa,
+    # comentarlo.
+    # taint {
+    #   key    = "instance_type"
+    #   value  = "spot"
+    #   effect = "NO_SCHEDULE"
+    # }
 
     service_account = google_service_account.kubernetes.email
     oauth_scopes = [

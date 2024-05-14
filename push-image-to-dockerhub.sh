@@ -1,6 +1,14 @@
-# Construye la app y la sube al repositorio de Docker Hub.
+# Construye la imagen de Docker y la sube al repositorio de Docker Hub.
 
-set -e
+if [ -z $1 ]; then
 
-docker build --no-cache -t facundol/sip-frontend:latest .
-docker push facundol/sip-frontend:latest
+    echo "Debe especificar la versión de la imagen"
+
+else
+
+    set -e
+
+    docker build --no-cache -t facundol/sip-frontend:$1 .
+    docker push facundol/sip-frontend:$1
+
+fi
