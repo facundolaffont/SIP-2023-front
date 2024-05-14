@@ -1,0 +1,43 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: nginx-ingress
+  annotations:
+
+    # Dejar sin comentario sólo la línea de producción cuando
+    # se haya configurado correctamente con el issuer de staging,
+    # primero.    
+    #cert-manager.io/cluster-issuer: letsencrypt-staging
+    cert-manager.io/cluster-issuer: letsencrypt-production
+
+spec:
+  ingressClassName: nginx
+  tls:
+  - hosts:
+    - spgda.fl.com.ar
+
+    # Secreto en el cual cert-manager va a guardar el certificado cuando se cree.
+    secretName: nginx-ingress-cert
+
+  rules:
+  - host: spgda.fl.com.ar
+    http:
+      paths:
+      - path: /api
+        pathType: Prefix
+        backend:
+          service:
+            name: back-service
+            port:
+              number: 6060
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+
+            # Nombre del servicio al que se redirige la petición HTTP/S.
+            name: front-service
+
+            # Puerto del servicio al que se redirige la petición HTTP/S.
+            port:
+              number: 80
