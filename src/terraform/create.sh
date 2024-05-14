@@ -49,109 +49,109 @@ if [ -z $user_email ]; then
 else
 
 
-    # #########################################
-    # ### Configuración de las credenciales ###
-    # #########################################
+    #########################################
+    ### Configuración de las credenciales ###
+    #########################################
 
-    # # Verifica, y eventualmente crea, el archivo con las llaves para conectarse por SSH con Google Cloud.
-    # echo "Verificando clave SSH..."
-    # sshkey_name=$HOME/.ssh/gcp
-    # if [ -f "$sshkey_name" ]; then
-    #     echo "Archivo de clave SSH verificado."
-    # else
-    #     echo "El archivo de clave SSH no existe."
-    #     echo "Creando archivo de clave SSH..."
-    #     ssh-keygen -f $sshkey_name -t rsa -N '' -C $user_email
-    #     ssh-add $sshkey_name
-    #     echo "Archivo creado."
-    # fi
-
-
-    # ######################################################
-    # ### Creación de la infraestructura base de la nube ###
-    # ######################################################
-
-    # # Terraform init.
-    # echo "Terraform init..."
-    # docker run --rm -it --mount type=bind,src=./,dst=/tmp hashicorp/terraform \
-    #     -chdir=/tmp/00-base init \
-    #     -reconfigure \
-    #     --backend-config bucket="spgda-ac-bucket" \
-    #     --backend-config prefix="state/base" \
-    #     --backend-config credentials=/tmp/gcloud-key.json
-
-    # # Terraform validate.
-    # echo "Validando configuración de Terraform..."
-    # docker run \
-    #   --rm -it \
-    #   --rm -it \
-    #   --mount type=bind,src=./,dst=/tmp hashicorp/terraform \
-    #   -chdir=/tmp/00-base validate
-    # echo "Configuración validada."
-
-    # # Terraform plan.
-    # echo "Verificando plan de Terraform..."
-    # docker run --rm -it --mount type=bind,src=./,dst=/tmp hashicorp/terraform -chdir=/tmp/00-base plan
-    # echo "Plan verificado."
-
-    # # Terraform apply.
-    # echo "Aplicando la configuración de Terraform..."
-    # docker run --rm -it --mount type=bind,src=./,dst=/tmp hashicorp/terraform -chdir=/tmp/00-base apply --auto-approve -lock=false
-    # echo "Configuración aplicada."
+    # Verifica, y eventualmente crea, el archivo con las llaves para conectarse por SSH con Google Cloud.
+    echo "Verificando clave SSH..."
+    sshkey_name=$HOME/.ssh/gcp
+    if [ -f "$sshkey_name" ]; then
+        echo "Archivo de clave SSH verificado."
+    else
+        echo "El archivo de clave SSH no existe."
+        echo "Creando archivo de clave SSH..."
+        ssh-keygen -f $sshkey_name -t rsa -N '' -C $user_email
+        ssh-add $sshkey_name
+        echo "Archivo creado."
+    fi
 
 
-    # ###############################################
-    # ### Aplicación de los cambios de Kubernetes ###
-    # ###############################################
+    ######################################################
+    ### Creación de la infraestructura base de la nube ###
+    ######################################################
 
-    # # Establece el proyecto adecuado, si no está establecido aún.
-    # echo "Configurando el proyecto..."
-    # gcloud config set project ultimate-flare-420416
-    # echo "Proyecto configurado."
+    # Terraform init.
+    echo "Terraform init..."
+    docker run --rm -it --mount type=bind,src=./,dst=/tmp hashicorp/terraform \
+        -chdir=/tmp/00-base init \
+        -reconfigure \
+        --backend-config bucket="spgda-ac-bucket" \
+        --backend-config prefix="state/base" \
+        --backend-config credentials=/tmp/gcloud-key.json
 
-    # # Obtiene el archivo config de Kubernetes, que permite utilizar Kubernetes, y lo almacena en ~/.kube/.
-    # echo "Obteniendo el archivo config de Kubernetes..."
-    # gcloud container clusters get-credentials primary --region=us-central1-a
-    # echo "Archivo obtenido."
+    # Terraform validate.
+    echo "Validando configuración de Terraform..."
+    docker run \
+      --rm -it \
+      --rm -it \
+      --mount type=bind,src=./,dst=/tmp hashicorp/terraform \
+      -chdir=/tmp/00-base validate
+    echo "Configuración validada."
 
-    # # Crea los recursos del frontend.
-    # echo "Aplicando los cambios de Kubernetes..."
-    # cd ../k8s
-    # kubectl apply \
-    #   -f debug.yaml \
-    #   -f 01-deploy-front.yaml \
-    #   -f 02-service-front.yaml
+    # Terraform plan.
+    echo "Verificando plan de Terraform..."
+    docker run --rm -it --mount type=bind,src=./,dst=/tmp hashicorp/terraform -chdir=/tmp/00-base plan
+    echo "Plan verificado."
 
-    # # Despliega el controlador NGINX.
-    # helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
-    # helm repo update
-    # helm install quickstart ingress-nginx/ingress-nginx
+    # Terraform apply.
+    echo "Aplicando la configuración de Terraform..."
+    docker run --rm -it --mount type=bind,src=./,dst=/tmp hashicorp/terraform -chdir=/tmp/00-base apply --auto-approve -lock=false
+    echo "Configuración aplicada."
 
-    # # Despliega el cert-manager.
-    # kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.14.5/cert-manager.yaml
 
-    # # Espera hasta que los objetos de cert-manager estén listos. [https://kubernetes.github.io/ingress-nginx/deploy/#pre-flight-check]
-    # echo "Esperando a que cert-manager esté listo..."
-    # kubectl wait --namespace cert-manager \
-    #   --for=condition=ready pod \
-    #   --selector=app=cert-manager \
-    #   --timeout=120s
-    # kubectl wait --namespace cert-manager \
-    #   --for=condition=ready pod \
-    #   --selector=app=webhook \
-    #   --timeout=120s
-    # kubectl wait --namespace cert-manager \
-    #   --for=condition=ready pod \
-    #   --selector=app=cainjector \
-    #   --timeout=120s
-    # echo "cert-manager listo."
+    ###############################################
+    ### Aplicación de los cambios de Kubernetes ###
+    ###############################################
 
-    # # Despliega el secreto con las credenciales para Cloudflare.
-    # kubectl apply -f cloudflare-secrets.yaml
+    # Establece el proyecto adecuado, si no está establecido aún.
+    echo "Configurando el proyecto..."
+    gcloud config set project ultimate-flare-420416
+    echo "Proyecto configurado."
 
-    # # Despliega recurso que representa la autoridad de certificación (ClusterIssuer).
-    # kubectl apply -f letsencrypt-staging-issuer.yaml
-    # kubectl apply -f letsencrypt-production-issuer.yaml
+    # Obtiene el archivo config de Kubernetes, que permite utilizar Kubernetes, y lo almacena en ~/.kube/.
+    echo "Obteniendo el archivo config de Kubernetes..."
+    gcloud container clusters get-credentials primary --region=us-central1-a
+    echo "Archivo obtenido."
+
+    # Crea los recursos del frontend.
+    echo "Aplicando los cambios de Kubernetes..."
+    cd ../k8s
+    kubectl apply \
+      -f debug.yaml \
+      -f 01-deploy-front.yaml \
+      -f 02-service-front.yaml
+
+    # Despliega el controlador NGINX.
+    helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
+    helm repo update
+    helm install quickstart ingress-nginx/ingress-nginx
+
+    # Despliega el cert-manager.
+    kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.14.5/cert-manager.yaml
+
+    # Espera hasta que los objetos de cert-manager estén listos. [https://kubernetes.github.io/ingress-nginx/deploy/#pre-flight-check]
+    echo "Esperando a que cert-manager esté listo..."
+    kubectl wait --namespace cert-manager \
+      --for=condition=ready pod \
+      --selector=app=cert-manager \
+      --timeout=120s
+    kubectl wait --namespace cert-manager \
+      --for=condition=ready pod \
+      --selector=app=webhook \
+      --timeout=120s
+    kubectl wait --namespace cert-manager \
+      --for=condition=ready pod \
+      --selector=app=cainjector \
+      --timeout=120s
+    echo "cert-manager listo."
+
+    # Despliega el secreto con las credenciales para Cloudflare.
+    kubectl apply -f cloudflare-secrets.yaml
+
+    # Despliega recurso que representa la autoridad de certificación (ClusterIssuer).
+    kubectl apply -f letsencrypt-staging-issuer.yaml
+    kubectl apply -f letsencrypt-production-issuer.yaml
 
     pwd
     cd ../k8s # DEBUG
