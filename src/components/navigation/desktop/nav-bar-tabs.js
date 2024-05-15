@@ -64,10 +64,10 @@ export const NavBarTabs = () => {
                                         path="/register-students"
                                         label="Registrar estudiantes"
                                     />
-                                    <NavBarTab
+                                    {<NavBarTab
                                         path="/register-students-in-course"
                                         label="Vincular estudiantes con cursada"
-                                    />
+                                    />}
                                     <NavBarTab
                                         path="/register-event"
                                         label="Crear evento"
@@ -80,10 +80,10 @@ export const NavBarTabs = () => {
                                         path="/register-attendance"
                                         label="Registrar asistencias"
                                     />
-                                    <NavBarTab
+                                    {/*<NavBarTab
                                         path="/register-course-attendance"
                                         label="Registrar asistencias del curso"
-                                    />
+                                    />*/}
                                     <NavBarTab
                                         path="/register-califications"
                                         label="Registrar calificaciones"
