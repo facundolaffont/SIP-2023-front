@@ -74,6 +74,9 @@ export const App = () => {
         <div className="App"> {/* Este div es necesario para utilizar el componente Helmet. */}
             <Helmet>
                 <title>SPGDA</title>
+                <meta property="og:title" content="SPGDA" />
+                <meta property="og:description" content="Sistema para la Gestión de Asignaturas." />
+                <meta property="og:url" content="https://spgda.fl.com.ar/" />
             </Helmet>
             <Switch>
                     
