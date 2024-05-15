@@ -2,6 +2,7 @@
 import { useAuth0 } from "@auth0/auth0-react";
 import React, { useState, useEffect } from "react";
 import { Route, Switch } from "react-router-dom";
+import { Helmet } from 'react-helmet';
 
 // Componentes internos.
 import { PageLoader } from "./components/page-loader";
@@ -70,45 +71,50 @@ export const App = () => {
     }
 
     return (
-        <Switch>
-            
-            {/* Rutas públicas. */}
-            <Route path="/" exact component={HomePage} />
-            <Route path="/callback" component={CallbackPage} />
-            <ProtectedRoute path="/change-password" component={ChangePasswordForm} />
+        <div className="App"> {/* Este div es necesario para utilizar el componente Helmet. */}
+            <Helmet>
+                <title>SPGDA</title>
+            </Helmet>
+            <Switch>
+                    
+                    {/* Rutas públicas. */}
+                    <Route path="/" exact component={HomePage} />
+                    <Route path="/callback" component={CallbackPage} />
+                    <ProtectedRoute path="/change-password" component={ChangePasswordForm} />
 
-            {/* Rutas para docentes. */}
-            {isProfessor && <ProtectedRoute path="/profile" component={HomePageProfessor} />}
-            {isProfessor && <ProtectedRoute path="/register-attendance" component={AttendanceRegistering} />}
-            {isProfessor && <ProtectedRoute path="/register-course-attendance" component={CourseAttendanceRegistering} />}
-            {isProfessor && <ProtectedRoute path="/register-califications" component={CalificationRegistering} />}
-            {isProfessor && <ProtectedRoute path="/register-students-in-course" component={CourseStudentRegistering} />}
-            {isProfessor && <ProtectedRoute path="/register-students" component={StudentRegistering} />}
-            {isProfessor && <ProtectedRoute path="/register-event" component={EventRegistering} />}
-            {isProfessor && <ProtectedRoute path="/register-events-bulk" component={EventsBulkRegistering} />}
-            {isProfessor && <ProtectedRoute path="/final-condition" component={FinalCondition} />}
-            {isProfessor && <ProtectedRoute path="/modificate-criterion" component={ModificateCriterion} />}
-            {isProfessor && <ProtectedRoute path="/search-student" component={SearchStudent} />}
-            {isProfessor && <ProtectedRoute path="/search-event" component={SearchEvent} />}
-            {isProfessor && <ProtectedRoute path="/show-all-events-registers" component={ShowAllEventsRegisters} />}
-            {isProfessor && <ProtectedRoute path="/create-criterion" component={CreateCriterion} />}
-            {isProfessor && <ProtectedRoute path="/list-course-students" component={ListCourseStudents} />}
-            {isProfessor && <ProtectedRoute path="/list-course-events" component={ListCourseEvents} />}
-            {/*isProfessor && <ProtectedRoute path="/show-criteria-summary" component={ShowCriteriaSummary} />*/}
-            {isProfessor && <ProtectedRoute path="/show-events-summary" component={ShowEventsSummary} />}
-            {/*isProfessor && <ProtectedRoute path="/list-events-attendance" component={ListAttendance} />*/}
-            {/*isProfessor && <ProtectedRoute path="/list-events-califications" component={ListCalifications} />*/}
+                    {/* Rutas para docentes. */}
+                    {isProfessor && <ProtectedRoute path="/profile" component={HomePageProfessor} />}
+                    {isProfessor && <ProtectedRoute path="/register-attendance" component={AttendanceRegistering} />}
+                    {isProfessor && <ProtectedRoute path="/register-course-attendance" component={CourseAttendanceRegistering} />}
+                    {isProfessor && <ProtectedRoute path="/register-califications" component={CalificationRegistering} />}
+                    {isProfessor && <ProtectedRoute path="/register-students-in-course" component={CourseStudentRegistering} />}
+                    {isProfessor && <ProtectedRoute path="/register-students" component={StudentRegistering} />}
+                    {isProfessor && <ProtectedRoute path="/register-event" component={EventRegistering} />}
+                    {isProfessor && <ProtectedRoute path="/register-events-bulk" component={EventsBulkRegistering} />}
+                    {isProfessor && <ProtectedRoute path="/final-condition" component={FinalCondition} />}
+                    {isProfessor && <ProtectedRoute path="/modificate-criterion" component={ModificateCriterion} />}
+                    {isProfessor && <ProtectedRoute path="/search-student" component={SearchStudent} />}
+                    {isProfessor && <ProtectedRoute path="/search-event" component={SearchEvent} />}
+                    {isProfessor && <ProtectedRoute path="/show-all-events-registers" component={ShowAllEventsRegisters} />}
+                    {isProfessor && <ProtectedRoute path="/create-criterion" component={CreateCriterion} />}
+                    {isProfessor && <ProtectedRoute path="/list-course-students" component={ListCourseStudents} />}
+                    {isProfessor && <ProtectedRoute path="/list-course-events" component={ListCourseEvents} />}
+                    {/*isProfessor && <ProtectedRoute path="/show-criteria-summary" component={ShowCriteriaSummary} />*/}
+                    {isProfessor && <ProtectedRoute path="/show-events-summary" component={ShowEventsSummary} />}
+                    {/*isProfessor && <ProtectedRoute path="/list-events-attendance" component={ListAttendance} />*/}
+                    {/*isProfessor && <ProtectedRoute path="/list-events-califications" component={ListCalifications} />*/}
 
-            {/* Rutas para administradores. */}
-            {isAdmin && <ProtectedRoute path="/profile" component={HomePageAdmin} />}
-            {isAdmin && <ProtectedRoute path="/create-user" component={CreateUser} />}
-            {isAdmin && <ProtectedRoute path="/assign-role" component={AssignRole} />}
-            {isAdmin && <ProtectedRoute path="/search-professor" component={SearchProfessor} />}
-            {isAdmin && <ProtectedRoute path="/down-user" component={DownUser} />}
+                    {/* Rutas para administradores. */}
+                    {isAdmin && <ProtectedRoute path="/profile" component={HomePageAdmin} />}
+                    {isAdmin && <ProtectedRoute path="/create-user" component={CreateUser} />}
+                    {isAdmin && <ProtectedRoute path="/assign-role" component={AssignRole} />}
+                    {isAdmin && <ProtectedRoute path="/search-professor" component={SearchProfessor} />}
+                    {isAdmin && <ProtectedRoute path="/down-user" component={DownUser} />}
 
-            {/* Dirección para el resto de las rutas. */}
-            <Route path="*" component={NotFoundPage} />
+                    {/* Dirección para el resto de las rutas. */}
+                    <Route path="*" component={NotFoundPage} />
 
-        </Switch>
+            </Switch>
+        </div>
     );
 };
