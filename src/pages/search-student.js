@@ -32,6 +32,7 @@ export const SearchStudent = () => {
             .then(response => response.json())
             .then(data => {
                 console.log(data)
+                console.log(data.eventos)
                 // Verificar si se encontró un alumno
                 if (data) {
                     // Establecer la información del alumno

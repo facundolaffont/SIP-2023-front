@@ -39,3 +39,8 @@
 .alumno-info-container .no {
     color: red;
 }
+
+.actions-container {
+    display: flex;
+    gap: 15px;
+}

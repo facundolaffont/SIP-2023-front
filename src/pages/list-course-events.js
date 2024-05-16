@@ -10,6 +10,7 @@ import HTMLTableManipulator from "../services/html-table-manipulator";
 import SpreadsheetManipulator from "../services/spreadsheet-manipulator.service";
 import { useSelectedCourse } from "../contexts/course/course-provider.js";
 import CourseDTO from "../contexts/course/course-d-t-o";
+import ReactDOMServer from 'react-dom/server';
 
 // Estilos.
 import '../styles/list-course-events.css';
@@ -17,9 +18,10 @@ import '../styles/list-course-events.css';
 export const ListCourseEvents = () => {
     const [eventsList, setEventsList] = useState([]);
     const { getAccessTokenSilently } = useAuth0();
-    const [, changeCourse] = useSelectedCourse(true);
     const [spreadsheetManipulator, setSpreadsheetManipulator] = useState(null);
     /** @type {CourseDTO} */ const course = useSelectedCourse(false);
+    // Define el estado para almacenar las fechas seleccionadas
+
 
     const history = useHistory();
 
@@ -39,30 +41,176 @@ export const ListCourseEvents = () => {
 
     });
 
-    // Actualiza la tabla.
     useEffect(() => {
-
-        let eventsTable = document.getElementsByClassName(
-            "events-table"
-        )[0];
+        let eventsTable = document.getElementsByClassName("events-table")[0];
         if (eventsList.length !== 0) {
-            HTMLTableManipulator.insertDataIntoTable(
-                eventsTable,
-                {
-                    tableRows: eventsList,
-                    columnNames: [
-                        "eventId:ID",
-                        "type:Tipo de evento",
-                        "datetime:Fecha y hora",
-                        "mandatory:Obligatorio",
-                    ],
-                },
-            );
+            const eventsWithActionsAsString = eventsList.map(event => {
+                return {
+                    ...event,
+                    actions: ReactDOMServer.renderToString(event.actions)
+                };
+            });
+    
+            HTMLTableManipulator.insertDataIntoTable(eventsTable, {
+                tableRows: eventsWithActionsAsString,
+                columnNames: [
+                    "eventId:ID",
+                    "type:Tipo de evento",
+                    "initialDateTime:Fecha-Hora Inicio",
+                    "endDateTime: Fecha-Hora Fin",
+                    "mandatory:Obligatorio",
+                    "actions:Acciones"
+                ],
+                actionsColumnIndex: 4
+            });
+    
             eventsTable.classList.remove("not-displayed");
-        } else eventsTable.classList.add("not-displayed");
+        } else {
+            eventsTable.classList.add("not-displayed");
+        }
+    }, [eventsList]);
+        
+    // Agrega eventos de edición al hacer clic en el botón "Modificar"
+    useEffect(() => {
+        const handleEditButtonClick = (event) => {
+            const row = event.target.closest('tr');
+            const cells = row.querySelectorAll('td');
+    
+            const fechaInicioVieja = cells[2].textContent;
+            const fechaFinVieja = cells[3].textContent;
+            const obligatorioViejo = cells[4].textContent;
+    
+            // Habilita la edición solo para las celdas de fecha y obligatorio
+            cells[2].contentEditable = true; // Fecha y hora inicio
+            cells[3].contentEditable = true; // Fecha y hora fin
+            cells[4].contentEditable = true; // Obligatorio
 
+            const initialDateTimeInput = document.createElement('input');
+            initialDateTimeInput.type = 'datetime-local';
+            cells[2].innerHTML = '';
+            cells[2].appendChild(initialDateTimeInput);
+
+            // Crea un nuevo elemento input para la fecha y hora de fin
+            const endDateTimeInput = document.createElement('input');
+            endDateTimeInput.type = 'datetime-local';
+            cells[3].innerHTML = '';
+            cells[3].appendChild(endDateTimeInput);
+
+            // Agregar botones de confirmar y cancelar
+            const confirmButton = document.createElement('button');
+            confirmButton.textContent = 'Confirmar';
+            confirmButton.addEventListener('click', () => {
+                // Guardar los cambios y deshabilitar la edición
+                cells[2].contentEditable = false;
+                cells[3].contentEditable = false;
+                cells[4].contentEditable = false;
+                // Aquí podrías agregar la lógica para guardar los cambios en el estado eventsList
+                
+                const eventId = cells[0].textContent;
+                let newMandatory = cells[4].textContent;
+                let newStartDate = new Date(initialDateTimeInput.value).toISOString();
+                let newEndDate = new Date(endDateTimeInput.value).toISOString();
+                cells[2].textContent = getFormattedDateAndTime(newStartDate);
+                cells[3].textContent = getFormattedDateAndTime(newEndDate);
+
+                if (obligatorioViejo !== newMandatory ||
+                    fechaInicioVieja !== newStartDate ||
+                    fechaFinVieja !== newEndDate) {
+                    // Llamar a la función para actualizar el evento en el backend
+                    
+                    if (newMandatory === "x")                        
+                        newMandatory = true
+                    else
+                        newMandatory = false
+                    
+                    updateEvent(eventId, newMandatory, newStartDate, newEndDate);
+                }
+
+                const actionsCell = row.querySelector('.actions-container');
+                actionsCell.textContent = '';
+    
+                const modifyButton = document.createElement('button');
+                modifyButton.textContent = 'Modificar';
+                modifyButton.className = 'edit-button';
+                modifyButton.addEventListener('click', handleEditButtonClick);
+    
+                const deleteButton = document.createElement('button');
+                deleteButton.textContent = 'Eliminar';
+                deleteButton.className = 'delete-button';
+    
+                actionsCell.appendChild(modifyButton);
+                actionsCell.appendChild(deleteButton);
+
+            });
+    
+            const cancelButton = document.createElement('button');
+            cancelButton.textContent = 'Cancelar';
+            cancelButton.addEventListener('click', () => {
+                // Restaurar los valores originales y deshabilitar la edición
+                cells[2].textContent = fechaInicioVieja; // Restaura el valor original de la fecha
+                cells[3].textContent = fechaFinVieja; // Restaura el valor original del campo obligatorio
+                cells[4].textContent = obligatorioViejo;
+                cells[2].contentEditable = false;
+                cells[3].contentEditable = false;
+                cells[4].contentEditable = false;
+
+                // Mostrar los botones "Modificar" y "Eliminar"
+                const actionsCell = row.querySelector('.actions-container');
+                actionsCell.textContent = '';
+    
+                const modifyButton = document.createElement('button');
+                modifyButton.textContent = 'Modificar';
+                modifyButton.className = 'edit-button';
+                modifyButton.addEventListener('click', handleEditButtonClick);
+    
+                const deleteButton = document.createElement('button');
+                deleteButton.textContent = 'Eliminar';
+                deleteButton.className = 'delete-button';
+    
+                actionsCell.appendChild(modifyButton);
+                actionsCell.appendChild(deleteButton);
+            });
+    
+            // Agregar los botones a la celda de acciones
+            const actionsCell = row.querySelector('.actions-container');
+            actionsCell.textContent = ''; // Limpiar contenido existente
+            actionsCell.appendChild(confirmButton);
+            actionsCell.appendChild(cancelButton);
+        };
+    
+        let eventsTable = document.getElementsByClassName("events-table")[0];
+        eventsTable.querySelectorAll('.edit-button').forEach(button => {
+            button.addEventListener('click', handleEditButtonClick);
+        });
+    
+        return () => {
+            eventsTable.querySelectorAll('.edit-button').forEach(button => {
+                button.removeEventListener('click', handleEditButtonClick);
+            });
+        };
     }, [eventsList]);
 
+    // Agrega eventos de eliminación al hacer clic en el botón "Eliminar"
+    useEffect(() => {
+        const handleDeleteButtonClick = (event) => {
+            const row = event.target.closest('tr');
+            const cells = row.querySelectorAll('td');
+            const eventId = cells[0].textContent;
+            handleDeleteButton(eventId);
+        };
+
+        let eventsTable = document.getElementsByClassName("events-table")[0];
+        eventsTable.querySelectorAll('.delete-button').forEach(button => {
+            button.addEventListener('click', handleDeleteButtonClick);
+        });
+
+        return () => {
+            eventsTable.querySelectorAll('.delete-button').forEach(button => {
+                button.removeEventListener('click', handleDeleteButtonClick);
+            });
+        };
+    }, [eventsList]);
+    
     // Obtiene los eventos de la cursada seleccionada.
     useEffect(() => {
 
@@ -87,16 +235,22 @@ export const ListCourseEvents = () => {
 
             // Si la petición fue exitosa, se guarda la información obtenida.
             .then(response => {
-
-                setEventsList(response.data.eventList.map(event => {
+                const sortedEvents = response.data.eventList.sort((a, b) => a.eventId - b.eventId); // Ordena los eventos por ID
+                setEventsList(sortedEvents.map(event => {
                     return {
                         eventId: event.eventId,
                         type: event.type,
-                        datetime: getFormattedDateAndTime(event.initialDateTime, event.endDateTime),
+                        initialDateTime: getFormattedDateAndTime(event.initialDateTime),
+                        endDateTime: getFormattedDateAndTime(event.endDateTime),
                         mandatory: event.mandatory,
+                        actions: (
+                            <div className="actions-container">
+                                <button className="edit-button">Modificar</button>
+                                <button className="delete-button">Eliminar</button>
+                            </div>
+                        )
                     }
                 }));
-
             })
 
             // Si la petición no fue exitosa, se genera una excepción.
@@ -109,7 +263,65 @@ export const ListCourseEvents = () => {
 
     }, []); // El array vacío asegura que el efecto se ejecute solo una vez después del montaje del componente.
 
-    function getFormattedDateAndTime(initialDateAndTime, endDateAndTime) {
+
+
+    // Función para actualizar un evento en el backend
+    const updateEvent = async (eventId, newMandatory, initialDate, endDate) => {
+        fetch(`${process.env.REACT_APP_API_SERVER_URL}/api/v1/events/update-event`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ eventId: eventId, newMandatory: newMandatory, 
+                initialDate: initialDate, endDate: endDate
+            }), // Pasar un objeto con las propiedades eventId y newData
+        })
+        .then(response => {
+            if (response.ok) {
+                // Si la respuesta es exitosa, muestra un mensaje
+                alert("¡El evento se ha actualizado exitosamente!");
+                // Elimina los botones de modificar y cancelar
+                const row = document.querySelector(`tr[data-event-id="${eventId}"]`);
+                const actionsCell = row.querySelector('.actions-container');
+                actionsCell.textContent = '';
+            } else {
+                // Si la respuesta no es exitosa, muestra un mensaje de error
+                alert("Hubo un error al actualizar el evento.");
+            }
+        })
+        .catch(error => console.error(error));
+    };
+
+    const handleDeleteButton = (eventId) => {
+        console.log(eventId);
+        if (window.confirm("¿Estás seguro de que deseas eliminar este evento?")) {
+            // Lógica para eliminar el evento en el backend
+            fetch(`${process.env.REACT_APP_API_SERVER_URL}/api/v1/events/delete-event`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ eventId: eventId }), // Pasar el ID del evento a eliminar
+            })
+            .then(response => response.json()) // Convertir la respuesta a JSON
+            .then(data => {
+                if (data.message) {
+                    // Si hay un mensaje en la respuesta, mostrarlo al usuario
+                    alert(data.message);
+                    // Si la respuesta es exitosa, actualizar la lista de eventos en el estado local
+                    if (data.success) {
+                        setEventsList(eventsList.filter(event => event.eventId !== eventId));
+                    }
+                } else {
+                    // Si no hay un mensaje en la respuesta, mostrar un mensaje genérico de error
+                    alert("Hubo un error al eliminar el evento.");
+                }
+            })
+            .catch(error => console.error(error));
+        }
+    };
+
+    function getFormattedDateAndTime(date) {
 
         const initialDate =
             Intl.DateTimeFormat(
@@ -120,7 +332,7 @@ export const ListCourseEvents = () => {
                     month: '2-digit',
                     year: '2-digit',
                 }
-            ).format(new Date(initialDateAndTime));
+            ).format(new Date(date));
         const initialTime = 
             Intl.DateTimeFormat(
                 'es-AR',
@@ -128,29 +340,27 @@ export const ListCourseEvents = () => {
                     hour: '2-digit',
                     minute: '2-digit',
                 }
-            ).format(new Date(initialDateAndTime));
-        const endDate =
-            Intl.DateTimeFormat(
-                'es-AR',
-                {
-                    weekday: 'short',
-                    day: '2-digit',
-                    month: '2-digit',
-                    year: '2-digit',
-                }
-            ).format(new Date(endDateAndTime));
-        const endTime = 
-            Intl.DateTimeFormat(
-                'es-AR',
-                {
-                    hour: '2-digit',
-                    minute: '2-digit',
-                }
-            ).format(new Date(endDateAndTime));
+            ).format(new Date(date));
+        // const endDate =
+        //     Intl.DateTimeFormat(
+        //         'es-AR',
+        //         {
+        //             weekday: 'short',
+        //             day: '2-digit',
+        //             month: '2-digit',
+        //             year: '2-digit',
+        //         }
+        //     ).format(new Date(endDateAndTime));
+        // const endTime = 
+        //     Intl.DateTimeFormat(
+        //         'es-AR',
+        //         {
+        //             hour: '2-digit',
+        //             minute: '2-digit',
+        //         }
+        //     ).format(new Date(endDateAndTime));
 
-        return initialDate.valueOf() === endDate.valueOf()
-            ? `${initialDate} de ${initialTime} a ${endTime}`
-            : `${initialDate} ${initialTime} - ${endDate} ${endTime}`;
+        return `${initialDate}, ${initialTime}`
     }
 
     /**
