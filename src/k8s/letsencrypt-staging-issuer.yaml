@@ -1,0 +1,38 @@
+# https://cert-manager.io/docs/reference/api-docs/#cert-manager.io/v1.ClusterIssuer
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+
+metadata:
+
+  # Nombre del recurso.
+  name: letsencrypt-staging
+  
+spec:
+  acme:
+
+    # Mail utilizado para la registración ACME. A dicha casilla serán enviadas
+    # las notificaciones relacionadas a los certificados.
+    email: facundolaffont@gmail.com
+
+    server: https://acme-staging-v02.api.letsencrypt.org/directory
+
+    privateKeySecretRef:
+
+      # El nombre que tendrá el secreto que almacenará la llave privada de la cuenta ACME.
+      name: staging-issuer-account-private-key
+      
+    solvers:
+
+    # Configuración de uno de los dos tipos de problema (dns01 y http01) que el cliente del
+    # servidor de certificación deberá resolver para probar que es dueño del dominio que se
+    # quiere certificar.
+    - dns01:
+
+        # Datos del recurso Secret, que debe estar previamente creado, que aloja las credenciales
+        # de la cuenta del servidor DNS de Cloudflare.
+        cloudflare:
+
+          # https://cert-manager.io/docs/reference/api-docs/#meta.cert-manager.io/v1.LocalObjectReference
+          apiTokenSecretRef:
+            name: cloudflare-api-token-secret
+            key: api-token

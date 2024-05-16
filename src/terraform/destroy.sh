@@ -29,7 +29,8 @@ else
     echo "Archivo creado."
     fi
 
-    LOADBALANCER_IP=$(kubectl get -o json service nginx-ingress --namespace=nginx-ingress | jq -r .status.loadBalancer.ingress\[0\].ip)
+    #LOADBALANCER_IP=$(kubectl get -o json service nginx-ingress --namespace=nginx-ingress | jq -r .status.loadBalancer.ingress\[0\].ip)
+    LOADBALANCER_IP=$(kubectl get -o json service nginx-ingress | jq -r .status.loadBalancer.ingress\[0\].ip)
 
     # Inicializa Terraform en carpeta de estado de la configuración del DNS.
     echo "Inicializando Terraform..."

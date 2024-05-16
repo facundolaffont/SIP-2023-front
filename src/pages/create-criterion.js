@@ -1,5 +1,7 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useHistory } from "react-router-dom";
 import { PageLayout } from "../components/page-layout";
+import { useSelectedCourse } from "../contexts/course/course-provider.js";
 
 export function CreateCriterion() {
   const [criterio, setCriterio] = useState("");
@@ -8,6 +10,15 @@ export function CreateCriterion() {
   const [infoMessage, setInfoMessage] = useState("");
   const [submitMessage, setSubmitMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
+  const course = useSelectedCourse();
+  const history = useHistory();
+
+  // Redirige a la página de selección de cursada, si todavía no se seleccionó una,
+  // o si se actualiza la página, ya que se pierde el contexto de la selección que
+  // se había hecho.
+  useEffect(() => {
+    if (course === null) history.push('/profile?course-missing');
+  }, []);
 
   const handleCriterioChange = (e) => {
     setCriterio(e.target.value);
@@ -57,7 +68,7 @@ export function CreateCriterion() {
       criteria: {id: criterio },
       value_to_regulate: vRegular,
       value_to_promote: vPromovido,
-      course: {id: 1}
+      course: {id: course.getId()}
     };
     
     fetch(`${process.env.REACT_APP_API_SERVER_URL}/api/v1/criterion-course/add`, {

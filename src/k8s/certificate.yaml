@@ -1,0 +1,31 @@
+# https://cert-manager.io/docs/reference/api-docs/#cert-manager.io/v1.Certificate
+apiVersion: cert-manager.io/v1
+kind: Certificate
+
+metadata:
+  name: spgda-fl-com-ar
+  
+spec:
+  secretName: spgda-fl-com-ar-tls
+
+  duration: 2160h # 90d
+  renewBefore: 360h # 15d
+  subject:
+    organizations:
+      - unlu
+  isCA: false
+  privateKey:
+    algorithm: RSA
+    encoding: PKCS1
+    size: 2048
+  usages:
+    - server auth
+    - client auth
+  dnsNames:
+    - 'fl.com.ar'
+    - '*.fl.com.ar'
+
+  # https://cert-manager.io/docs/reference/api-docs/#meta.cert-manager.io/v1.ObjectReference
+  issuerRef:
+    name: letsencrypt-staging
+    kind: ClusterIssuer
