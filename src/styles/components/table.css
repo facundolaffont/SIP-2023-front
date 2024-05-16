@@ -36,3 +36,7 @@ table td {
 .centered {
     text-align: center;
 }
+
+.right {
+    text-align: right;
+}
