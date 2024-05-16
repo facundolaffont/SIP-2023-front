@@ -6,6 +6,20 @@ import * as XLSX from 'xlsx';
 class SpreadsheetManipulator {
 
     /**
+     * Crea un archivo de hoja de cálculo con contenido, y lo descarga.
+     * 
+     * @param {String} worksheetName Nombre del archivo, incluyendo la extensión.
+     * @param {String} sheetName Nombre de la única pestaña.
+     * @param {Array<Array<String>>} sheetContent Contenido que tendrá la única pestaña.
+     */
+    create(worksheetName, sheetName, sheetContent) {
+        let workbook = XLSX.utils.book_new();
+        let worksheet = XLSX.utils.aoa_to_sheet(sheetContent);
+        XLSX.utils.book_append_sheet(workbook, worksheet, sheetName);
+        XLSX.writeFile(workbook, "Plantilla.xlsx");
+    }
+    
+    /**
      * Exporta una tabla a Excel.
      * 
      * @param {HTMLTableElement} table - La tabla HTML que será

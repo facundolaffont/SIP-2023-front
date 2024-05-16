@@ -541,6 +541,17 @@ export function EventsBulkRegistering() {
 
     };
 
+    const handleTemplateDownload = () => {
+        spreadsheetManipulator.create(
+            "Plantilla.xlsx",
+            "alta-eventos-cursada",
+            [
+                ["Código del tipo de evento", "Fecha y hora de inicio", "Fecha y hora de fin", "Obligatorio"],
+                [1, "18/08/2022 10:00", "18/08/2022 12:00", "x"],
+            ]
+        );
+    }
+
     return (
         <PageLayout>
             <h1 id="page-title" className="content__title">
@@ -581,7 +592,20 @@ export function EventsBulkRegistering() {
                     required
                     hidden
                 />
+                <div className="label_button download-button">
+                    <label htmlFor="download-button">
+                        Descargar plantilla
+                    </label>
+                </div>
+                <input
+                    type="button"
+                    id="download-button"
+                    onClick={handleTemplateDownload}
+                    required
+                    hidden
+                />
                 <p>{fileName}</p>
+
                 <p>Nombre de la pestaña en la planilla</p>
                 <select
                     id="sheet-names"

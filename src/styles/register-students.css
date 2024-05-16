@@ -11,6 +11,10 @@ input[type="date"] {
     display: inline-block;
 }
 
+.download-button {
+    margin-left: 1rem;
+}
+
 input[type="checkbox"] {
     margin-left: 2rem;
     margin-right: 0.7rem;

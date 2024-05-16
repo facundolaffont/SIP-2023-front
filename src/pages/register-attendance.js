@@ -681,6 +681,17 @@ export function AttendanceRegistering() {
 
     }
 
+    const handleTemplateDownload = () => {
+        spreadsheetManipulator.create(
+            "Plantilla.xlsx",
+            "registro-asistencias",
+            [
+                ["Legajo", "Asistencia"],
+                [166364, "x"]
+            ]
+        );
+    }
+
     return (
         <PageLayout>
             <h1 id="page-title" className="content__title">Registrar asistencias</h1>
@@ -712,7 +723,20 @@ export function AttendanceRegistering() {
                     required
                     hidden
                 />
+                <div className="label_button download-button">
+                    <label htmlFor="download-button">
+                        Descargar plantilla
+                    </label>
+                </div>
+                <input
+                    type="button"
+                    id="download-button"
+                    onClick={handleTemplateDownload}
+                    required
+                    hidden
+                />
                 <p>{fileName}</p>
+
                 <p>Nombre de la pestaña en la planilla</p>
                 <select
                     id="sheet-names"

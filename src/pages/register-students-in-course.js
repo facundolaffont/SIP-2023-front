@@ -562,6 +562,17 @@ export function CourseStudentRegistering() {
 
     };
 
+    const handleTemplateDownload = () => {
+        spreadsheetManipulator.create(
+            "Plantilla.xlsx",
+            "registrar-alumnos-en-cursada",
+            [
+                ["Legajo", "Correlativas", "Recursante"],
+                [192656, "x", "x"],
+            ]
+        );
+    }
+
     return (
         <PageLayout>
             <h1 id="page-title" className="content__title">
@@ -595,7 +606,20 @@ export function CourseStudentRegistering() {
                     required
                     hidden
                 />
+                <div className="label_button download-button">
+                    <label htmlFor="download-button">
+                        Descargar plantilla
+                    </label>
+                </div>
+                <input
+                    type="button"
+                    id="download-button"
+                    onClick={handleTemplateDownload}
+                    required
+                    hidden
+                />
                 <p>{fileName}</p>
+
                 <p>Nombre de la pestaña en la planilla</p>
                 <select
                     id="sheet-names"
