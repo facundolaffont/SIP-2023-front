@@ -24,14 +24,62 @@ class SpreadsheetManipulator {
      * 
      * @param {HTMLTableElement} table - La tabla HTML que será
      * exportada en un archivo Excel.
+     * @param {string} spreadsheetName - Nombre que tendrá el archivo exportado.
+     * @param {string} sheetName - Nombre que tendrá la hoja de cálculo.
+     * @param {Array.<number>} [columnsToConvertToString] - Índices de las columnas
+     * que se quieren convertir a cadena de caracteres (la primera columna tiene el
+     * índice 1).
+     * * @param {Array.<number>} [columnsToConvertToNumber] - Índices de las columnas
+     * que se quieren convertir a número (la primera columna tiene el índice 1).
      */
-    export(table) {
+    export(table, spreadsheetName, sheetName, columnsToConvertToString, columnsToConvertToNumber) {
 
-        // Crea el objeto de la planilla, a partir del objeto tabla HTML.
-        var workbook = XLSX.utils.table_to_book(table);
+        // // Crea el objeto de la planilla, a partir del objeto tabla HTML.
+        // let workbook = XLSX.utils.table_to_book(table);
+
+        // Convierte la tabla en una hoja de cálculo.
+        let worksheet = XLSX.utils.table_to_sheet(table, {raw: true});
+
+        // Si se indicaron, de forma explícita, columnas para ser convertidas a
+        // cadena de caracteres o a número, cambia los tipos de las columnas indicadas.
+        if(
+            typeof columnsToConvertToString !== "undefined"
+            || typeof columnsToConvertToNumber !== "undefined"
+        ) {
+
+            for (let cell in worksheet) {
+
+                const cellAddress = XLSX.utils.decode_cell(cell);
+
+                // Evalúa si se trata de una fila que no sea la primera (con el fin
+                // de evitar la conversión en el título de la tabla).
+                if (cellAddress.r > 0) {
+
+                    // Cambia el tipo de la celda a string, si así la columna está indicada
+                    // para ser cambiada a string.
+                    if (
+                        typeof columnsToConvertToString !== "undefined"
+                        && columnsToConvertToString.includes(cellAddress.c + 1)
+                    ) worksheet[cell].t = 's';
+
+                    // Cambia el tipo de la celda a número, si así la columna está indicada
+                    // para ser cambiada a número.
+                    if (
+                        typeof columnsToConvertToNumber !== "undefined"
+                        && columnsToConvertToNumber.includes(cellAddress.c + 1)
+                    ) worksheet[cell].t = 'n';
+
+                }
+
+            }
+        }
+
+        // Crea un libro de hojas de cálculo y agrega la hoja.
+        let workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, sheetName);
 
         // Genera y exporta el archivo.
-        XLSX.writeFile(workbook, "Report.xlsx");
+        XLSX.writeFile(workbook, `${spreadsheetName}.xlsx`);
 
     }
 

@@ -105,7 +105,9 @@ export const SearchEvent = () => {
      */
     const handleExport = () => {
         spreadsheetManipulator.export(
-            document.getElementById("table")
+            document.getElementById("table"),
+            "Detalle de evento",
+            "detalle-evento"
         );
     }
 

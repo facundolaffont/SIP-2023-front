@@ -156,7 +156,9 @@ export const ListAttendance = () => {
      */
     const handleExport = () => {
         spreadsheetManipulator.export(
-            document.getElementById("events-table")
+            document.getElementById("events-table"),
+            "Asistencia",
+            "asistencia"
         );
     }
 

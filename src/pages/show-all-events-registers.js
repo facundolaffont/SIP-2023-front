@@ -177,7 +177,9 @@ export const ShowAllEventsRegisters = () => {
      */
     const handleExport = () => {
         spreadsheetManipulator.export(
-            document.getElementById("table")
+            document.getElementById("table"),
+            "Detalle de todos los eventos",
+            "detalle-eventos-cursada"
         );
     }
 

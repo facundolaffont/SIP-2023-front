@@ -367,9 +367,14 @@ export const ListCourseEvents = () => {
      * Maneja el evento clic en el botón de exportar.
      */
     const handleExport = () => {
+
+        // Exporta el libro de hojas de cálculo.
         spreadsheetManipulator.export(
-            document.getElementById("events-table")
+            document.getElementById("events-table"),
+            "Eventos de cursada",
+            "eventos-cursada"
         );
+
     }
 
     return (

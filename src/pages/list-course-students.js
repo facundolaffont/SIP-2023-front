@@ -121,7 +121,9 @@ export const ListCourseStudents = () => {
      */
     const handleExport = () => {
         spreadsheetManipulator.export(
-            document.getElementById("students-table")
+            document.getElementById("students-table"),
+            "Estudiantes de la cursada",
+            "estudiantes-cursada"
         );
     }
 

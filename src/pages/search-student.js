@@ -56,7 +56,9 @@ export const SearchStudent = () => {
      */
     const handleExport = () => {
         spreadsheetManipulator.export(
-            document.getElementById("condition-table")
+            document.getElementById("condition-table"),
+            "Registros de alumno en cursada",
+            "registro-alumno-cursada"
         );
     }
 

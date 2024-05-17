@@ -110,7 +110,9 @@ export const ShowCriteriaSummary = () => {
      */
     const handleExport = () => {
         spreadsheetManipulator.export(
-            document.getElementById("criteria-table")
+            document.getElementById("criteria-table"),
+            "Resumen de criterios de evaluación",
+            "resumen-criterios"
         );
     }
 

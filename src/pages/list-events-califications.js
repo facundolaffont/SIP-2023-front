@@ -156,7 +156,9 @@ export const ListCalifications = () => {
      */
     const handleExport = () => {
         spreadsheetManipulator.export(
-            document.getElementById("events-table")
+            document.getElementById("events-table"),
+            "Calificaciones",
+            "calificaciones"
         );
     }
 

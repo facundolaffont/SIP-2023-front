@@ -392,9 +392,11 @@ export const ShowEventsSummary = () => {
     /**
      * Maneja el evento clic en el botón de exportar.
      */
-    const handleExport = tableId => {
+    const handleExport = (tableId, filename, sheetName) => {
         spreadsheetManipulator.export(
-            document.getElementById(tableId)
+            document.getElementById(tableId),
+            filename,
+            sheetName
         );
     }
 
@@ -583,7 +585,7 @@ export const ShowEventsSummary = () => {
                     <button
                         type="button"
                         className="export-button"
-                        onClick={() => handleExport("attendance-summary-table")}
+                        onClick={() => handleExport("attendance-summary-table", "Resumen de asistencias", "resumen-asistencias")}
                     >
                         Exportar a Excel
                     </button>
@@ -595,7 +597,7 @@ export const ShowEventsSummary = () => {
                     <button
                         type="button"
                         className="export-button"
-                        onClick={() => handleExport("approval-rate-summary-table")}
+                        onClick={() => handleExport("approval-rate-summary-table", "Resumen de calificaciones", "resumen-asistencias")}
                     >
                         Exportar a Excel
                     </button>
