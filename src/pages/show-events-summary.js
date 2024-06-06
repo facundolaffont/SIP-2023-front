@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useAuth0 } from "@auth0/auth0-react";
-import { VictoryPie } from "victory-pie";
+import { VictoryPie, VictoryLabel } from "victory";
 
 // Componentes internos.
 import { PageLayout } from "../components/page-layout.js";
@@ -27,9 +27,14 @@ export const ShowEventsSummary = () => {
     const [noteSummaryList, setNoteSummaryList] = useState([]);
     const [approvalRateSummaryList, setApprovalRateSummaryList] = useState([]);
 
-    const [piechartData, setPiechartData] = useState([]);
-    const [piechartColorScale, setPiechartColorScale] = useState([]);
-    const [evaluationData, setEvaluationData] = useState({});
+    const [attendancePiechartTitle, setAttendancePiechartTitle] = useState("");
+    const [attendancePiechartData, setAttendancePiechartData] = useState([]);
+    const [attendanceData, setAttendanceData] = useState({});
+    const [attendancePiechartColorScale, setAttendancePiechartColorScale] = useState([]);
+    const [approvalPiechartTitle, setApprovalPiechartTitle] = useState("");
+    const [approvalPiechartData, setApprovalPiechartData] = useState([]);
+    const [approvalData, setApprovalData] = useState({});
+    const [approvalPiechartColorScale, setApprovalPiechartColorScale] = useState([]);
 
     // Inicializa el objeto que manipula las planillas.
     useState(() => {
@@ -100,28 +105,6 @@ export const ShowEventsSummary = () => {
                     element.endDatetime = element.endDatetime.substring(0, 16);
                 });
 
-                // // Agrega los porcentajes sobre las cantidades.
-                // response.data.classEventsSummaryList.forEach(element => {
-                //     let total = 
-                //         element.attended
-                //         + element.notAttended
-                //         + element.missingRegisters;
-                //     if (element.attended !== 0) element.attended = element.attended + ` (${(element.attended / total * 100).toFixed(2)}%)`;
-                //     if (element.notAttended !== 0) element.notAttended = element.notAttended + ` (${(element.notAttended / total * 100).toFixed(2)}%)`;
-                //     if (element.missingRegisters !== 0) element.missingRegisters = element.missingRegisters + ` (${(element.missingRegisters / total * 100).toFixed(2)}%)`;
-                // });
-                // response.data.evaluationEventsByApprovalRateSummaryList.forEach(element => {
-                //     let total = 
-                //         element.approvedStudents
-                //         + element.disapprovedStudents
-                //         + element.nonAttendingStudents
-                //         + element.missingRegisters;
-                //     if (element.approvedStudents !== 0) element.approvedStudents = element.approvedStudents + ` (${(element.approvedStudents / total * 100).toFixed(2)}%)`;
-                //     if (element.disapprovedStudents !== 0) element.disapprovedStudents = element.disapprovedStudents + ` (${(element.disapprovedStudents / total * 100).toFixed(2)}%)`;
-                //     if (element.nonAttendingStudents !== 0) element.nonAttendingStudents = element.nonAttendingStudents + ` (${(element.nonAttendingStudents / total * 100).toFixed(2)}%)`;
-                //     if (element.missingRegisters !== 0) element.missingRegisters = element.missingRegisters + ` (${(element.missingRegisters / total * 100).toFixed(2)}%)`;
-                // });
-
                 setAttendanceSummaryList(response.data.classEventsSummaryList);
                 setNoteSummaryList(response.data.evaluationEventsByNoteSummaryList);
                 setApprovalRateSummaryList(response.data.evaluationEventsByApprovalRateSummaryList);
@@ -175,13 +158,13 @@ export const ShowEventsSummary = () => {
                         "missingRegisters:centered",
                         "missingRegistersPercentage:centered",
                     ],
-                    onMouseoverEventHandler: showClassPiechart,
-                    onMouseoverEventHandlerParameters: [
+                    onClickEventHandler: updateClassPiechart,
+                    onClickEventHandlerParameters: [
+                        "eventId", "eventType",
                         "attended", "attendedPercentage",
                         "notAttended", "notAttendedPercentage",
                         "missingRegisters", "missingRegistersPercentage"
                     ],
-                    onMouseoutEventHandler: hideClassPiechart,
                 },
                 "Resumen de asistencias."
             );
@@ -226,18 +209,14 @@ export const ShowEventsSummary = () => {
                         "missingRegisters:centered",
                         "missingRegistersPercentage:centered",
                     ],
-                    onMouseoverEventHandler: showEvaluationPiechart,
-                    onMouseoverEventHandlerParameters: [
-                        "approvedStudents",
-                        "approvedStudentsPercentage",
-                        "disapprovedStudents",
-                        "disapprovedStudentsPercentage",
-                        "nonAttendingStudents",
-                        "nonAttendingStudentsPercentage",
-                        "missingRegisters",
-                        "missingRegistersPercentage"
+                    onClickEventHandler: updateEvaluationPiechart,
+                    onClickEventHandlerParameters: [
+                        "eventId", "eventType",
+                        "approvedStudents", "approvedStudentsPercentage",
+                        "disapprovedStudents", "disapprovedStudentsPercentage",
+                        "nonAttendingStudents", "nonAttendingStudentsPercentage",
+                        "missingRegisters", "missingRegistersPercentage"
                     ],
-                    onMouseoutEventHandler: hideEvaluationPiechart,
                 },
                 "Resumen de evaluaciones."
             );
@@ -247,147 +226,101 @@ export const ShowEventsSummary = () => {
     }, [attendanceSummaryList, noteSummaryList, approvalRateSummaryList]);
 
     /**
-     * Actualiza el gráfico de torta.
+     * Actualiza el gráfico de torta de asistencias.
      */
     useEffect(() => {
-
-        console.log("evaluationPiechartChangeFlag");
         
         let elementsToGraph = [];
         let colorScale = [];
+        
         if(
-            evaluationData.evaluationEventApprovedQuantity !== 'undefined'
-            && evaluationData.evaluationEventApprovedQuantity > 0
+            attendanceData.classAttendingQuantity !== 'undefined'
+            && attendanceData.classAttendingQuantity > 0
         ) {
             elementsToGraph.push({
-                x: `Aprobados: ${evaluationData.evaluationEventApprovedQuantity} (${evaluationData.evaluationEventApprovedPercentage}%)`,
-                y: evaluationData.evaluationEventApprovedQuantity
-            });
-            colorScale.push("green");
-        }
-        if(
-            evaluationData.evaluationEventDisapprovedQuantity !== 'undefined'
-            && evaluationData.evaluationEventDisapprovedQuantity > 0
-        ) {
-            elementsToGraph.push({
-                x: `Desaprobados: ${evaluationData.evaluationEventDisapprovedQuantity} (${evaluationData.evaluationEventDisapprovedPercentage}%)`,
-                y: evaluationData.evaluationEventDisapprovedQuantity
-            });
-            colorScale.push("tomato");
-        }
-        if(
-            evaluationData.evaluationEventNonAttendingQuantity !== 'undefined'
-            && evaluationData.evaluationEventNonAttendingQuantity > 0
-        ) {
-            elementsToGraph.push({
-                x: `Ausentes: ${evaluationData.evaluationEventNonAttendingQuantity} (${evaluationData.evaluationEventNonAttendingPercentage}%)`,
-                y: evaluationData.evaluationEventNonAttendingQuantity
-            });
-            colorScale.push("navy");
-        }
-        if(
-            evaluationData.evaluationEventNoRegisterQuantity !== 'undefined'
-            && evaluationData.evaluationEventNoRegisterQuantity > 0
-        ) {
-            elementsToGraph.push({
-                x: `Sin registro: ${evaluationData.evaluationEventNoRegisterQuantity} (${evaluationData.evaluationEventNoRegisterPercentage}%)`,
-                y: evaluationData.evaluationEventNoRegisterQuantity
-            });
-            colorScale.push("gray");
-        }
-        if(
-            evaluationData.classAttendingQuantity !== 'undefined'
-            && evaluationData.classAttendingQuantity > 0
-        ) {
-            elementsToGraph.push({
-                x: `Presentes: ${evaluationData.classAttendingQuantity} (${evaluationData.classAttendingPercentage}%)`,
-                y: evaluationData.classAttendingQuantity
+                x: `Presentes: ${attendanceData.classAttendingQuantity} (${attendanceData.classAttendingPercentage}%)`,
+                y: attendanceData.classAttendingQuantity
             });
             colorScale.push("gold");
         }
         if(
-            evaluationData.classNonAttendingQuantity !== 'undefined'
-            && evaluationData.classNonAttendingQuantity > 0
+            attendanceData.classNonAttendingQuantity !== 'undefined'
+            && attendanceData.classNonAttendingQuantity > 0
         ) {
             elementsToGraph.push({
-                x: `Ausentes: ${evaluationData.classNonAttendingQuantity} (${evaluationData.classNonAttendingPercentage}%)`,
-                y: evaluationData.classNonAttendingQuantity
+                x: `Ausentes: ${attendanceData.classNonAttendingQuantity} (${attendanceData.classNonAttendingPercentage}%)`,
+                y: attendanceData.classNonAttendingQuantity
             });
-            colorScale.push("navy");
+            colorScale.push("orange");
         }
         if(
-            evaluationData.classNoRegisterQuantity !== 'undefined'
-            && evaluationData.classNoRegisterQuantity > 0
+            attendanceData.classNoRegisterQuantity !== 'undefined'
+            && attendanceData.classNoRegisterQuantity > 0
         ) {
             elementsToGraph.push({
-                x: `Sin registro: ${evaluationData.classNoRegisterQuantity} (${evaluationData.classNoRegisterPercentage}%)`,
-                y: evaluationData.classNoRegisterQuantity
+                x: `Sin registro: ${attendanceData.classNoRegisterQuantity} (${attendanceData.classNoRegisterPercentage}%)`,
+                y: attendanceData.classNoRegisterQuantity
             });
             colorScale.push("gray");
         }
 
-        setPiechartColorScale(colorScale);
-        setPiechartData(elementsToGraph);
+        setAttendancePiechartColorScale(colorScale);
+        setAttendancePiechartData(elementsToGraph);
 
-    }, [evaluationData]);
+    }, [attendanceData]);
 
     /**
-     * Agrega manejadores de evento para que los gráficos sigan al mouse.
+     * Actualiza el gráfico de torta de calificaciones.
      */
     useEffect(() => {
         
-        // Agrega el manejador para el gráfico de torta.
-        var piechart = document.getElementById("piechart");
-        document.addEventListener("mousemove", function(e) {
-            piechart.style.left = e.screenX + "px";
-            piechart.style.top = e.screenY + "px";
-        });
+        let elementsToGraph = [];
+        let colorScale = [];
+        if(
+            approvalData.evaluationEventApprovedQuantity !== 'undefined'
+            && approvalData.evaluationEventApprovedQuantity > 0
+        ) {
+            elementsToGraph.push({
+                x: `Aprobados: ${approvalData.evaluationEventApprovedQuantity} (${approvalData.evaluationEventApprovedPercentage}%)`,
+                y: approvalData.evaluationEventApprovedQuantity
+            });
+            colorScale.push("green");
+        }
+        if(
+            approvalData.evaluationEventDisapprovedQuantity !== 'undefined'
+            && approvalData.evaluationEventDisapprovedQuantity > 0
+        ) {
+            elementsToGraph.push({
+                x: `Desaprobados: ${approvalData.evaluationEventDisapprovedQuantity} (${approvalData.evaluationEventDisapprovedPercentage}%)`,
+                y: approvalData.evaluationEventDisapprovedQuantity
+            });
+            colorScale.push("tomato");
+        }
+        if(
+            approvalData.evaluationEventNonAttendingQuantity !== 'undefined'
+            && approvalData.evaluationEventNonAttendingQuantity > 0
+        ) {
+            elementsToGraph.push({
+                x: `Ausentes: ${approvalData.evaluationEventNonAttendingQuantity} (${approvalData.evaluationEventNonAttendingPercentage}%)`,
+                y: approvalData.evaluationEventNonAttendingQuantity
+            });
+            colorScale.push("orange");
+        }
+        if(
+            approvalData.evaluationEventNoRegisterQuantity !== 'undefined'
+            && approvalData.evaluationEventNoRegisterQuantity > 0
+        ) {
+            elementsToGraph.push({
+                x: `Sin registro: ${approvalData.evaluationEventNoRegisterQuantity} (${approvalData.evaluationEventNoRegisterPercentage}%)`,
+                y: approvalData.evaluationEventNoRegisterQuantity
+            });
+            colorScale.push("gray");
+        }
 
-    }, []);
+        setApprovalPiechartColorScale(colorScale);
+        setApprovalPiechartData(elementsToGraph);
 
-    function getFormattedDateAndTime(initialDateAndTime, endDateAndTime) {
-
-        const initialDate =
-            Intl.DateTimeFormat(
-                'es-AR',
-                {
-                    weekday: 'short',
-                    day: '2-digit',
-                    month: '2-digit',
-                    year: '2-digit',
-                }
-            ).format(new Date(initialDateAndTime));
-        const initialTime = 
-            Intl.DateTimeFormat(
-                'es-AR',
-                {
-                    hour: '2-digit',
-                    minute: '2-digit',
-                }
-            ).format(new Date(initialDateAndTime));
-        const endDate =
-            Intl.DateTimeFormat(
-                'es-AR',
-                {
-                    weekday: 'short',
-                    day: '2-digit',
-                    month: '2-digit',
-                    year: '2-digit',
-                }
-            ).format(new Date(endDateAndTime));
-        const endTime = 
-            Intl.DateTimeFormat(
-                'es-AR',
-                {
-                    hour: '2-digit',
-                    minute: '2-digit',
-                }
-            ).format(new Date(endDateAndTime));
-
-        return initialDate.valueOf() === endDate.valueOf()
-            ? `${initialDate} de ${initialTime} a ${endTime}`
-            : `${initialDate} ${initialTime} - ${endDate} ${endTime}`;
-    }
+    }, [approvalData]);
 
     /**
      * Maneja el evento clic en el botón de exportar.
@@ -408,7 +341,9 @@ export const ShowEventsSummary = () => {
      * @param {number} classNonAttendingData 
      * @param {number} classNoRegisterData
      */
-    const showClassPiechart = (
+    const updateClassPiechart = (
+        eventId,
+        eventType,
         classAttendingQuantity,
         classAttendingPercentage,
         classNonAttendingQuantity,
@@ -417,34 +352,7 @@ export const ShowEventsSummary = () => {
         classNoRegisterPercentage,
     ) => {
 
-        // let TempClassAttendingQuantity = 
-        //     classAttendingData != 0
-        //     ? parseInt(classAttendingData.match(/^\d+/g)[0], 10)
-        //     : 0;
-        // let TempClassAttendingPercentage = 
-        //     classAttendingData != 0
-        //     ? classAttendingData.match(/(.*)/g)[0]
-        //     : "(0%)";
-
-        // let TempClassNonAttendingQuantity =
-        //     classNonAttendingData != 0
-        //     ? parseInt(classNonAttendingData.match(/^\d+/g)[0], 10)
-        //     : 0;
-        // let TempClassNonAttendingPercentage = 
-        //     classNonAttendingData != 0
-        //     ? classNonAttendingData.match(/(.*)/g)[0]
-        //     : "(0%)";
-
-        // let TempClassNoRegisterQuantity =
-        //     classNoRegisterData != 0
-        //     ? parseInt(classNoRegisterData.match(/^\d+/g)[0], 10)
-        //     : 0;
-        // let TempClassNoRegisterPercentage = 
-        //     classNoRegisterData != 0
-        //     ? classNoRegisterData.match(/(.*)/g)[0]
-        //     : "(0%)";
-
-        let localEvaluationData = {
+        let attendanceData = {
             classAttendingQuantity,
             classAttendingPercentage,
 
@@ -455,20 +363,11 @@ export const ShowEventsSummary = () => {
             classNoRegisterPercentage,
         }
 
-        setEvaluationData(localEvaluationData);
+        setAttendancePiechartTitle(eventType + " (ID " + eventId + ")");
+        setAttendanceData(attendanceData);
 
-        const piechart = document.getElementById("piechart");
+        const piechart = document.getElementById("attendancePiechart");
         piechart.classList.remove("not-displayed");
-
-    }
-
-    /**
-     * Esconde el gráfico de torta de los eventos de clase.
-     */
-    const hideClassPiechart = () => {
-
-        const piechart = document.getElementById("piechart");
-        piechart.classList.add("not-displayed");
 
     }
 
@@ -481,7 +380,9 @@ export const ShowEventsSummary = () => {
      * @param {String} evaluationEventNonAttendingData
      * @param {String} evaluationEventNoRegisterData
      */
-    const showEvaluationPiechart = (
+    const updateEvaluationPiechart = (
+        eventId,
+        eventType,
         evaluationEventApprovedQuantity,
         evaluationEventApprovedPercentage,
         evaluationEventDisapprovedQuantity,
@@ -492,43 +393,7 @@ export const ShowEventsSummary = () => {
         evaluationEventNoRegisterPercentage
     ) => {
 
-        // let TempEvaluationEventApprovedQuantity = 
-        //     evaluationEventApprovedData != 0
-        //     ? parseInt(evaluationEventApprovedData.match(/^\d+/g)[0], 10)
-        //     : 0;
-        // let TempEvaluationEventApprovedPercentage = 
-        //     evaluationEventApprovedData != 0
-        //     ? evaluationEventApprovedData.match(/(.*)/g)[0]
-        //     : "(0%)";
-
-        // let TempEvaluationEventDisapprovedQuantity =
-        //     evaluationEventDisapprovedData != 0
-        //     ? parseInt(evaluationEventDisapprovedData.match(/^\d+/g)[0], 10)
-        //     : 0;
-        // let TempEvaluationEventDisapprovedPercentage = 
-        // evaluationEventDisapprovedData != 0
-        //     ? evaluationEventDisapprovedData.match(/(.*)/g)[0]
-        //     : "(0%)";
-
-        // let TempEvaluationEventNonAttendingQuantity =
-        //     evaluationEventNonAttendingData != 0
-        //     ? parseInt(evaluationEventNonAttendingData.match(/^\d+/g)[0], 10)
-        //     : 0;
-        // let TempEvaluationEventNonAttendingPercentage = 
-        //     evaluationEventNonAttendingData != 0
-        //     ? evaluationEventNonAttendingData.match(/(.*)/g)[0]
-        //     : "(0%)";
-
-        // let TempEvaluationEventNoRegisterQuantity =
-        //     evaluationEventNoRegisterData != 0
-        //     ? parseInt(evaluationEventNoRegisterData.match(/^\d+/g)[0], 10)
-        //     : 0;
-        // let TempEvaluationEventNoRegisterPercentage = 
-        //     evaluationEventNoRegisterData != 0
-        //     ? evaluationEventNoRegisterData.match(/(.*)/g)[0]
-        //     : "(0%)";
-
-        let localEvaluationData = {
+        let approvalData = {
             evaluationEventApprovedQuantity,
             evaluationEventApprovedPercentage,
 
@@ -542,20 +407,11 @@ export const ShowEventsSummary = () => {
             evaluationEventNoRegisterPercentage,
         };
 
-        setEvaluationData(localEvaluationData);
+        setApprovalPiechartTitle(eventType + " (ID " + eventId + ")");
+        setApprovalData(approvalData);
 
-        const piechart = document.getElementById("piechart");
+        const piechart = document.getElementById("approvalPiechart");
         piechart.classList.remove("not-displayed");
-
-    }
-
-    /**
-     * Esconde el gráfico de torta de los eventos de evaluación.
-     */
-    const hideEvaluationPiechart = () => {
-
-        const piechart = document.getElementById("piechart");
-        piechart.classList.add("not-displayed");
 
     }
 
@@ -572,13 +428,6 @@ export const ShowEventsSummary = () => {
                     course === null && 'Sin cursada seleccionada'
                 }
             </h2>
-            <div id="piechart" className="piechart-container black-border white-background center-fixed not-displayed">
-                <VictoryPie
-                    data={piechartData}
-                    colorScale={piechartColorScale}
-                    radius={120}
-                />
-            </div>
             {attendanceSummaryList && (
                 <div id="hola" className="attendance-summary-table-container table-container not-displayed">
                     <table id="attendance-summary-table" className="attendance-summary-table"></table>
@@ -591,6 +440,18 @@ export const ShowEventsSummary = () => {
                     </button>
                 </div>
             )}
+            <div id="attendancePiechart" className="piechart-container white-background not-displayed">
+                <label className="piechart-title">{attendancePiechartTitle}</label>
+                <VictoryPie
+                    data={attendancePiechartData}
+                    colorScale={attendancePiechartColorScale}
+                    radius={120}
+                    style={{ labels: {
+                        fontSize: 25,
+                        fontWeight: "bold"
+                    }}}
+                />
+            </div>
             {approvalRateSummaryList && (
                 <div className="approval-rate-summary-table-container table-container not-displayed">
                     <table id="approval-rate-summary-table" className="approval-rate-summary-table"></table>
@@ -603,6 +464,18 @@ export const ShowEventsSummary = () => {
                     </button>
                 </div>
             )}
+            <div id="approvalPiechart" className="piechart-container white-background not-displayed">
+                <label className="piechart-title">{approvalPiechartTitle}</label>
+                <VictoryPie
+                    data={approvalPiechartData}
+                    colorScale={approvalPiechartColorScale}
+                    radius={120}
+                    style={{ labels: {
+                        fontSize: 25,
+                        fontWeight: "bold"
+                    }}}
+                />
+            </div>
         </PageLayout>
     );
 };
