@@ -537,7 +537,7 @@ export function StudentRegistering() {
 
     const handleTemplateDownload = () => {
         spreadsheetManipulator.create(
-            "Plantilla.xlsx",
+            "Plantilla de alta de estudiantes",
             "alta-alumnos",
             [
                 ["Legajo", "DNI", "Nombre", "Apellido", "Mail", "Correlativas", "Recursante"],

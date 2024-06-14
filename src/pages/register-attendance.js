@@ -683,7 +683,7 @@ export function AttendanceRegistering() {
 
     const handleTemplateDownload = () => {
         spreadsheetManipulator.create(
-            "Plantilla.xlsx",
+            "Plantilla de carga de asistencia",
             "registro-asistencias",
             [
                 ["Legajo", "Asistencia"],

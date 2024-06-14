@@ -564,7 +564,7 @@ export function CourseStudentRegistering() {
 
     const handleTemplateDownload = () => {
         spreadsheetManipulator.create(
-            "Plantilla.xlsx",
+            "Plantilla de vinculación de estudiantes",
             "registrar-alumnos-en-cursada",
             [
                 ["Legajo", "Correlativas", "Recursante"],

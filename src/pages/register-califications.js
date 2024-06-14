@@ -661,7 +661,7 @@ export function CalificationRegistering() {
 
     const handleTemplateDownload = () => {
         spreadsheetManipulator.create(
-            "Plantilla.xlsx",
+            "Plantilla de carga de calificaciones",
             "registro-calificaciones",
             [
                 ["Legajo", "Calificación"],

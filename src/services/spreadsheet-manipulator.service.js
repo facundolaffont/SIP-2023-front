@@ -8,15 +8,32 @@ class SpreadsheetManipulator {
     /**
      * Crea un archivo de hoja de cálculo con contenido, y lo descarga.
      * 
-     * @param {String} worksheetName Nombre del archivo, incluyendo la extensión.
-     * @param {String} sheetName Nombre de la única pestaña.
-     * @param {Array<Array<String>>} sheetContent Contenido que tendrá la única pestaña.
+     * @param {string} filename Nombre que tendrá el archivo creado (sin la extensión).
+     * @param {string} sheetName Nombre de la única pestaña.
+     * @param {Array<Array<string>>} sheetContent Contenido que tendrá la única pestaña.
+     * @param {Array<Array<string>>} [sheetComments] Comentarios para agregar en la pestaña,
+     * donde el primer elemento de cada arreglo será la notación A1 de la celda en la que se
+     * agregará el comentario, y el segundo elemento será el comentario.
      */
-    create(worksheetName, sheetName, sheetContent) {
+    create(filename, sheetName, sheetContent, sheetComments) {
+
+        // Crea la planilla.
         let workbook = XLSX.utils.book_new();
+
+        // Crea la hoja de cálculo.
         let worksheet = XLSX.utils.aoa_to_sheet(sheetContent);
+
+        // Agrega los comentarios, si estuviesen definidos.
+        sheetComments.forEach(commentInfo => {
+            this.#addComment(worksheet, commentInfo[0], commentInfo[1]);
+        });
+
+        // Agrega la hoja de cálculo a la planilla.
         XLSX.utils.book_append_sheet(workbook, worksheet, sheetName);
-        XLSX.writeFile(workbook, "Plantilla.xlsx");
+
+        // Descarga la planilla.
+        XLSX.writeFile(workbook, `${filename}.xlsx`);
+
     }
     
     /**
@@ -24,7 +41,7 @@ class SpreadsheetManipulator {
      * 
      * @param {HTMLTableElement} table - La tabla HTML que será
      * exportada en un archivo Excel.
-     * @param {string} spreadsheetName - Nombre que tendrá el archivo exportado.
+     * @param {string} filename - Nombre que tendrá el archivo exportado.
      * @param {string} sheetName - Nombre que tendrá la hoja de cálculo.
      * @param {Array.<number>} [columnsToConvertToString] - Índices de las columnas
      * que se quieren convertir a cadena de caracteres (la primera columna tiene el
@@ -32,7 +49,7 @@ class SpreadsheetManipulator {
      * * @param {Array.<number>} [columnsToConvertToNumber] - Índices de las columnas
      * que se quieren convertir a número (la primera columna tiene el índice 1).
      */
-    export(table, spreadsheetName, sheetName, columnsToConvertToString, columnsToConvertToNumber) {
+    export(table, filename, sheetName, columnsToConvertToString, columnsToConvertToNumber) {
 
         // // Crea el objeto de la planilla, a partir del objeto tabla HTML.
         // let workbook = XLSX.utils.table_to_book(table);
@@ -79,7 +96,7 @@ class SpreadsheetManipulator {
         XLSX.utils.book_append_sheet(workbook, worksheet, sheetName);
 
         // Genera y exporta el archivo.
-        XLSX.writeFile(workbook, `${spreadsheetName}.xlsx`);
+        XLSX.writeFile(workbook, `${filename}.xlsx`);
 
     }
 
@@ -360,6 +377,29 @@ class SpreadsheetManipulator {
      * @type {lastReadRangeType}
      */
     #lastReadRange;
+
+    /**
+     * Agrega un comentario a una celda de una hoja de cálculo, si la celda existe.
+     * 
+     * @param {XLSX.WorkSheet} worksheet La hoja de cálculo en la que se agregará el comentario.
+     * @param {string} cell La celda, en notación A1, en la que se agregará el comentario.
+     * @param {string} comment El comentario a agregar.
+     */
+    #addComment(worksheet, cell, comment) {
+
+        // Condición que se cumple cuando la celda existe en la planilla.
+        if (worksheet[cell]) {
+
+            // Inicializa el arreglo de comentarios, si no existe.
+            if (!worksheet[cell].c) worksheet[cell].c = [];
+
+            // Agrega el comentario.
+            worksheet[cell].c.push({ t: comment });
+
+        }
+
+    }
+
 }
 
 export default SpreadsheetManipulator;

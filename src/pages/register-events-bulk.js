@@ -16,37 +16,80 @@ import CourseDTO from "../contexts/course/course-d-t-o.js";
 import "../styles/components/table.css";
 import "../styles/register-events-bulk.css";
 
-// Imágenes
-import icono from "../img/icono-informativo.jpg"
-
 export function EventsBulkRegistering() {
+
+    const [spreadsheetManipulator, setSpreadsheetManipulator] = useState(null);
+
+    const [eventTypeList, setEventTypeList] = useState([]);
 
     const [fileName, setFileName] = useState("");
     const [fileHandle, setFileHandle] = useState(null);
+
     const [sheetNameValue, setSheetNameValue] = useState("");
     const [cellRangeName, setCellRangeName] = useState("");
-    const [spreadsheetManipulator, setSpreadsheetManipulator] = useState(null);
+
     const [okList, setOkList] = useState([]);
     const [notOkList, setNotOkList] = useState([]);
+
     const [invalidRegistersList, setInvalidRegistersList] = useState([]);
+
     const [tableManualUpdateTrigger, setTableManualUpdateTrigger] = useState(true);
+
     const [error, setError] = useState(null);
+
     const { getAccessTokenSilently } = useAuth0();
     const [, changeCourse] = useSelectedCourse(true);
     /** @type {CourseDTO} */ const course = useSelectedCourse(false);
 
     const history = useHistory();
 
-    // Redirige a la página de selección de cursada, si todavía no se seleccionó una,
+    // Redirige a la página de selección de cursada si todavía no se seleccionó una,
     // o si se actualiza la página, ya que se pierde el contexto de la selección que
     // se había hecho.
     useEffect(() => {
 
+        // Si la variable de contexto, que contiene el código de cursada, está vacía,
+        // redirige al usuario a la página de selección de comisión.
         if (course === null) history.push('/profile?course-missing');
+
+        else {
+
+            // Crea la función que obtiene la lista de tipos de código y sus nombres.
+            const getEventTypeList = async () => {
+
+                // Obtiene el token Auth0.
+                const auth0Token = await getAccessTokenSilently()
+                .then(response => response)
+                .catch(error => {
+                    throw error;
+                });
+
+                // Realiza la solicitud al endpoint para crear los eventos.
+                const response = await axios.get(
+                    `${process.env.REACT_APP_API_SERVER_URL}/api/v1/events/get-event-types`,
+                    {
+                        headers: {
+                            Authorization: `Bearer ${auth0Token}`,
+                        },
+                    }
+                )
+                .then(response => response)
+                .catch(error => error.response);
+
+                // Si la petición al back no finalizó correctamente, se establece el mensaje de error
+                // que se le mostrará al usuario; si no, se guardan los códigos de tipo de evento.
+                if (response.status !== 200)
+                    setError("Hubo un error. Por favor, contactarse con Soporte Técnico.");
+                else { setEventTypeList(response.data.eventTypesList); }
+
+            }
+            getEventTypeList();
+
+        }
 
     }, []);
 
-    // Actualiza las tablas.
+    // Actualiza las tablas cuando hay un cambio en los correspondientes datos.
     useEffect(() => {
 
         // Actualiza la tabla de registros con formato incorrecto.
@@ -71,26 +114,7 @@ export function EventsBulkRegistering() {
             notValidFormatTable.classList.remove("not-displayed");
         } else notValidFormatTable.classList.add("not-displayed");
 
-        /* // Actualiza la tabla de estudiantes que no están aptos para ser registrados.
-        let notOkTable = document.getElementsByClassName(
-            "not-ok-table"
-        )[0];
-        if (notOkList.length !== 0) {
-            HTMLTableManipulator.insertDataIntoTable(
-                notOkTable,
-                {
-                    columnNames: [
-                        "dossier:Legajo",
-                        "errorDescription:Descripción del error",
-                    ],
-                    tableRows: notOkList,
-                },
-                `Eventos que no se pueden registrar (${notOkList.length})`
-            );
-            notOkTable.classList.remove("not-displayed");
-        } else notOkTable.classList.add("not-displayed"); */
-
-        // Actualiza la tabla de estudiantes que están aptos para ser registrados.
+        // Actualiza la tabla de registros correctos.
         let okTable = document.getElementsByClassName(
             "ok-table"
         )[0];
@@ -120,7 +144,8 @@ export function EventsBulkRegistering() {
 
     }, [okList, notOkList, invalidRegistersList, tableManualUpdateTrigger]);
 
-    // Actualiza el mensaje de error que se mostrará al usuario.
+    // Actualiza el mensaje de error que se mostrará al usuario cuando hay un nuevo
+    // mensaje.
     useEffect(() => {
 
         // Obtiene el contenedor principal del mensaje de error.
@@ -351,27 +376,6 @@ export function EventsBulkRegistering() {
                         )
                     );
 
-                    /* setNotOkList(
-                        checkedInfo.data.nok.map(
-                            dossierInfo => {
-                                let errorDescription;
-                                switch (dossierInfo.errorCode) {
-                                    case 1:
-                                        errorDescription = "El legajo no está registrado en el sistema.";
-                                        break;
-                                    case 2:
-                                        errorDescription =
-                                            "El estudiante ya está registrado en la cursada.";
-                                        break;
-                                }
-                                return {
-                                    dossier: dossierInfo.dossier,
-                                    errorDescription: errorDescription,
-                                };
-                            }
-                        )
-                    ); */
-
                 }
 
             }
@@ -522,18 +526,6 @@ export function EventsBulkRegistering() {
                 matchedEvent.state = "Creado";
             });
 
-            /* // Actualiza la información de los estudiantes que no se registraron correctamente.
-            response.data.nok.forEach(notRegisteredStudentInfo => {
-                let notRegisteredStudent = okList
-                    .find(student => student.dossier === notRegisteredStudentInfo.dossier);
-                switch(notRegisteredStudentInfo.errorCode) {
-                    case 1: notRegisteredStudent.state = "No registrado: el legajo no existe en sistema.";
-                        break;
-                    case 2: notRegisteredStudent.state = "No registrado: el legajo ya estaba registrado.";
-                        break;
-                };
-            }); */
-
             // Actualiza la información de la tabla.
             setTableManualUpdateTrigger(!tableManualUpdateTrigger);
 
@@ -542,14 +534,30 @@ export function EventsBulkRegistering() {
     };
 
     const handleTemplateDownload = () => {
+
+        // Define el comentario que tendrá la hoja de cálculo.
+        let comment = "";
+        eventTypeList.forEach(eventType => {
+            comment += `${eventType.eventTypeId} (${eventType.eventTypeName})\n`
+        });
+        let sheetComments = [
+            ["A1", comment]
+        ];
+
+        // Define el contenido de la plantilla.
+        let sheetContent = [
+            ["Código del tipo de evento", "Fecha y hora de inicio", "Fecha y hora de fin", "Obligatorio"],
+            [1, "18/08/2022 10:00", "18/08/2022 12:00", "x"],
+        ];
+
+        // Crea y descarga la plantilla.
         spreadsheetManipulator.create(
-            "Plantilla.xlsx",
+            "Plantilla de carga de eventos",
             "alta-eventos-cursada",
-            [
-                ["Código del tipo de evento", "Fecha y hora de inicio", "Fecha y hora de fin", "Obligatorio"],
-                [1, "18/08/2022 10:00", "18/08/2022 12:00", "x"],
-            ]
+            sheetContent,
+            sheetComments
         );
+
     }
 
     return (
@@ -577,13 +585,6 @@ export function EventsBulkRegistering() {
                         Cargar archivo
                     </label>
                 </div>
-                {/*<img
-                    src={icono}
-                    width="35"
-                    height="35"
-                    title="Campos: Código de tipo de evento (entero mayor a cero); Fecha y hora inicial (DD/MM/AAAA HH:MM); Fecha y hora final (DD/MM/AAAA HH:MM); Obligatorio (marcar con 'x' cuando el evento es obligatorio)."
-                    className="help_icon"
-                />*/}
                 <input
                     type="file"
                     id="file"
@@ -614,13 +615,6 @@ export function EventsBulkRegistering() {
                 >
                 </select>
                 <p>Rango de celdas a cargar</p>
-                {/*<img
-                    src={icono}
-                    width="30"
-                    height="30"
-                    title="Ejemplo: A2:D9."
-                    className="help_icon"
-                />*/}
                 <input
                     type="text"
                     id="cell-range"
