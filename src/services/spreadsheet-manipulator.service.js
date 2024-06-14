@@ -24,9 +24,11 @@ class SpreadsheetManipulator {
         let worksheet = XLSX.utils.aoa_to_sheet(sheetContent);
 
         // Agrega los comentarios, si estuviesen definidos.
-        sheetComments.forEach(commentInfo => {
-            this.#addComment(worksheet, commentInfo[0], commentInfo[1]);
-        });
+        if (typeof sheetComments !== "undefined") {
+            sheetComments.forEach(commentInfo => {
+                this.#addComment(worksheet, commentInfo[0], commentInfo[1]);
+            });
+        }
 
         // Agrega la hoja de cálculo a la planilla.
         XLSX.utils.book_append_sheet(workbook, worksheet, sheetName);

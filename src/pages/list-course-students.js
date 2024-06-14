@@ -56,6 +56,7 @@ export const ListCourseStudents = () => {
                         "email:Email",
                         "alreadyStudied:Recursante",
                         "allPreviousSubjectsApproved:Correlativas",
+                        "finalCondition:Condición final",
                     ],
                 },
             );
@@ -101,6 +102,7 @@ export const ListCourseStudents = () => {
                             student.allPreviousSubjectsApproved == true
                             ? 'P'
                             : false,
+                        finalCondition: student.finalCondition,
                     }
                 }));
 
