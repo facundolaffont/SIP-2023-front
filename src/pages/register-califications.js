@@ -246,7 +246,6 @@ export function CalificationRegistering() {
                         "dossier:Legajo",
                         "id:DNI",
                         "name:Nombre",
-                        "surname:Apellido",
                         "calification:Calificación",
                     ],
                     columnClasses: [
@@ -525,7 +524,6 @@ export function CalificationRegistering() {
                             studentInfo.dossier = student.dossier;
                             studentInfo.id = student.id;
                             studentInfo.name = student.name;
-                            studentInfo.surname = student.surname;
                             studentInfo.calification = String(studentLoadedData.calification).replace(',', '.');
                             studentInfo._row = studentLoadedData._row;
 

@@ -116,7 +116,6 @@ export function CourseStudentRegistering() {
                         "dossier:Legajo",
                         "id:DNI",
                         "name:Nombre",
-                        "surname:Apellido",
                         "previousSubjectsApproved:Correlativas",
                         "studiedPreviously:Es recursante",
                     ],
@@ -218,7 +217,6 @@ export function CourseStudentRegistering() {
              *    - dossier: # <numérico> - Legajo
              *      id: # <numérico> - DNI
              *      name: # <texto>
-             *      surname: # <texto>
              *    # ...
              *    nok:
              *    - # <numérico> - Legajo

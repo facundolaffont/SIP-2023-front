@@ -64,13 +64,20 @@ export const HomePageProfessor = () => {
                 // Agrega un atributo de datos para almacenar el índice del elemento gráfico que representa una cursada (https://www.w3schools.com/TAGS/att_data-.asp).
                 cuadroCursada.setAttribute('data-index', index);
 
-                // Muestra los detalles de la cursada dentro del cuadro.
-                const nombreCursada = document.createElement('h3');
-                const detallesCursada = document.createElement('p');
-                nombreCursada.textContent = `Asignatura: ` + cursada.nombreAsignatura;
-                detallesCursada.textContent = `Año de la cursada: ${cursada.anio} - Número de comisión: ${cursada.numeroComision}`;
-                cuadroCursada.appendChild(nombreCursada);
-                cuadroCursada.appendChild(detallesCursada);
+                /* Muestra los detalles de la cursada dentro del cuadro. */
+                    const nombreCarrera = document.createElement('h2');
+                    const nombreCursada = document.createElement('h3');
+                    const detallesCursada = document.createElement('p');
+
+                    nombreCarrera.textContent = `${cursada.nombreCarrera}`;
+                    nombreCursada.textContent = `Asignatura: ${cursada.nombreAsignatura} (${cursada.codigoAsignatura})`;
+                    detallesCursada.textContent = `Año de la cursada: ${cursada.anio} - Número de comisión: ${cursada.numeroComision}`;
+
+                    cuadroCursada.appendChild(nombreCarrera);
+                    cuadroCursada.appendChild(nombreCursada);
+                    cuadroCursada.appendChild(detallesCursada);
+
+                /**/
 
                 // Agrega un evento de clic al cuadro de la cursada.
                 cuadroCursada.addEventListener('click', () => {
@@ -95,7 +102,7 @@ export const HomePageProfessor = () => {
             <h1 className="content__title">Comisiones asociadas</h1>
             <h2 className="selected-course-info">
                 {
-                    course !== null && `Cursada seleccionada: (${course.getSubjectCode()}) ${course.getSubject()}, comisión ${course.getCommission()}, año ${course.getYear()}`
+                    course !== null && `Cursada seleccionada: ${course.getCareer()}, ${course.getSubject()} (${course.getSubjectCode()}), año ${course.getYear()}, comisión ${course.getCommission()}`
                 }
                 {
                     course === null && 'Sin cursada seleccionada'

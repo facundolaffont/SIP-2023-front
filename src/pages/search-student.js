@@ -80,7 +80,6 @@ export const SearchStudent = () => {
                 <div className="alumno-info-container">
                     <h2>Información del Alumno</h2>
                     <p><span className="data-label">Nombre:</span> <span className="data-value">{dataAlumno.nombre}</span></p>
-                    <p><span className="data-label">Apellido:</span> <span className="data-value">{dataAlumno.apellido}</span></p>
                     <p><span className="data-label">Email:</span> <span className="data-value">{dataAlumno.email}</span></p>
                     <p><span className="data-label">DNI:</span> <span className="data-value">{dataAlumno.dni}</span></p>
                     <p><span className="data-label">Correlativas Aprobadas?</span> <span className={`data-value ${dataCursada.previousSubjectsApproved ? 'yes' : 'no'}`}>{dataCursada.previousSubjectsApproved ? 'Sí' : 'No'}</span></p>

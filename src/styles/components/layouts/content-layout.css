@@ -179,6 +179,12 @@ label[for="password"]::before {
     background-color: #8fca8a;
 }
 
+.cuadro-cursada h2 {
+  font-size: 25px;
+  margin-bottom: -5px;
+  color: black;
+}
+
 .cuadro-cursada h3 {
     font-size: 18px;
     margin-bottom: 11px;

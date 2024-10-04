@@ -103,6 +103,7 @@ export function EventsBulkRegistering() {
                 {
                     columnNames: [
                         "eventTypeId:Tipo de evento",
+                        "eventName:Nombre del evento",
                         "initialDatetime:Fecha y hora de inicio",
                         "endDatetime:Fecha y hora de fin",
                         "formatInfo:Error de formato",
@@ -127,6 +128,7 @@ export function EventsBulkRegistering() {
                 {
                     columnNames: [
                         "state:Estado",
+                        "eventName:Nombre de evento",
                         "eventDescription:Tipo de evento",
                         "initialDatetime:Fecha y hora inicial",
                         "endDatetime:Fecha y hora final",
@@ -216,6 +218,7 @@ export function EventsBulkRegistering() {
             // Lee un rango de celdas.
             spreadsheetManipulator.loadRange(sheetNameValue, cellRangeName, [
                 "eventTypeId",
+                "eventName",
                 "initialDatetime",
                 "endDatetime",
                 "obligatory",
@@ -294,6 +297,7 @@ export function EventsBulkRegistering() {
                     return {
                         eventTempId: element._row,
                         eventTypeId: element.eventTypeId,
+                        eventTypeName: element.eventName.trim(),
                         initialDatetime: 
                             element.initialDatetime.substring(6, 10) +
                             "-" +
@@ -363,6 +367,7 @@ export function EventsBulkRegistering() {
 
                                 // Une la información traída del back con la que se cargó del Excel.
                                 eventInfo.eventTypeId = eventLoadedData.eventTypeId;
+                                eventInfo.eventName = eventLoadedData.eventName.trim();
                                 eventInfo.initialDatetime = eventLoadedData.initialDatetime;
                                 eventInfo.endDatetime = eventLoadedData.endDatetime;
                                 eventInfo.obligatory = eventLoadedData.obligatory;
@@ -462,6 +467,7 @@ export function EventsBulkRegistering() {
                 return {
                     eventTempId: eventCreationInfo.eventTempId,
                     eventTypeId: eventCreationInfo.eventTypeId,
+                    eventName: eventCreationInfo.eventName,
                     initialDatetime: 
                             eventCreationInfo.initialDatetime.substring(6, 10) +
                             "-" +
@@ -546,8 +552,8 @@ export function EventsBulkRegistering() {
 
         // Define el contenido de la plantilla.
         let sheetContent = [
-            ["Código del tipo de evento", "Fecha y hora de inicio", "Fecha y hora de fin", "Obligatorio"],
-            [1, "18/08/2022 10:00", "18/08/2022 12:00", "x"],
+            ["Código del tipo de evento", "Nombre del evento [opcional]", "Fecha y hora de inicio", "Fecha y hora de fin", "Obligatorio"],
+            [1, "Introducción", "18/08/2022 10:00", "18/08/2022 12:00", "x"],
         ];
 
         // Crea y descarga la plantilla.

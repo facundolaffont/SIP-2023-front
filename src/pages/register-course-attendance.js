@@ -136,7 +136,6 @@ export function CourseAttendanceRegistering() {
                         "dossier:Legajo",
                         "id:DNI",
                         "name:Nombre",
-                        "surname:Apellido",
                         "attendance:Asistencia",
                     ],
                     columnClasses: [

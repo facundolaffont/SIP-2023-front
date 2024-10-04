@@ -52,7 +52,6 @@ export const ListCourseStudents = () => {
                         "dossier:legajo",
                         "id:DNI",
                         "name:Nombre",
-                        "surname:Apellido",
                         "email:Email",
                         "alreadyStudied:Recursante",
                         "allPreviousSubjectsApproved:Correlativas",
@@ -95,7 +94,6 @@ export const ListCourseStudents = () => {
                         dossier: student.dossier,
                         id: student.id,
                         name: student.name,
-                        surname: student.surname,
                         email: student.email,
                         alreadyStudied: student.alreadyStudied,
                         allPreviousSubjectsApproved:
