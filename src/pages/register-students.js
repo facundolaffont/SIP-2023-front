@@ -109,7 +109,6 @@ export function StudentRegistering() {
                         "dossier:Legajo",
                         "id:DNI",
                         "name:Nombre",
-                        "surname:Apellido",
                         "email:Email",
                         "allPreviousSubjectsApproved:Correlativas",
                         "alreadyStudied:Recursante",
@@ -222,7 +221,6 @@ export function StudentRegistering() {
                 "dossier",
                 "id",
                 "name",
-                "surname",
                 "email",
                 "allPreviousSubjectsApproved",
                 "alreadyStudied",
@@ -262,13 +260,6 @@ export function StudentRegistering() {
                     row.formatInfo = "El nombre no es alfabético.";
                     invalidFormat = true;
                 } else if (
-                    typeof row.surname !== 'string'
-                    ||
-                    !properNameRegEx.exec(row.surname)
-                ) {
-                    row.formatInfo = "El apellido no es alfabético.";
-                    invalidFormat = true;
-                } else if (
                     typeof row.email !== 'string'
                     ||
                     !emailRegEx.exec(row.email.trim())
@@ -279,6 +270,8 @@ export function StudentRegistering() {
                     row.allPreviousSubjectsApproved.trim() === ''
                     ||
                     row.allPreviousSubjectsApproved.trim().toLowerCase() === 'x'
+                    ||
+                    row.allPreviousSubjectsApproved.trim().toLowerCase() === 'p'
                 )) {
                     row.formatInfo = "El campo de correlativas debe estar vacío o debe contener el valor 'x'.";
                     invalidFormat = true;
@@ -353,11 +346,11 @@ export function StudentRegistering() {
                             studentInfo._row = studentLoadedData._row;
                             studentInfo.id = studentLoadedData.id;
                             studentInfo.name = studentLoadedData.name.trim();
-                            studentInfo.surname = studentLoadedData.surname.trim();
                             studentInfo.email = studentLoadedData.email.trim();
                             studentInfo.alreadyStudied = studentLoadedData.alreadyStudied.trim().toLowerCase();
                             studentInfo.allPreviousSubjectsApproved =
                                 studentLoadedData.allPreviousSubjectsApproved.trim().toLowerCase() == 'x'
+                                || studentLoadedData.allPreviousSubjectsApproved.trim().toLowerCase() == 'p'
                                 ? 'P'
                                 : false;
 
@@ -460,7 +453,6 @@ export function StudentRegistering() {
                     dossier: studentRegistrationInfo.dossier,
                     id: studentRegistrationInfo.id,
                     name: studentRegistrationInfo.name,
-                    surname: studentRegistrationInfo.surname,
                     email: studentRegistrationInfo.email,
                     alreadyStudied:
                         studentRegistrationInfo.alreadyStudied == 'x'
@@ -540,8 +532,8 @@ export function StudentRegistering() {
             "Plantilla de alta de estudiantes",
             "alta-alumnos",
             [
-                ["Legajo", "DNI", "Nombre", "Apellido", "Mail", "Correlativas", "Recursante"],
-                [192656, 24977506, "WALTER JAVIER", "ALAMO", "walterjalamo@hotmail.com", "x", "x"],
+                ["Legajo", "DNI", "Nombre", "Mail", "Correlativas", "Recursante"],
+                [192656, 24977506, "WALTER JAVIER ALAMO", "walterjalamo@hotmail.com", "x", "x"],
             ]
         );
     }

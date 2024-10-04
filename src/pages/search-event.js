@@ -48,7 +48,6 @@ export const SearchEvent = () => {
                         "studentDossier:Legajo",
                         "studentId:DNI",
                         "studentName:Nombre",
-                        "studentSurname:Apellido",
                         "attendance:Asistencia",
                         "note:Nota",
                     ],

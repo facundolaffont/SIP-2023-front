@@ -259,7 +259,6 @@ export function AttendanceRegistering() {
                         "dossier:Legajo",
                         "id:DNI",
                         "name:Nombre",
-                        "surname:Apellido",
                         "attendance:Asistencia",
                     ],
                     columnClasses: [
@@ -541,7 +540,6 @@ export function AttendanceRegistering() {
                             studentInfo.dossier = student.dossier;
                             studentInfo.id = student.id;
                             studentInfo.name = student.name;
-                            studentInfo.surname = student.surname;
                             studentInfo.attendance = studentLoadedData.attendance;
                             studentInfo._row = studentLoadedData._row;
 

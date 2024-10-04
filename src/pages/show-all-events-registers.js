@@ -78,7 +78,6 @@ export const ShowAllEventsRegisters = () => {
                         studentDossier: eventDetailsRegister.studentDossier,
                         studentId: eventDetailsRegister.studentId,
                         studentName: eventDetailsRegister.studentName,
-                        studentSurname: eventDetailsRegister.studentSurname,
                         attendance: eventDetailsRegister.attendance,
                         note: eventDetailsRegister.note,
                     };
@@ -115,7 +114,6 @@ export const ShowAllEventsRegisters = () => {
                         "studentDossier:Legajo",
                         "studentId:DNI",
                         "studentName:Nombre",
-                        "studentSurname:Apellido",
                         "attendance:Asistencia",
                         "note:Nota",
                     ],
