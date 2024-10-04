@@ -267,15 +267,6 @@ export function StudentRegistering() {
                     row.formatInfo = "El mail no tiene el formato adecuado.";
                     invalidFormat = true;
                 } else if (!(
-                    row.allPreviousSubjectsApproved.trim() === ''
-                    ||
-                    row.allPreviousSubjectsApproved.trim().toLowerCase() === 'x'
-                    ||
-                    row.allPreviousSubjectsApproved.trim().toLowerCase() === 'p'
-                )) {
-                    row.formatInfo = "El campo de correlativas debe estar vacío o debe contener el valor 'x'.";
-                    invalidFormat = true;
-                } else if (!(
                     row.alreadyStudied.trim() === ''
                     ||
                     row.alreadyStudied.trim().toLowerCase() === 'x'
@@ -349,8 +340,7 @@ export function StudentRegistering() {
                             studentInfo.email = studentLoadedData.email.trim();
                             studentInfo.alreadyStudied = studentLoadedData.alreadyStudied.trim().toLowerCase();
                             studentInfo.allPreviousSubjectsApproved =
-                                studentLoadedData.allPreviousSubjectsApproved.trim().toLowerCase() == 'x'
-                                || studentLoadedData.allPreviousSubjectsApproved.trim().toLowerCase() == 'p'
+                                String(studentLoadedData.allPreviousSubjectsApproved).trim().length !== 0
                                 ? 'P'
                                 : false;
 
@@ -533,7 +523,7 @@ export function StudentRegistering() {
             "alta-alumnos",
             [
                 ["Legajo", "DNI", "Nombre", "Mail", "Correlativas", "Recursante"],
-                [192656, 24977506, "WALTER JAVIER ALAMO", "walterjalamo@hotmail.com", "x", "x"],
+                [192656, 24977506, "WALTER JAVIER ALAMO", "walterjalamo@hotmail.com", "P", "x"],
             ]
         );
     }
