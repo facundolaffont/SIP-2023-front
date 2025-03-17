@@ -10,7 +10,7 @@ variable "zone" {
 
 variable "project_id" {
   type    = string
-  default = "ultimate-flare-420416"
+  default = "ordinal-quarter-452701-f0"
 }
 
 variable "credentials_file_path" {

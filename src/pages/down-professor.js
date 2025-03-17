@@ -2,7 +2,7 @@ import axios from 'axios';
 import { useState } from "react";
 import { PageLayout } from "../components/page-layout";
 
-export function DownUser() {
+export function DownProfessor() {
   const [email, setEmail] = useState('');
   const [result, setResult] = useState('');
   const ObtenerAccessToken = async () => {
@@ -88,7 +88,7 @@ export function DownUser() {
   
   return (
     <PageLayout>
-    <h1 id="page-title" className="content__title">Baja de usuario</h1>
+    <h1 id="page-title" className="content__title">Baja de docente</h1>
     <form onSubmit={handleSubmit}>
     <label htmlFor="email"><p>Correo electrónico</p></label>
     <input

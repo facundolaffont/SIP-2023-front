@@ -1,8 +1,8 @@
 import axios from 'axios';
 
 const getAccessToken = async () => {
-    const client_id = process.env.API_EXPLORER_CLIENT_ID;
-    const client_secret = process.env.API_EXPLORER_CLIENT_SECRET;
+    const client_id = process.env.REACT_APP_AUTH0_CLIENT_ID;
+    const client_secret = process.env.REACT_APP_AUTH0_CLIENT_SECRET;
     const audience = `https://${process.env.REACT_APP_AUTH0_DOMAIN}/api/v2/`;
   
     const data = {

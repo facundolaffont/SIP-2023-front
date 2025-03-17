@@ -616,10 +616,11 @@ export function CourseStudentRegistering() {
                     required
                 >
                 </select>
-                <p>Rango de celdas a cargar</p>
+                <p>Rango de celdas a cargar <span title="El rango no debe incluir las cabeceras." style={{cursor:"progress"}}>[?]</span></p>
                 <input
                     type="text"
                     id="cell-range"
+                    placeholder="Ejemplo para cargar los primeros dos registros: A2:C3"
                     onChange={handleCellRangeName}
                     required
                 />

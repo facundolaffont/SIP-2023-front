@@ -24,7 +24,7 @@ export const Auth0ProviderWithHistory = ({ children }) => {
       clientId={clientId}
       authorizationParams={{
         audience: audience,
-        redirect_uri: redirectUri,
+        redirect_uri: redirectUri
       }}
       onRedirectCallback={onRedirectCallback}
     >

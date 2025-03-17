@@ -518,13 +518,18 @@ export function StudentRegistering() {
     };
 
     const handleTemplateDownload = () => {
+
+        // Define el contenido de la plantilla.
+        let sheetContent = [
+            ["Legajo", "DNI", "Nombre", "Mail", "Correlativas", "Recursante"],
+            [192656, 24977506, "WALTER JAVIER ALAMO", "walterjalamo@hotmail.com", "P", "x"],
+        ];
+
+        // Crea y descarga la plantilla.
         spreadsheetManipulator.create(
             "Plantilla de alta de estudiantes",
             "alta-alumnos",
-            [
-                ["Legajo", "DNI", "Nombre", "Mail", "Correlativas", "Recursante"],
-                [192656, 24977506, "WALTER JAVIER ALAMO", "walterjalamo@hotmail.com", "P", "x"],
-            ]
+            sheetContent
         );
     }
 
@@ -582,10 +587,11 @@ export function StudentRegistering() {
                     required
                 >
                 </select>
-                <p>Rango de celdas a cargar</p>
+                <p>Rango de celdas a cargar <span title="El rango no debe incluir las cabeceras." style={{cursor:"pointer"}}>[?]</span></p>
                 <input
                     type="text"
                     id="cell-range"
+                    placeholder="Ejemplo para cargar los primeros dos registros: A2:F3"
                     onChange={handleCellRangeName}
                     required
                 />
