@@ -19,7 +19,7 @@ export const NavBarAvatar = () => {
       <NavLink to="/profile" exact>
         <div>
           <p>{user.nickname}</p>
-          <p style={{ fontSize: 14, fontWeight: 300 }}>({user[`${process.env.REACT_APP_AUTH0_AUDIENCE}/roles`][0]})</p>
+          <p style={{ fontSize: 14, fontWeight: 300, width: 'min-content' }}>{user[`${process.env.REACT_APP_AUTH0_AUDIENCE}/roles`].join('\n')}</p>
         </div>
       </NavLink>
     </div>

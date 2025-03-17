@@ -742,10 +742,11 @@ export function AttendanceRegistering() {
                     required
                 >
                 </select>
-                <label htmlFor="cell-range"><p>Rango de celdas a cargar</p></label>
+                <p>Rango de celdas a cargar <span title="El rango no debe incluir las cabeceras." style={{cursor:"pointer"}}>[?]</span></p>
                 <input
                     type="text"
                     id="cell-range"
+                    placeholder="Ejemplo para cargar los primeros dos registros: A2:B3"
                     onChange={handleCellRangeName}
                     required
                 />
