@@ -129,7 +129,7 @@ export const App = () => {
                 {isProfessor && <ProtectedRoute path="/register-attendance" component={AttendanceRegistering} />}
                 {isProfessor && <ProtectedRoute path="/register-course-attendance" component={CourseAttendanceRegistering} />}
                 {isProfessor && <ProtectedRoute path="/register-califications" component={CalificationRegistering} />}
-                {isProfessor && <ProtectedRoute path="/register-students-in-course" component={CourseStudentRegistering} />}
+                {/*isProfessor && <ProtectedRoute path="/register-students-in-course" component={CourseStudentRegistering} />*/}
                 {isProfessor && <ProtectedRoute path="/register-students" component={StudentRegistering} />}
                 {isProfessor && <ProtectedRoute path="/register-event" component={EventRegistering} />}
                 {isProfessor && <ProtectedRoute path="/register-events-bulk" component={EventsBulkRegistering} />}

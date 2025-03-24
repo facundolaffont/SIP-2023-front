@@ -70,10 +70,10 @@ export const NavBarTabs = () => {
                                         path="/register-students"
                                         label="Registrar estudiantes"
                                     />
-                                    {<NavBarTab
+                                    {/*<NavBarTab
                                         path="/register-students-in-course"
                                         label="Vincular estudiantes con cursada"
-                                    />}
+                                    />*/}
                                     <NavBarTab
                                         path="/register-event"
                                         label="Crear evento"
