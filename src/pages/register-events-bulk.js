@@ -620,7 +620,7 @@ export function EventsBulkRegistering() {
                     required
                 >
                 </select>
-                <p>Rango de celdas a cargar <span title="El rango no debe incluir las cabeceras." style={{cursor:"pointer"}}>[?]</span></p>
+                <p>Rango de celdas a cargar (excluir encabezados)</p>
                 <input
                     type="text"
                     id="cell-range"

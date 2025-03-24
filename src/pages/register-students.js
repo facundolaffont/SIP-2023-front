@@ -100,6 +100,11 @@ export function StudentRegistering() {
             "ok-table-container"
         )[0];
         if (okList.length !== 0) {
+
+            // Muestra por tabla los registros de estudiantes que no están registrados en
+            // sistema (mostrando la misma información cargada del Excel), y también
+            // muestra los registros de estudiantes que están registrados en sistema pero no
+            // están vinculadas con la cursada (mostrando la información traída del backend).
             HTMLTableManipulator.insertDataIntoTable(
                 okStudentsTable,
                 {
@@ -121,7 +126,8 @@ export function StudentRegistering() {
                 },
                 `Estudiantes para registrar en la comisión (${okList.length})`
             );
-               okStudentsTableContainer.classList.remove("not-displayed");
+
+            okStudentsTableContainer.classList.remove("not-displayed");
         } else okStudentsTableContainer.classList.add("not-displayed");
 
     }, [okList, notOkList, invalidRegistersList, tableManualUpdateTrigger]);
@@ -273,6 +279,48 @@ export function StudentRegistering() {
                 )) {
                     row.formatInfo = "El campo de recursante debe estar vacío o debe contener el valor 'x'.";
                     invalidFormat = true;
+                } else {
+
+                    // 202503231645 - Marca los registros con campos duplicados.
+
+                    let duplicateMask = 0;
+                    for (const element of readRange.data) {
+                        
+                        if(row._row !== element._row) {
+                            if(row.dossier === element.dossier) duplicateMask |= 1; // 001
+                            if(row.id === element.id) duplicateMask |= 2; // 010
+                            if(row.email === element.email) duplicateMask |= 4; // 100
+                        }
+
+                    }
+
+                    if(duplicateMask) invalidFormat = true;
+                    switch(duplicateMask) {
+                        case 1: // 001
+                            row.formatInfo = "El legajo está duplicado.";
+                            break;
+                        case 2: // 010
+                            row.formatInfo = "El DNI está duplicado.";
+                            break;
+                        case 3: // 011
+                            row.formatInfo = "El legajo y DNI están duplicados.";
+                            break;
+                        case 4: // 100
+                            row.formatInfo = "El email está duplicado.";
+                            break;
+                        case 5: // 101
+                            row.formatInfo = "El legajo y email están duplicado.";
+                            break;
+                        case 6: // 110
+                            row.formatInfo = "El DNI y email están duplicados.";
+                            break;
+                        case 7: // 111
+                            row.formatInfo = "El legajo, DNI y email están duplicados.";
+                            break;
+                    }
+
+                    // 202503231645
+                
                 }
 
                 // Separa los registros con formato válido de los que tienen formato inválido.
@@ -285,8 +333,12 @@ export function StudentRegistering() {
             });
 
             // Guarda los registros con formato correcto en un arreglo.
-            /** @type {Array.<number>} */ const dossierArray = validFormatRange.map(
-                element => element["dossier"]
+            /** @type {Array.<number>} */ const newStudentsArray = validFormatRange.map(
+                element => ({
+                    "dossier": element["dossier"],
+                    "id": element["id"],
+                    "email": element["email"]
+                })
             );
 
             // Obtiene el token Auth0.
@@ -298,9 +350,10 @@ export function StudentRegistering() {
 
             const checkedInfo = await axios
                 .post(
-                    `${process.env.REACT_APP_API_SERVER_URL}/api/v1/students/new-dossiers-check`,
+                    `${process.env.REACT_APP_API_SERVER_URL}/api/v1/students/new-students-check`,
                     {
-                        dossiersList: dossierArray,
+                        courseId: course.getId(),
+                        studentsList: newStudentsArray,
                     },
                     {
                         headers: {
@@ -323,8 +376,16 @@ export function StudentRegistering() {
                     invalidFormatRange
                 );
 
-                setOkList(
-                    checkedInfo.data.ok.map(
+                // 202503232333 - Guarda información de los estudiantes que pueden ser registrados, ya sea porque no están
+                // registrados en sistema ni vinculados con la cursada, o porque están registrados en sistema
+                // pero no están vinculados con la cursada. {
+
+                // Crea el arreglo que contendrá la información de ambos tipos de estudiantes.
+                let okListData = {};
+
+                // Se agregan los estudiantes que no existen en sistema.
+                okListData = [...
+                    checkedInfo.data.nonExistingDossiers.map(
                         dossier => {
 
                             // Obtiene el registro de readRange que tiene mismo legajo.
@@ -351,35 +412,78 @@ export function StudentRegistering() {
 
                         }
                     )
-                );
+                ];
 
-                setNotOkList(
-                    checkedInfo.data.nok.map(
-                        dossierInfo => {
+                // Se agregan los estudiantes que existen en sistema, pero que no están
+                // vinculados con la cursada.
+                okListData.push(...
+                    checkedInfo.data.existingStudents.map(
+                        registeredInfoOfStudent => {
 
-                            // Establece el mensaje de error, según el código.
-                            let errorDescription;
-                            switch (dossierInfo.errorCode) {
-                                case 1:
-                                    errorDescription = "El legajo ya está registrado en el sistema.";
-                                    break;
-                            }
-                            
                             // Obtiene el registro de readRange que tiene mismo legajo.
                             let studentLoadedData = readRange.data.find(
-                                register => register.dossier == dossierInfo.dossier
+                                register => register.dossier == registeredInfoOfStudent.dossier
                             );
 
-                            // Indica el objeto que va a formar parte del arreglo. 
-                            return {
-                                _row: studentLoadedData._row,
-                                dossier: dossierInfo.dossier,
-                                errorDescription: errorDescription,
-                            };
+                            // Une la información traída del back con la que se cargó del Excel.
+                            let studentInfo = {dossier: registeredInfoOfStudent.dossier};
+                            studentInfo._row = studentLoadedData._row;
+                            studentInfo.id = registeredInfoOfStudent.id;
+                            studentInfo.name = registeredInfoOfStudent.name.trim();
+                            studentInfo.email = registeredInfoOfStudent.email.trim();
+                            studentInfo.alreadyStudied = studentLoadedData.alreadyStudied.trim().toLowerCase();
+                            studentInfo.allPreviousSubjectsApproved =
+                                String(studentLoadedData.allPreviousSubjectsApproved).trim().length !== 0
+                                ? 'P'
+                                : false;
+
+                            // Agrega el estado de registración en sistema.
+                            studentInfo.state = 'Pendiente (v)';
+
+                            return studentInfo;
 
                         }
                     )
                 );
+
+                // Ordena el arreglo, y asigna el arreglo a la variable que permite mostrarlo en pantalla.
+                okListData = okListData.sort((a, b) => parseInt(a._row) - parseInt(b._row));
+                setOkList(okListData);
+
+                // } 202503232333
+
+                let notOkListData = checkedInfo.data.nok.map(
+                    dossierInfo => {
+
+                        // Establece el mensaje de error, según el código.
+                        let errorDescription;
+                        switch (dossierInfo.errorCode) {
+                            case 1:
+                                errorDescription = "El legajo ya está registrado en el sistema.";
+                                break;
+                            case 2:
+                                errorDescription = "El mail ya está registrado en el sistema.";
+                                break;
+                        }
+                        
+                        // Obtiene el registro de readRange que tiene mismo legajo.
+                        let studentLoadedData = readRange.data.find(
+                            register => register.dossier == dossierInfo.dossier
+                        );
+
+                        // Indica el objeto que va a formar parte del arreglo. 
+                        return {
+                            _row: studentLoadedData._row,
+                            dossier: dossierInfo.dossier,
+                            errorDescription: errorDescription,
+                        };
+
+                    }
+                )
+
+                // Ordena el arreglo, y asigna el arreglo a la variable que permite mostrarlo en pantalla.
+                notOkListData = notOkListData.sort((a, b) => parseInt(a._row) - parseInt(b._row));
+                setNotOkList(notOkListData);
 
             }
 
@@ -587,7 +691,7 @@ export function StudentRegistering() {
                     required
                 >
                 </select>
-                <p>Rango de celdas a cargar <span title="El rango no debe incluir las cabeceras." style={{cursor:"pointer"}}>[?]</span></p>
+                <p>Rango de celdas a cargar (excluir encabezados)</p>
                 <input
                     type="text"
                     id="cell-range"
