@@ -462,7 +462,10 @@ export function StudentRegistering() {
                                 errorDescription = "El legajo ya está registrado en el sistema.";
                                 break;
                             case 2:
-                                errorDescription = "El mail ya está registrado en el sistema.";
+                                errorDescription = "El DNI ya está registrado en el sistema.";
+                                break;
+                            case 4:
+                                errorDescription = "El email ya está registrado en el sistema."
                                 break;
                         }
                         
