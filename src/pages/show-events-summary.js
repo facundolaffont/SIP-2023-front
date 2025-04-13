@@ -21,6 +21,8 @@ export const ShowEventsSummary = () => {
     const [, changeCourse] = useSelectedCourse(true);
     /** @type {CourseDTO} */ const course = useSelectedCourse(false);
 
+    const [error, setError] = useState(null);
+
     const [spreadsheetManipulator, setSpreadsheetManipulator] = useState(null);
 
     const [attendanceSummaryList, setAttendanceSummaryList] = useState([]);
@@ -51,6 +53,37 @@ export const ShowEventsSummary = () => {
             window.location.replace(`${process.env.REACT_APP_DOMAIN_URL}/profile?course-missing`);
 
     });
+
+    // Actualiza el mensaje de error que se mostrará al usuario.
+    useEffect(() => {
+
+        // Obtiene el contenedor principal del mensaje de error.
+        const msgContainer = document.getElementsByClassName("info-msg-container")[0];
+
+        if (error === null) {
+
+            msgContainer.classList.add("not-displayed");
+
+        } else {
+
+            // // Oculta las tablas.
+            // setOkList([]);
+            // setNotOkList([]);
+            // setInvalidRegistersList([]);
+
+            // Obtiene el elemento HTML que contendrá el texto del mensaje.
+            const errorMsgTextContainer = document.getElementsByClassName("info-msg-description")[0];
+
+            // Guarda el mensaje.
+            errorMsgTextContainer.innerHTML = error;
+
+            // Muestra el mensaje.
+            msgContainer.classList.remove("not-displayed");
+
+        }
+
+    }, [error]);
+    
 
     // Obtiene el resumen de los eventos, respecto de la cursada seleccionada.
     useEffect(() => {
@@ -113,7 +146,15 @@ export const ShowEventsSummary = () => {
 
             // Si la petición no fue exitosa, se genera una excepción.
             .catch(
-                error => error.response
+                error => {
+
+                    //error.response
+                    
+                    // Guarda el mensaje de error traído del back al usuario, y
+                    // en el próximo renderizado se mostrará el mensaje.
+                    setError("Hubo un error. Por favor, contactarse con Soporte Técnico.");
+
+                }
             );
 
         }
@@ -428,6 +469,11 @@ export const ShowEventsSummary = () => {
                     course === null && 'Sin cursada seleccionada'
                 }
             </h2>
+            <div className="info-msg-container not-displayed">
+                <div className="info-msg-desc-container">
+                    <p className="info-msg-description"></p>
+                </div>
+            </div>
             {attendanceSummaryList && (
                 <div id="hola" className="attendance-summary-table-container table-container not-displayed">
                     <table id="attendance-summary-table" className="attendance-summary-table"></table>
