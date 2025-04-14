@@ -95,48 +95,56 @@ export function CalificationRegistering() {
                     eventsSelect.appendChild(listFirstElement);
                     eventsList.data.eventList.forEach(eventElement => {
                         const listElement = document.createElement("option");
-                        const initialDate =
-                            Intl.DateTimeFormat(
-                                'es-AR',
-                                {
-                                    weekday: 'short',
-                                    day: '2-digit',
-                                    month: '2-digit',
-                                    year: '2-digit',
-                                }
-                            ).format(new Date(eventElement.initialDateTime));
-                        const initialTime = 
-                            Intl.DateTimeFormat(
-                                'es-AR',
-                                {
-                                    hour: '2-digit',
-                                    minute: '2-digit',
-                                }
-                            ).format(new Date(eventElement.initialDateTime));
-                        const endDate =
-                            Intl.DateTimeFormat(
-                                'es-AR',
-                                {
-                                    weekday: 'short',
-                                    day: '2-digit',
-                                    month: '2-digit',
-                                    year: '2-digit',
-                                }
-                            ).format(new Date(eventElement.endDateTime));
-                        const endTime = 
-                            Intl.DateTimeFormat(
-                                'es-AR',
-                                {
-                                    hour: '2-digit',
-                                    minute: '2-digit',
-                                }
-                            ).format(new Date(eventElement.endDateTime));
-                        const dateTimeString =
-                            initialDate.valueOf() === endDate.valueOf()
-                            ? `${initialDate} de ${initialTime} a ${endTime}`
-                            : `${initialDate} ${initialTime} - ${endDate} ${endTime}`;
+
+                        // Construye el string que contendrá el rango de fechas, solamente si ambas fechas
+                        // fueron ingresadas en la carga del evento; o será una cadena vacía, si alguna
+                        // de las fechas no fue ingresada.
+                        let dateTimeString = "";
+                        if (eventElement.initialDateTime !== null && eventElement.endDateTime !== null) {
+                            const initialDate =
+                                Intl.DateTimeFormat(
+                                    'es-AR',
+                                    {
+                                        weekday: 'short',
+                                        day: '2-digit',
+                                        month: '2-digit',
+                                        year: '2-digit',
+                                    }
+                                ).format(new Date(eventElement.initialDateTime));
+                            const initialTime = 
+                                Intl.DateTimeFormat(
+                                    'es-AR',
+                                    {
+                                        hour: '2-digit',
+                                        minute: '2-digit',
+                                    }
+                                ).format(new Date(eventElement.initialDateTime));
+                            const endDate =
+                                Intl.DateTimeFormat(
+                                    'es-AR',
+                                    {
+                                        weekday: 'short',
+                                        day: '2-digit',
+                                        month: '2-digit',
+                                        year: '2-digit',
+                                    }
+                                ).format(new Date(eventElement.endDateTime));
+                            const endTime = 
+                                Intl.DateTimeFormat(
+                                    'es-AR',
+                                    {
+                                        hour: '2-digit',
+                                        minute: '2-digit',
+                                    }
+                                ).format(new Date(eventElement.endDateTime));
+                            dateTimeString =
+                                initialDate.valueOf() === endDate.valueOf()
+                                ? `: ${initialDate} de ${initialTime} a ${endTime}`
+                                : `: ${initialDate} ${initialTime} - ${endDate} ${endTime}`;
+                        }
+
                         const eventDescription = 
-                            `${eventElement.type}: ${dateTimeString}`;
+                            `${eventElement.type}${dateTimeString}`;
                         listElement.innerHTML = eventDescription;
                         listElement.value = eventElement.eventId;
                         eventsSelect.appendChild(listElement);

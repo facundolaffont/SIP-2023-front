@@ -41,6 +41,7 @@ export const ListCourseEvents = () => {
 
     });
 
+    // Muestra y actualiza la tabla de eventos.
     useEffect(() => {
         let eventsTable = document.getElementsByClassName("events-table")[0];
         if (eventsList.length !== 0) {
@@ -70,7 +71,7 @@ export const ListCourseEvents = () => {
         }
     }, [eventsList]);
         
-    // Agrega eventos de edición al hacer clic en el botón "Modificar"
+    // Agrega eventos de edición al hacer clic en el botón "Modificar".
     useEffect(() => {
         const handleEditButtonClick = (event) => {
             const row = event.target.closest('tr');
@@ -190,7 +191,7 @@ export const ListCourseEvents = () => {
         };
     }, [eventsList]);
 
-    // Agrega eventos de eliminación al hacer clic en el botón "Eliminar"
+    // Agrega eventos de eliminación al hacer clic en el botón "Eliminar".
     useEffect(() => {
         const handleDeleteButtonClick = (event) => {
             const row = event.target.closest('tr');
@@ -240,8 +241,16 @@ export const ListCourseEvents = () => {
                     return {
                         eventId: event.eventId,
                         type: event.type,
-                        initialDateTime: getFormattedDateAndTime(event.initialDateTime),
-                        endDateTime: getFormattedDateAndTime(event.endDateTime),
+                        initialDateTime:
+                            event.initialDateTime !== null
+                            ? (
+                                getFormattedDateAndTime(event.initialDateTime)
+                            ) : '-',
+                        endDateTime:
+                            event.endDateTime !== null
+                            ? (
+                                getFormattedDateAndTime(event.endDateTime)
+                            ) : '-',
                         mandatory: event.mandatory,
                         actions: (
                             <div className="actions-container">
@@ -293,7 +302,6 @@ export const ListCourseEvents = () => {
     };
 
     const handleDeleteButton = (eventId) => {
-        console.log(eventId);
         if (window.confirm("¿Estás seguro de que deseas eliminar este evento?")) {
             // Lógica para eliminar el evento en el backend
             fetch(`${process.env.REACT_APP_API_SERVER_URL}/api/v1/events/delete-event`, {
@@ -341,24 +349,6 @@ export const ListCourseEvents = () => {
                     minute: '2-digit',
                 }
             ).format(new Date(date));
-        // const endDate =
-        //     Intl.DateTimeFormat(
-        //         'es-AR',
-        //         {
-        //             weekday: 'short',
-        //             day: '2-digit',
-        //             month: '2-digit',
-        //             year: '2-digit',
-        //         }
-        //     ).format(new Date(endDateAndTime));
-        // const endTime = 
-        //     Intl.DateTimeFormat(
-        //         'es-AR',
-        //         {
-        //             hour: '2-digit',
-        //             minute: '2-digit',
-        //         }
-        //     ).format(new Date(endDateAndTime));
 
         return `${initialDate}, ${initialTime}`
     }

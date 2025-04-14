@@ -36,10 +36,9 @@ export function CreateProfessor() {
       );
 
       const token = response.data.access_token;
-      console.log("Token obtenido", token);
       return token;
     } catch (error) {
-      console.log("Error al obtener el token", error);
+      console.Error("Error al obtener el token", error);
       throw error;
     }
   };
@@ -75,7 +74,6 @@ export function CreateProfessor() {
     if (data.error) setError(data);
     else {
       setResult("Usuario creado exitosamente.");
-      console.log(data);
     }
 
     // Obtengo el user_id del usuario creado

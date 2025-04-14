@@ -84,7 +84,6 @@ export const FinalCondition = () => {
         })
             .then((response) => response.json())
             .then((data) => {
-                console.log(data);
               //  setFinalConditions(data);
 
                 const sortedConditions = data.sort((a, b) => a.Legajo - b.Legajo);
@@ -105,7 +104,6 @@ export const FinalCondition = () => {
         });
 
         if (sortedFinalConditions) {
-            console.log(sortedFinalConditions);
             const dataToSend = {
                 courseId: course.getId(),
                 finalConditions: sortedFinalConditions.map(student => ({
@@ -165,7 +163,6 @@ export const FinalCondition = () => {
                         </tr>
                     </thead>
                     <tbody>
-                        {console.debug("Antes de criterias.map")}
                         {criterias.map((criteria, index) => (
                             <tr key={index}>
                                 <td>{criteria.criteria.name}</td>

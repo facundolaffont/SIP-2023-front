@@ -31,8 +31,7 @@ export const SearchStudent = () => {
         fetch(`${process.env.REACT_APP_API_SERVER_URL}/api/v1/course/getStudent?courseId=${course.getId()}&dossier=${legajo}`)
             .then(response => response.json())
             .then(data => {
-                console.log(data)
-                console.log(data.eventos)
+                
                 // Verificar si se encontró un alumno
                 if (data) {
                     // Establecer la información del alumno

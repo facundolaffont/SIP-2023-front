@@ -33,12 +33,14 @@ export const ShowAllEventsRegisters = () => {
 
     }, []);
 
-    // Condición que se cumple si todavía no se seleccionó una cursada, o
-    // si se actualiza la página, ya que se pierde el contexto de la
-    // selección que se había hecho.
+    /**
+     * Actualiza un arreglo con los datos de las cursadas.
+     */
     useEffect(() => {
 
-        // Redirige a la página de selección de cursada.
+        // Redirige a la página de selección de cursada, si todavía no se seleccionó
+        // una cursada, o si se actualiza la página, ya que se pierde el contexto de la
+        // selección que se había hecho.
         if (course === null) history.push('/profile?course-missing');
 
         // Ejecuta la consulta y muestra por tabla.
@@ -71,10 +73,14 @@ export const ShowAllEventsRegisters = () => {
                     return {
                         eventId: eventDetailsRegister.eventId,
                         eventType: eventDetailsRegister.eventType,
-                        datetime: getFormattedDateAndTime(
-                            eventDetailsRegister.initialDatetime,
-                            eventDetailsRegister.endDatetime,
-                        ),
+                        datetime: 
+                            eventDetailsRegister.initialDatetime !== null
+                            ? (
+                                getFormattedDateAndTime(
+                                    eventDetailsRegister.initialDatetime,
+                                    eventDetailsRegister.endDatetime,
+                                )
+                            ) : '-',
                         studentDossier: eventDetailsRegister.studentDossier,
                         studentId: eventDetailsRegister.studentId,
                         studentName: eventDetailsRegister.studentName,

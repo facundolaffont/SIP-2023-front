@@ -24,10 +24,9 @@ export function DownProfessor() {
     });
 
     const token = response.data.access_token;
-    console.log('Token obtenido', token);
     return token;
   } catch (error) {
-    console.log('Error al obtener el token', error);
+    console.error('Error al obtener el token', error);
     throw error;
   }
 }
@@ -37,7 +36,6 @@ export function DownProfessor() {
   async function actualizarBlocked(email) {
     const token = await ObtenerAccessToken();
     const url = `https://${process.env.REACT_APP_AUTH0_DOMAIN}/api/v2/users-by-email`;
-    console.log(token);
     axios.get(url, {
     headers: {
       Authorization: `Bearer ${token}`,
@@ -47,7 +45,6 @@ export function DownProfessor() {
       email: email
     }
     }).then(response => {
-    console.log(response.data);
     const user_id = response.data[0].user_id;
     bloquearUsuario(user_id, token);
     }).catch(error => {
@@ -72,13 +69,12 @@ export function DownProfessor() {
       console.log(response.data);
     })
     .catch(error => {
-      console.log(error);
+      console.error(error);
     });
   }
   
    const handleSubmit = (event) => {
     event.preventDefault();
-    console.log(email);
     actualizarBlocked(email).then(
       function() {
       setResult("Usuario eliminado exitosamente");

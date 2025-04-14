@@ -43,39 +43,24 @@ import { ShowAllEventsRegisters } from "./pages/show-all-events-registers";
 
 export const App = () => {
 
-    console.log("----------------------------------------------")
-
     //const { getAccessTokenSilently } = useAuth0();
     const { isLoading, isAuthenticated, getIdTokenClaims } = useAuth0();
     const [isSuperAdmin, setIsSuperAdmin] = useState(false);
     const [isAdmin, setIsAdmin] = useState(false);
     const [isProfessor, setIsProfessor] = useState(false);
 
-    console.log(`isLoading: ${isLoading}`)
-    console.log(`isAuthenticated: ${isAuthenticated}`)
-    console.log(`getIdTokenClaims: ${getIdTokenClaims}`)
-    console.log(`isSuperAdmin: ${isSuperAdmin}`)
-    console.log(`isAdmin: ${isAdmin}`)
-    console.log(`isProfessor: ${isProfessor}`)
-
     // Determina el rol del usuario.
     useEffect(() => {
-        console.log("A")
         const checkRole = async () => {
-
-            console.log("B");
 
             if (isAuthenticated) {
 
-                console.log("C");
                 //getNewToken();
 
                 // Obtiene y almacena los claims del token.
                 const idTokenClaims = await getIdTokenClaims();
-                console.log(`idTokenClaims: ${JSON.stringify(idTokenClaims, null, 2)}`);
                 const roles =
                     idTokenClaims[`${process.env.REACT_APP_AUTH0_AUDIENCE}/roles`];
-                console.log(`roles: ${roles}`);
 
                 // Determina el rol del usuario.
                 if (roles && roles.includes("SuperAdministrador")) { setIsSuperAdmin(true); }
@@ -86,19 +71,6 @@ export const App = () => {
         };
         checkRole();
     }, [isAuthenticated, getIdTokenClaims]);
-
-    /*const getNewToken = async () => {
-        try {
-            const token = await getAccessTokenSilently({
-                authorizationParams: {
-                    scope: 'openid profile email update:users create:role_members',
-                },
-            });
-            console.log("Nuevo token:", token);
-        } catch (error) {
-            console.error("Error obteniendo el nuevo token", error);
-        }
-    };*/
 
     // Muestra el ícono de carga, si todavía no se resolvieron las llamadas de Auth0.
     if (isLoading) {

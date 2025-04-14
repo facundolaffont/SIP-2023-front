@@ -83,7 +83,6 @@ export const ShowEventsSummary = () => {
         }
 
     }, [error]);
-    
 
     // Obtiene el resumen de los eventos, respecto de la cursada seleccionada.
     useEffect(() => {
@@ -114,28 +113,45 @@ export const ShowEventsSummary = () => {
                 .data
                 .classEventsSummaryList
                 .forEach(element => {
-                    element.initialDatetime = element.initialDatetime.replace("T", " ");
-                    element.endDatetime = element.endDatetime.replace("T", " ");
-                    element.initialDatetime = element.initialDatetime.substring(0, 16);
-                    element.endDatetime = element.endDatetime.substring(0, 16);
+                    if (element.initialDatetime !== null) {
+                        element.initialDatetime = element.initialDatetime.replace("T", " ");
+                        element.initialDatetime = element.initialDatetime.substring(0, 16);
+                    } else element.initialDatetime = '-';
+
+                    if (element.endDatetime !== null) {
+                        element.endDatetime = element.endDatetime.replace("T", " ");
+                        element.endDatetime = element.endDatetime.substring(0, 16);
+                    } else element.endDatetime = '-';
                 });
+
                 response
                 .data
                 .evaluationEventsByNoteSummaryList
                 .forEach(element => {
-                    element.initialDatetime = element.initialDatetime.replace("T", " ");
-                    element.endDatetime = element.endDatetime.replace("T", " ");
-                    element.initialDatetime = element.initialDatetime.substring(0, 16);
-                    element.endDatetime = element.endDatetime.substring(0, 16);
+                    if (element.initialDatetime !== null) {
+                        element.initialDatetime = element.initialDatetime.replace("T", " ");
+                        element.initialDatetime = element.initialDatetime.substring(0, 16);
+                    } else element.initialDatetime = '-';
+
+                    if (element.endDatetime !== null) {
+                        element.endDatetime = element.endDatetime.replace("T", " ");
+                        element.endDatetime = element.endDatetime.substring(0, 16);
+                    } else element.endDatetime = '-';
                 });
+
                 response
                 .data
                 .evaluationEventsByApprovalRateSummaryList
                 .forEach(element => {
-                    element.initialDatetime = element.initialDatetime.replace("T", " ");
-                    element.endDatetime = element.endDatetime.replace("T", " ");
-                    element.initialDatetime = element.initialDatetime.substring(0, 16);
-                    element.endDatetime = element.endDatetime.substring(0, 16);
+                    if (element.initialDatetime !== null) {
+                        element.initialDatetime = element.initialDatetime.replace("T", " ");
+                        element.initialDatetime = element.initialDatetime.substring(0, 16);
+                    } else element.initialDatetime = '-';
+
+                    if (element.endDatetime !== null) {
+                        element.endDatetime = element.endDatetime.replace("T", " ");
+                        element.endDatetime = element.endDatetime.substring(0, 16);
+                    } else element.endDatetime = '-';
                 });
 
                 setAttendanceSummaryList(response.data.classEventsSummaryList);

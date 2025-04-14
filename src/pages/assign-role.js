@@ -32,11 +32,9 @@ export function AssignRole() {
       );
   
       const token = response.data.access_token;
-      console.log('Token obtenido.', token);
       return token;
     }
     catch (error) {
-      console.log('Error al obtener el token.', error);
       throw error;
     }
   }

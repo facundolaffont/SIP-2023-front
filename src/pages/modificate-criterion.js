@@ -51,8 +51,6 @@ export const ModificateCriterion = () => {
 
         const getEvaluationCriteria = async () => {
 
-            console.debug("Dentro de useEffect");
-
             // Obtiene el token Auth0.
             const auth0Token = await getAccessTokenSilently()
                 .then(response => response)
@@ -80,14 +78,10 @@ export const ModificateCriterion = () => {
 
     }, []);
 
-    console.debug("Antes de handleSubmit");
-
     const handleSubmitChanges = (index) => {
         
-        console.log("dentro de handleSubmitChanges");
-        
         const criteriaToSave = criterias[index];
-        console.log("ddd" + criteriaToSave);
+
         // Prepara los datos para enviar al backend (según tus necesidades)
         const criteria = {
             id: criteriaToSave.id,
@@ -114,8 +108,7 @@ export const ModificateCriterion = () => {
         try {
             
             const criteriaToDelete = criterias[index];
-            console.log("criterio a eliminar:" + criteriaToDelete);
-            console.log("criterio a eliminar:" + criteriaToDelete.criteria);
+
             // Prepara los datos adicionales que deseas enviar al backend
             const criteria = {
                 id: criteriaToDelete.id,
@@ -124,7 +117,6 @@ export const ModificateCriterion = () => {
                 value_to_regulate: criteriaToDelete.value_to_regulate,
                 value_to_promote: criteriaToDelete.value_to_promote,
             };
-            console.log("dts" + criteriaToDelete.JSON);
 
             // Envia el criterio a borrar al backend
             fetch(`${process.env.REACT_APP_API_SERVER_URL}/api/v1/criterion-course/delete`, {
@@ -147,13 +139,8 @@ export const ModificateCriterion = () => {
         }
     };
     
-
-
-    console.debug("Antes de return");
-
     return (
         <PageLayout>
-        {console.debug("Dentro de return")}
             <h1 id="page-title" className="content__title">Modificar criterios de evaluación</h1>
             <form>
                 <table className="criteria-table">
@@ -166,7 +153,6 @@ export const ModificateCriterion = () => {
                         </tr>
                     </thead>
                     <tbody>
-                        {console.debug("Antes de criterias.map")}
                         {criterias.map((criteria, index) => {
                         const isEdited = editedCriterias[index];
 
@@ -236,7 +222,6 @@ export const ModificateCriterion = () => {
                                                     event.preventDefault();
                                                     const newCriterias = criterias.filter((_, i) => i !== index);
                                                     handleDeleteCriteria(index);
-                                                 //   console.log(criterias[index]);
                                                     setCriterias(newCriterias);
                                                 }}
                                             >
