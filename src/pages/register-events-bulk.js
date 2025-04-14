@@ -43,9 +43,11 @@ export function EventsBulkRegistering() {
 
     const history = useHistory();
 
-    // Redirige a la página de selección de cursada si todavía no se seleccionó una,
-    // o si se actualiza la página, ya que se pierde el contexto de la selección que
-    // se había hecho.
+    /**
+     * Redirige a la página de selección de cursada si todavía no se seleccionó una,
+     * o si se actualiza la página, ya que se pierde el contexto de la selección que
+     * se había hecho.
+     */
     useEffect(() => {
 
         // Si la variable de contexto, que contiene el código de cursada, está vacía,
@@ -146,8 +148,10 @@ export function EventsBulkRegistering() {
 
     }, [okList, notOkList, invalidRegistersList, tableManualUpdateTrigger]);
 
-    // Actualiza el mensaje de error que se mostrará al usuario cuando hay un nuevo
-    // mensaje.
+    /**
+     * Actualiza el mensaje de error que se mostrará al usuario cuando hay un nuevo
+     * mensaje.
+     */
     useEffect(() => {
 
         // Obtiene el contenedor principal del mensaje de error.
@@ -206,10 +210,13 @@ export function EventsBulkRegistering() {
 
             setError("El campo 'Rango de celdas a cargar' no puede estar vacío.");
 
+        // Notifica al usuario si el rango de celdas no tiene formato válido.
         } else if (!cellRangeName.match("[A-Z]+[0-9]+:[A-Z]+[0-9]+")) {
 
             setError("El campo 'Rango de celdas a cargar' no tiene un formato válido; debe ser '&lt;letras&gt;&lt;números&gt;:&lt;letras&gt;&lt;números&gt;'.");
 
+        // Condición que se cumple si se pasaron correctamente todas las validaciones de
+        // formato de los datos de entrada en la interfaz gráfica.
         } else {
 
             // Limpia el eventual mensaje de error que se encuentre en pantalla.
@@ -224,60 +231,54 @@ export function EventsBulkRegistering() {
                 "obligatory",
             ]);
 
-            // Agrega, al rango de celdas leído, el número de fila como identificador temporal.
-
-
             // Obtiene el rango seleccionado del Excel.
             let readRange = spreadsheetManipulator.getLastReadRange();
 
-            // Verifica los registros con formato incorrecto y los separa.
+            // Verifica los registros del Excel con formato incorrecto y los separa.
             let validFormatRange = [];
             let invalidFormatRange = [];
             readRange.data.forEach(row => {
 
-                //try {
-                    let invalidFormat = false;
-                    var dateRegex = new RegExp("^\\d{2}/\\d{2}/\\d{4} \\d{2}:\\d{2}$");
+                let invalidFormat = false;
+                var dateRegex = new RegExp("^\\d{2}/\\d{2}/\\d{4} \\d{2}:\\d{2}$");
 
-                    // Verifica si el formato del tipo de clase es correcto.
-                    if (
-                        typeof row.eventTypeId !== 'number'
-                        ||
-                        row.eventTypeId <= 0
-                    ) {
-                        row.formatInfo = "El tipo de evento debe ser un valor numérico mayor a cero."
-                        invalidFormat = true;
-                    }
+                // Verifica si el formato del tipo de clase es correcto.
+                if (
+                    typeof row.eventTypeId !== 'number'
+                    ||
+                    row.eventTypeId <= 0
+                ) {
+                    row.formatInfo = "El tipo de evento debe ser un valor numérico mayor a cero."
+                    invalidFormat = true;
+                }
 
-                    // Verifica si el formato de los campos de fecha y hora son correctos.
-                    else if (!dateRegex.test(String(row.initialDatetime).trim())) {
-                        row.formatInfo = "El campo de fecha y hora inicial debe tener el formato DD/MM/AAAA HH:MM.";
-                        invalidFormat = true;
-                    } else if (!dateRegex.test(String(row.endDatetime).trim())) {
-                        row.formatInfo = "El campo de fecha y hora final debe tener el formato DD/MM/AAAA HH:MM.";
-                        invalidFormat = true;
-                    }
-                    
-                    // Verifica si el formato del campo que indica la obligatoriedad tiene un formato correcto.
-                    else if (
-                        typeof row.obligatory !== 'string'
-                        || (
-                            row.obligatory !== ""
-                            && row.obligatory.toLowerCase() !== "x"
-                        )
-                    ) {
-                        row.formatInfo = "El campo que indica si la clase es obligatoria debe estar marcada por una 'x' o debe estar vacía.";
-                        invalidFormat = true;
-                    }
-
-                    // Separa los registros con formato válido de los que tienen formato inválido.
-                    if (invalidFormat) {
-                        invalidFormatRange.push(row);
-                    } else {
-                        validFormatRange.push(row);
-                    }
+                // Verifica, si se ingresaron los valores de fecha y hora, si el formato es correcto.
+                else if (String(row.initialDatetime).trim() !== "" && !dateRegex.test(String(row.initialDatetime).trim())) {
+                    row.formatInfo = "El campo de fecha y hora inicial debe tener el formato DD/MM/AAAA HH:MM.";
+                    invalidFormat = true;
+                } else if (String(row.endDatetime).trim() !== "" && !dateRegex.test(String(row.endDatetime).trim())) {
+                    row.formatInfo = "El campo de fecha y hora final debe tener el formato DD/MM/AAAA HH:MM.";
+                    invalidFormat = true;
+                }
                 
-                //} catch (e) {console.error(e)}
+                // Verifica si el formato del campo que indica la obligatoriedad tiene un formato correcto.
+                else if (
+                    typeof row.obligatory !== 'string'
+                    || (
+                        row.obligatory !== ""
+                        && row.obligatory.toLowerCase() !== "x"
+                    )
+                ) {
+                    row.formatInfo = "El campo que indica si la clase es obligatoria debe estar marcada por una 'x' o debe estar vacía.";
+                    invalidFormat = true;
+                }
+
+                // Separa los registros con formato válido de los que tienen formato inválido.
+                if (invalidFormat) {
+                    invalidFormatRange.push(row);
+                } else {
+                    validFormatRange.push(row);
+                }
 
             });
 
@@ -298,22 +299,35 @@ export function EventsBulkRegistering() {
                         eventTempId: element._row,
                         eventTypeId: element.eventTypeId,
                         eventTypeName: element.eventName.trim(),
+
+                        // Si la fecha inicial no fue ingresada, deja el campo vacío;
+                        // si fue ingresada, formatea el campo para el envío al back.
                         initialDatetime: 
-                            element.initialDatetime.substring(6, 10) +
-                            "-" +
-                            element.initialDatetime.substring(3, 5) +
-                            "-" +
-                            element.initialDatetime.substring(0, 2) +
-                            "T" +
-                            element.initialDatetime.substring(11, 16),
+                            String(element.initialDatetime).trim() !== ""
+                            ? (
+                                element.initialDatetime.substring(6, 10) +
+                                "-" +
+                                element.initialDatetime.substring(3, 5) +
+                                "-" +
+                                element.initialDatetime.substring(0, 2) +
+                                "T" +
+                                element.initialDatetime.substring(11, 16)
+                            ) : null,
+                        
+                        // Si la fecha final no fue ingresada, deja el campo vacío;
+                        // si fue ingresada, formatea el campo para el envío al back.
                         endDatetime:
+                            String(element.endDatetime).trim() !== ""
+                        ? (
                             element.endDatetime.substring(6, 10) +
                             "-" +
                             element.endDatetime.substring(3, 5) +
                             "-" +
                             element.endDatetime.substring(0, 2) +
                             "T" +
-                            element.endDatetime.substring(11, 16),
+                            element.endDatetime.substring(11, 16)
+                        ) : null,
+
                         obligatory: element.obligatory.toLowerCase() == "x" ? true : false
                     }
                 });
@@ -368,8 +382,14 @@ export function EventsBulkRegistering() {
                                 // Une la información traída del back con la que se cargó del Excel.
                                 eventInfo.eventTypeId = eventLoadedData.eventTypeId;
                                 eventInfo.eventName = eventLoadedData.eventName.trim();
-                                eventInfo.initialDatetime = eventLoadedData.initialDatetime;
-                                eventInfo.endDatetime = eventLoadedData.endDatetime;
+                                eventInfo.initialDatetime =
+                                    String(eventLoadedData.initialDatetime).trim() !== ""
+                                    ? eventLoadedData.initialDatetime
+                                    : '-';
+                                eventInfo.endDatetime =
+                                    String(eventLoadedData.endDatetime).trim() !== ""
+                                    ? eventLoadedData.endDatetime
+                                    : '-';
                                 eventInfo.obligatory = eventLoadedData.obligatory;
 
                                 // Agrega el estado de registración en sistema.
@@ -468,22 +488,35 @@ export function EventsBulkRegistering() {
                     eventTempId: eventCreationInfo.eventTempId,
                     eventTypeId: eventCreationInfo.eventTypeId,
                     eventName: eventCreationInfo.eventName,
-                    initialDatetime: 
+
+                    // Si la fecha inicial no fue ingresada, deja el campo vacío;
+                    // si fue ingresada, formatea el campo para el envío al back.
+                    initialDatetime:
+                        eventCreationInfo.initialDatetime !== "-"
+                        ? ( 
                             eventCreationInfo.initialDatetime.substring(6, 10) +
                             "-" +
                             eventCreationInfo.initialDatetime.substring(3, 5) +
                             "-" +
                             eventCreationInfo.initialDatetime.substring(0, 2) +
                             "T" +
-                            eventCreationInfo.initialDatetime.substring(11, 16),
+                            eventCreationInfo.initialDatetime.substring(11, 16)
+                        ) : null,
+
+                    // Si la fecha final no fue ingresada, deja el campo vacío;
+                    // si fue ingresada, formatea el campo para el envío al back.
                     endDatetime:
+                        eventCreationInfo.endDatetime !== "-"
+                        ? (
                             eventCreationInfo.endDatetime.substring(6, 10) +
                             "-" +
                             eventCreationInfo.endDatetime.substring(3, 5) +
                             "-" +
                             eventCreationInfo.endDatetime.substring(0, 2) +
                             "T" +
-                            eventCreationInfo.endDatetime.substring(11, 16),
+                            eventCreationInfo.endDatetime.substring(11, 16)
+                        ) : null,
+
                     obligatory: eventCreationInfo.obligatory.toLowerCase() == 'x' ? true : false
                 }
             });

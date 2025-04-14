@@ -42,7 +42,6 @@ export function EventRegistering() {
             fechaInicio: fechaInicio,
             fechaFin: fechaFin,
         };
-        console.log(data);
 
         fetch(`${process.env.REACT_APP_API_SERVER_URL}/api/v1/events/create`, {
             method: "POST",

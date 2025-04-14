@@ -58,12 +58,10 @@ export const ChangePasswordForm = () => {
       },
       (err, resp) => {
         if (err) {
-          console.log(err.message);
           setFinalMessage(
             "No se pudo enviar el mail. Intente nuevamente más tarde, o contáctese con su administrador."
           );
         } else {
-          console.log(resp);
           setFinalMessage(
             "Se envío el mail para el cambio de contraseña a su casilla. Por favor, verifíquela."
           );

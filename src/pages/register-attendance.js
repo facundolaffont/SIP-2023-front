@@ -105,51 +105,59 @@ export function AttendanceRegistering() {
                     eventsSelect.appendChild(listFirstElement);
                     eventsList.data.eventList.forEach(eventElement => {
                         const listElement = document.createElement("option");
-                        const initialDate =
-                            Intl.DateTimeFormat(
-                                'es-AR',
-                                {
-                                    weekday: 'short',
-                                    day: '2-digit',
-                                    month: '2-digit',
-                                    year: '2-digit',
-                                }
-                            ).format(new Date(eventElement.initialDateTime));
-                        const initialTime = 
-                            Intl.DateTimeFormat(
-                                'es-AR',
-                                {
-                                    hour: '2-digit',
-                                    minute: '2-digit',
-                                }
-                            ).format(new Date(eventElement.initialDateTime));
-                        const endDate =
-                            Intl.DateTimeFormat(
-                                'es-AR',
-                                {
-                                    weekday: 'short',
-                                    day: '2-digit',
-                                    month: '2-digit',
-                                    year: '2-digit',
-                                }
-                            ).format(new Date(eventElement.endDateTime));
-                        const endTime = 
-                            Intl.DateTimeFormat(
-                                'es-AR',
-                                {
-                                    hour: '2-digit',
-                                    minute: '2-digit',
-                                }
-                            ).format(new Date(eventElement.endDateTime));
-                        const dateTimeString =
-                            initialDate.valueOf() === endDate.valueOf()
-                            ? `${initialDate} de ${initialTime} a ${endTime}`
-                            : `${initialDate} ${initialTime} - ${endDate} ${endTime}`;
+
+                        // Construye el string que contendrá el rango de fechas, solamente si ambas fechas
+                        // fueron ingresadas en la carga del evento; o será una cadena vacía, si alguna
+                        // de las fechas no fue ingresada.
+                        let dateTimeString = "";
+                        if (eventElement.initialDateTime !== null && eventElement.endDateTime !== null) {
+                            const initialDate =
+                                Intl.DateTimeFormat(
+                                    'es-AR',
+                                    {
+                                        weekday: 'short',
+                                        day: '2-digit',
+                                        month: '2-digit',
+                                        year: '2-digit',
+                                    }
+                                ).format(new Date(eventElement.initialDateTime));
+                            const initialTime = 
+                                Intl.DateTimeFormat(
+                                    'es-AR',
+                                    {
+                                        hour: '2-digit',
+                                        minute: '2-digit',
+                                    }
+                                ).format(new Date(eventElement.initialDateTime));
+                            const endDate =
+                                Intl.DateTimeFormat(
+                                    'es-AR',
+                                    {
+                                        weekday: 'short',
+                                        day: '2-digit',
+                                        month: '2-digit',
+                                        year: '2-digit',
+                                    }
+                                ).format(new Date(eventElement.endDateTime));
+                            const endTime = 
+                                Intl.DateTimeFormat(
+                                    'es-AR',
+                                    {
+                                        hour: '2-digit',
+                                        minute: '2-digit',
+                                    }
+                                ).format(new Date(eventElement.endDateTime));
+                            dateTimeString =
+                                initialDate.valueOf() === endDate.valueOf()
+                                ? `: ${initialDate} de ${initialTime} a ${endTime}`
+                                : `: ${initialDate} ${initialTime} - ${endDate} ${endTime}`;
+                        }
+                        
                         let mandatoryString;
                         if (eventElement.mandatory) mandatoryString = 'Asistencia obligatoria'
                         else mandatoryString = 'Asistencia no obligatoria';
                         const eventDescription = 
-                              `${eventElement.type} (${mandatoryString}): ${dateTimeString}`;
+                              `${eventElement.type} (${mandatoryString})${dateTimeString}`;
                         listElement.innerHTML = eventDescription;
                         listElement.value = eventElement.eventId;
                         eventsSelect.appendChild(listElement);
