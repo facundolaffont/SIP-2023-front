@@ -104,7 +104,14 @@ export function AttendanceRegistering() {
                     listFirstElement.value = 0;
                     eventsSelect.appendChild(listFirstElement);
                     eventsList.data.eventList.forEach(eventElement => {
+
                         const listElement = document.createElement("option");
+
+                        // Contruye el string que contendrá el nombre del evento, solamente si se ingresó un nombre
+                        // al momento de dar de alta el evento.
+                        let nameString = '';
+                        if (eventElement.name !== null)
+                            nameString = `"${eventElement.name}" `;
 
                         // Construye el string que contendrá el rango de fechas, solamente si ambas fechas
                         // fueron ingresadas en la carga del evento; o será una cadena vacía, si alguna
@@ -156,8 +163,10 @@ export function AttendanceRegistering() {
                         let mandatoryString;
                         if (eventElement.mandatory) mandatoryString = 'Asistencia obligatoria'
                         else mandatoryString = 'Asistencia no obligatoria';
+
                         const eventDescription = 
-                              `${eventElement.type} "${eventElement.name}" (${mandatoryString})${dateTimeString}`;
+                              `${eventElement.type} ${nameString}(${mandatoryString})${dateTimeString}`;
+
                         listElement.innerHTML = eventDescription;
                         listElement.value = eventElement.eventId;
                         eventsSelect.appendChild(listElement);
