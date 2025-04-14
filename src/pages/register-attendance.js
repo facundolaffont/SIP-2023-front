@@ -157,7 +157,7 @@ export function AttendanceRegistering() {
                         if (eventElement.mandatory) mandatoryString = 'Asistencia obligatoria'
                         else mandatoryString = 'Asistencia no obligatoria';
                         const eventDescription = 
-                              `${eventElement.type} (${mandatoryString})${dateTimeString}`;
+                              `${eventElement.type} "${eventElement.name}" (${mandatoryString})${dateTimeString}`;
                         listElement.innerHTML = eventDescription;
                         listElement.value = eventElement.eventId;
                         eventsSelect.appendChild(listElement);
