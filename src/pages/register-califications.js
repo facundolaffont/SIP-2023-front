@@ -144,7 +144,7 @@ export function CalificationRegistering() {
                         }
 
                         const eventDescription = 
-                            `${eventElement.type}${dateTimeString}`;
+                            `${eventElement.type} "${eventElement.name}"${dateTimeString}`;
                         listElement.innerHTML = eventDescription;
                         listElement.value = eventElement.eventId;
                         eventsSelect.appendChild(listElement);
