@@ -57,6 +57,7 @@ export const ListCourseEvents = () => {
                 columnNames: [
                     "eventId:ID",
                     "type:Tipo de evento",
+                    "name:Nombre de evento",
                     "initialDateTime:Fecha-Hora Inicio",
                     "endDateTime: Fecha-Hora Fin",
                     "mandatory:Obligatorio",
@@ -241,6 +242,7 @@ export const ListCourseEvents = () => {
                     return {
                         eventId: event.eventId,
                         type: event.type,
+                        name: event.name,
                         initialDateTime:
                             event.initialDateTime !== null
                             ? (
