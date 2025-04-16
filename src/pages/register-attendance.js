@@ -338,8 +338,7 @@ export function AttendanceRegistering() {
     }
 
     /**
-     * Carga los nombres de pestaña para que sean seleccionados
-     * (HU002.007.001/CU01.1b).
+     * Carga los nombres de pestaña para que sean seleccionados.
      */
     const loadSheetNames = () => {
         
@@ -474,13 +473,6 @@ export function AttendanceRegistering() {
                 ) {
                     row.formatInfo = "El legajo no es un entero positivo.";
                     invalidFormat = true;
-                } else if (!(
-                    row.attendance.trim() === ''
-                    ||
-                    row.attendance.toLowerCase() === 'x'
-                )) {
-                    row.formatInfo = "El campo de asistencia debe estar vacío o debe contener el valor 'x'.";
-                    invalidFormat = true;
                 }
 
                 // Separa los registros con formato válido de los que tienen formato inválido.
@@ -511,7 +503,6 @@ export function AttendanceRegistering() {
                     throw error;
                 });
 
-            // HU002.007.001/CU01.2.
             // Envía el ID del evento junto a la lista de legajos para ser verificados.
             const studentsCheckedInfo = await axios
                 .post(
@@ -537,12 +528,15 @@ export function AttendanceRegistering() {
 
             } else {
 
-                // HU002.007.001/1d.D.1
+                // Permite que, cuando se renueve el ciclo de React, se muestren
+                // los registros con formato inválido.
                 setInvalidRegistersList(
                     invalidFormatRange
                 );
 
-                // 4
+                // Permite que, cuando se renueve el ciclo de React, se muestren
+                // los registros con formato válido que, además, pasaron el control
+                // en el backend.
                 setOkStudentsList(
                     studentsCheckedInfo.data.ok.map(
                         student => {
@@ -557,7 +551,10 @@ export function AttendanceRegistering() {
                             studentInfo.dossier = student.dossier;
                             studentInfo.id = student.id;
                             studentInfo.name = student.name;
-                            studentInfo.attendance = studentLoadedData.attendance;
+                            studentInfo.attendance =
+                                String(studentLoadedData.attendance).trim() !== ''
+                                ? 'x'
+                                : '';
                             studentInfo._row = studentLoadedData._row;
 
                             // Agrega el estado de registración en sistema.
@@ -569,7 +566,8 @@ export function AttendanceRegistering() {
                     )
                 );
 
-                // 3.A.1; 3.B.1
+                // Luego del ciclo React, muestra los registros que no pasaron
+                // el control en el backend.
                 if(studentsCheckedInfo.data.nok !== undefined) {
                     setNotOkStudentsList(
                         studentsCheckedInfo.data.nok.map(
@@ -624,8 +622,7 @@ export function AttendanceRegistering() {
                 throw error;
             });
 
-        // Realiza la solicitud al endpoint para registrar la calificación
-        // (HU002.007.001/CU01.6).
+        // Realiza la solicitud al endpoint para registrar la calificación.
         const response = await axios
             .post(
                 `${process.env.REACT_APP_API_SERVER_URL}/api/v1/course/register-attendance`,
@@ -642,19 +639,15 @@ export function AttendanceRegistering() {
             .then(response => response)
             .catch(error => error);
 
-        // 6.A
+        // Si el código HTML no fue OK...
         if (response.status !== 200) {
             
-            // 6.A.1
             // Guarda el mensaje de error traído del back al usuario y,
             // en el próximo renderizado, se mostrará el mensaje.
             setError("Hubo un error. Por favor, contactarse con Soporte Técnico.");
 
+        // Si el código HTML fue OK...
         } else {
-            
-            // 3
-            // El front inserta un símbolo en la primera columna de cada registro para indicar
-            // que se registró en el sistema. [usar okStudentsList y notOkStudentsList]
 
             // Actualiza la información de los estudiantes que se registraron correctamente.
             response.data.ok.forEach(registeredStudentDossier => {
