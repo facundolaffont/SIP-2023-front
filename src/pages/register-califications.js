@@ -623,12 +623,14 @@ export function CalificationRegistering() {
             .then(response => response)
             .catch(error => error);
 
+        // Si la respuesta del backend no fue satisfactoria...
         if (response.status !== 200) {
             
             // Guarda el mensaje de error traído del back al usuario y,
             // en el próximo renderizado, se mostrará el mensaje.
             setError("Hubo un error. Por favor, contactarse con Soporte Técnico.");
 
+        // Si la respuesta del backend fue satisfactoria...
         } else {
             
             // El front inserta un símbolo en la primera columna de cada registro para indicar

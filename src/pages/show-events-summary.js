@@ -196,6 +196,7 @@ export const ShowEventsSummary = () => {
                     columnNames: [
                         "eventId:ID de evento",
                         "eventType:Tipo de evento",
+                        "eventName:Nombre",
                         "initialDatetime:Fecha de inicio",
                         "endDatetime:Fecha de fin",
                         "obligatory:Obligatorio",
@@ -243,6 +244,7 @@ export const ShowEventsSummary = () => {
                     columnNames: [
                         "eventId:ID de evento",
                         "eventType:Tipo de evento",
+                        "eventName:Nombre",
                         "initialDatetime:Fecha de inicio",
                         "endDatetime:Fecha de fin",
                         "obligatory:Obligatorio",
