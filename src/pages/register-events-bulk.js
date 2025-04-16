@@ -298,7 +298,7 @@ export function EventsBulkRegistering() {
                     return {
                         eventTempId: element._row,
                         eventTypeId: element.eventTypeId,
-                        eventTypeName: element.eventName.trim(),
+                        eventTypeName: String(element.eventName).trim(),
 
                         // Si la fecha inicial no fue ingresada, deja el campo vacío;
                         // si fue ingresada, formatea el campo para el envío al back.
@@ -381,7 +381,7 @@ export function EventsBulkRegistering() {
 
                                 // Une la información traída del back con la que se cargó del Excel.
                                 eventInfo.eventTypeId = eventLoadedData.eventTypeId;
-                                eventInfo.eventName = eventLoadedData.eventName.trim();
+                                eventInfo.eventName = String(eventLoadedData.eventName).trim();
                                 eventInfo.initialDatetime =
                                     String(eventLoadedData.initialDatetime).trim() !== ""
                                     ? eventLoadedData.initialDatetime
