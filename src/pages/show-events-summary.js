@@ -38,7 +38,17 @@ export const ShowEventsSummary = () => {
     const [approvalData, setApprovalData] = useState({});
     const [approvalPiechartColorScale, setApprovalPiechartColorScale] = useState([]);
 
-    // Inicializa el objeto que manipula las planillas.
+    function isApprovalDataEmpty(obj) {
+        for (const prop in obj) {
+            if (Object.hasOwn(obj, prop)) {
+            return false;
+            }
+        }
+        
+        return true;
+    }
+
+    // 1. Inicializa el objeto que manipula las planillas.
     useState(() => {
         setSpreadsheetManipulator(new SpreadsheetManipulator());
     }, []);
@@ -205,7 +215,6 @@ export const ShowEventsSummary = () => {
                         "notAttended:Ausentes",
                         "notAttendedPercentage:%",
                         "missingRegisters:Sin registro",
-                        "missingRegistersPercentage:%",
                     ],
                     columnClasses: [
                         "obligatory:centered",
@@ -214,14 +223,12 @@ export const ShowEventsSummary = () => {
                         "notAttended:centered",
                         "notAttendedPercentage:centered",
                         "missingRegisters:centered",
-                        "missingRegistersPercentage:centered",
                     ],
                     onClickEventHandler: updateClassPiechart,
                     onClickEventHandlerParameters: [
                         "eventId", "eventType",
                         "attended", "attendedPercentage",
-                        "notAttended", "notAttendedPercentage",
-                        "missingRegisters", "missingRegistersPercentage"
+                        "notAttended", "notAttendedPercentage"
                     ],
                 },
                 "Resumen de asistencias."
@@ -255,7 +262,6 @@ export const ShowEventsSummary = () => {
                         "nonAttendingStudents:Ausentes",
                         "nonAttendingStudentsPercentage:%",
                         "missingRegisters:Sin registro",
-                        "missingRegistersPercentage:%",
                     ],
                     columnClasses: [
                         "obligatory:centered",
@@ -266,7 +272,6 @@ export const ShowEventsSummary = () => {
                         "nonAttendingStudents:centered",
                         "nonAttendingStudentsPercentage:centered",
                         "missingRegisters:centered",
-                        "missingRegistersPercentage:centered",
                     ],
                     onClickEventHandler: updateEvaluationPiechart,
                     onClickEventHandlerParameters: [
@@ -274,7 +279,6 @@ export const ShowEventsSummary = () => {
                         "approvedStudents", "approvedStudentsPercentage",
                         "disapprovedStudents", "disapprovedStudentsPercentage",
                         "nonAttendingStudents", "nonAttendingStudentsPercentage",
-                        "missingRegisters", "missingRegistersPercentage"
                     ],
                 },
                 "Resumen de evaluaciones."
@@ -287,8 +291,8 @@ export const ShowEventsSummary = () => {
     /**
      * Actualiza el gráfico de torta de asistencias.
      */
-    useEffect(() => {
-        
+    useEffect(() => { console.debug('debug');
+
         let elementsToGraph = [];
         let colorScale = [];
         
@@ -331,8 +335,8 @@ export const ShowEventsSummary = () => {
     /**
      * Actualiza el gráfico de torta de calificaciones.
      */
-    useEffect(() => {
-        
+    useEffect(() => { console.debug('debug');
+
         let elementsToGraph = [];
         let colorScale = [];
         if(
@@ -396,10 +400,12 @@ export const ShowEventsSummary = () => {
      * Cambia los valores del gráfico de torta de los eventos de clase y
      * lo muestra en pantalla.
      * 
+     * Si el evento seleccionado no tiene datos, esconde el gráfico.
+     * 
      * @param {number} classAttendingData 
      * @param {number} classNonAttendingData 
      * @param {number} classNoRegisterData
-     */
+     */ 
     const updateClassPiechart = (
         eventId,
         eventType,
@@ -407,32 +413,47 @@ export const ShowEventsSummary = () => {
         classAttendingPercentage,
         classNonAttendingQuantity,
         classNonAttendingPercentage,
-        classNoRegisterQuantity,
-        classNoRegisterPercentage,
-    ) => {
+    ) => { console.debug('debug');
 
-        let attendanceData = {
-            classAttendingQuantity,
-            classAttendingPercentage,
-
-            classNonAttendingQuantity,
-            classNonAttendingPercentage,
-
-            classNoRegisterQuantity,
-            classNoRegisterPercentage,
-        }
-
-        setAttendancePiechartTitle(eventType + " (ID " + eventId + ")");
-        setAttendanceData(attendanceData);
-
+        // Obtiene el manejador del gráfico de torta.
         const piechart = document.getElementById("attendancePiechart");
-        piechart.classList.remove("not-displayed");
+
+        /**
+         * Establece el objeto, con las cantidades y porcentajes, que se
+         * pasará al gráfico de torta para que se actualice, y lo muestra
+         * en pantalla, si el evento seleccionado tiene datos.
+         * 
+         * Si el evento seleccionado no tiene datos, no actualiza nada
+         * y esconde el gráfico de torta.
+         */
+        let attendanceData;
+        if (!(
+            classAttendingQuantity == 0
+            && classNonAttendingQuantity == 0
+        )) {
+
+            attendanceData = {
+                classAttendingQuantity,
+                classAttendingPercentage,
+
+                classNonAttendingQuantity,
+                classNonAttendingPercentage,
+            };
+
+            setAttendancePiechartTitle(eventType + " (ID " + eventId + ")");
+            setAttendanceData(attendanceData);
+
+            piechart.classList.remove("not-displayed");
+
+        } else piechart.classList.add("not-displayed");
 
     }
 
     /**
      * Cambia los valores del gráfico de torta de los eventos de evaluación y
      * lo muestra en pantalla.
+     * 
+     * Si el evento seleccionado no tiene datos, esconde el gráfico.
      * 
      * @param {String} evaluationEventApprovedData
      * @param {String} evaluationEventDisapprovedData
@@ -447,30 +468,44 @@ export const ShowEventsSummary = () => {
         evaluationEventDisapprovedQuantity,
         evaluationEventDisapprovedPercentage,
         evaluationEventNonAttendingQuantity,
-        evaluationEventNonAttendingPercentage,
-        evaluationEventNoRegisterQuantity,
-        evaluationEventNoRegisterPercentage
-    ) => {
+        evaluationEventNonAttendingPercentage
+    ) => { console.debug('debug');
 
-        let approvalData = {
-            evaluationEventApprovedQuantity,
-            evaluationEventApprovedPercentage,
-
-            evaluationEventDisapprovedQuantity,
-            evaluationEventDisapprovedPercentage,
-
-            evaluationEventNonAttendingQuantity,
-            evaluationEventNonAttendingPercentage,
-
-            evaluationEventNoRegisterQuantity,
-            evaluationEventNoRegisterPercentage,
-        };
-
-        setApprovalPiechartTitle(eventType + " (ID " + eventId + ")");
-        setApprovalData(approvalData);
-
+        // Obtiene el manejador del gráfico de torta.
         const piechart = document.getElementById("approvalPiechart");
-        piechart.classList.remove("not-displayed");
+
+        /**
+         * Establece el objeto, con las cantidades y porcentajes, que se
+         * pasará al gráfico de torta para que se actualice, y lo muestra
+         * en pantalla, si el evento seleccionado tiene datos.
+         * 
+         * Si el evento seleccionado no tiene datos, no actualiza nada
+         * y esconde el gráfico de torta.
+         */
+        let approvalData;
+        if (!(
+            evaluationEventApprovedQuantity == 0
+            && evaluationEventDisapprovedQuantity == 0
+            && evaluationEventNonAttendingQuantity == 0
+        )) {
+            
+            approvalData = {
+                evaluationEventApprovedQuantity,
+                evaluationEventApprovedPercentage,
+
+                evaluationEventDisapprovedQuantity,
+                evaluationEventDisapprovedPercentage,
+
+                evaluationEventNonAttendingQuantity,
+                evaluationEventNonAttendingPercentage,
+            };
+
+            setApprovalPiechartTitle(eventType + " (ID " + eventId + ")");
+            setApprovalData(approvalData);
+
+            piechart.classList.remove("not-displayed");
+
+        } else piechart.classList.add("not-displayed");
 
     }
 
