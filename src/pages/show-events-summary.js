@@ -226,7 +226,7 @@ export const ShowEventsSummary = () => {
                     ],
                     onClickEventHandler: updateClassPiechart,
                     onClickEventHandlerParameters: [
-                        "eventId", "eventType",
+                        "eventId", "eventType", "eventName",
                         "attended", "attendedPercentage",
                         "notAttended", "notAttendedPercentage"
                     ],
@@ -275,7 +275,7 @@ export const ShowEventsSummary = () => {
                     ],
                     onClickEventHandler: updateEvaluationPiechart,
                     onClickEventHandlerParameters: [
-                        "eventId", "eventType",
+                        "eventId", "eventType", "eventName",
                         "approvedStudents", "approvedStudentsPercentage",
                         "disapprovedStudents", "disapprovedStudentsPercentage",
                         "nonAttendingStudents", "nonAttendingStudentsPercentage",
@@ -409,6 +409,7 @@ export const ShowEventsSummary = () => {
     const updateClassPiechart = (
         eventId,
         eventType,
+        eventName,
         classAttendingQuantity,
         classAttendingPercentage,
         classNonAttendingQuantity,
@@ -435,12 +436,11 @@ export const ShowEventsSummary = () => {
             attendanceData = {
                 classAttendingQuantity,
                 classAttendingPercentage,
-
                 classNonAttendingQuantity,
                 classNonAttendingPercentage,
             };
 
-            setAttendancePiechartTitle(eventType + " (ID " + eventId + ")");
+            setAttendancePiechartTitle(`${eventType} "${eventName}" (ID ${eventId})"`);
             setAttendanceData(attendanceData);
 
             piechart.classList.remove("not-displayed");
@@ -463,6 +463,7 @@ export const ShowEventsSummary = () => {
     const updateEvaluationPiechart = (
         eventId,
         eventType,
+        eventName,
         evaluationEventApprovedQuantity,
         evaluationEventApprovedPercentage,
         evaluationEventDisapprovedQuantity,
@@ -500,7 +501,7 @@ export const ShowEventsSummary = () => {
                 evaluationEventNonAttendingPercentage,
             };
 
-            setApprovalPiechartTitle(eventType + " (ID " + eventId + ")");
+            setApprovalPiechartTitle(`${eventType} "${eventName}" (ID ${eventId})"`);
             setApprovalData(approvalData);
 
             piechart.classList.remove("not-displayed");
