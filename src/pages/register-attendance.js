@@ -23,16 +23,17 @@ export function AttendanceRegistering() {
     const [sheetNameValue, setSheetNameValue] = useState('');
     const [cellRangeName, setCellRangeName] = useState('');
 
+    const [registerButtonEnabled, setRegisterButtonEnabled] = useState(true);
+
     const [eventId, setEventId] = useState(0);
     const [eventDescription, setEventDescription] = useState('');
     const [selectedEvent, setSelectedEvent] = useState(null);
     
     const [okStudentsList, setOkStudentsList] = useState([]);
     const [notOkStudentsList, setNotOkStudentsList] = useState([]);
+    const [invalidRegistersList, setInvalidRegistersList] = useState([]);
 
     const [tableManualUpdateTrigger, setTableManualUpdateTrigger] = useState(true);
-
-    const [invalidRegistersList, setInvalidRegistersList] = useState([]);
 
     const [error, setError] = useState(null);
 
@@ -42,148 +43,163 @@ export function AttendanceRegistering() {
 
     const history = useHistory();
 
-    // Obtiene la lista de eventos de la cursada.
-    useEffect(() => {
+    // Condición que se cumple si todavía no se seleccionó una cursada, o
+    // si se actualiza la página, ya que se pierde el contexto de la
+    // selección que se había hecho.
+    useEffect(() => { console.debug("debug");
 
-        // Condición que se cumple cuando todavía no se seleccionó una cursada o si se
-        // actualiza la página, ya que se pierde el contexto de la selección que
-        // se había hecho.
-        if (course === null) {
+        // Redirige a la página de selección de cursada.
+        if (course === null) history.push('/profile?course-missing');
 
-            // Redirige al usuario a la página de selección de cursada.
-            history.push('/profile?course-missing');
+    }, []);
 
-        // Obtiene la lista de eventos de la cursada y actualiza el campo de selección de cursada.
+    // Actualiza el estado del botón de registración.
+    useEffect(() => { console.debug("debug");
+
+        // Obtiene el manejador del botón de registración.
+        const registerButton = document.getElementsByClassName("register-button")[0];
+
+        // Habilita el botón de registración.
+        if (registerButtonEnabled) {
+            registerButton.disabled = false;
+            registerButton.classList.remove("disabled");
+        
+        // Inhabilita el botón de registración.
         } else {
+            registerButton.disabled = true;
+            registerButton.classList.add("disabled");
+        }
 
-            // Obtiene los eventos de la cursada.
-            const getEventsList = async () => {
+    }, [registerButtonEnabled]);
+    
+    // Obtiene la lista de eventos de la cursada.
+    useEffect(() => { console.debug("debug");
 
-                // Obtiene el token Auth0.
-                const auth0Token = await getAccessTokenSilently()
-                .catch(error => {
-                    throw error;
+        const getEventsList = async () => {
+
+            // Obtiene el token Auth0.
+            const auth0Token = await getAccessTokenSilently()
+            .catch(error => {
+                throw error;
+            });
+
+            // Obtiene los eventos.
+            const eventsList = await axios.get(
+                `${process.env.REACT_APP_API_SERVER_URL}/api/v1/course/get-class-events`,
+                {
+                    params: {
+                        'course-id': course.getId(),
+                    },
+                    headers: {
+                        Authorization: `Bearer ${auth0Token}`,
+                    },
+                }
+            );
+
+            // Condición que se cumple cuando el resultado de la petición HTTP no fue
+            // existoso.
+            if (eventsList.status !== 200) {
+            
+                // Guarda el mensaje de error traído del back al usuario, y
+                // en el próximo renderizado se mostrará el mensaje.
+                setError("Hubo un error. Por favor, contactarse con Soporte Técnico.");
+
+            // Condición que se cumple cuando la cursada no tiene eventos asociados.
+            } else if (eventsList.data.eventList.length === 0) {
+
+                // Redirige a la página de creación de eventos.
+                history.push('/profile?no-events');
+
+            } else {
+
+                // Carga los eventos en la lista de selección.
+                let eventsSelect = document.getElementById("events-select");
+                while (eventsSelect.firstChild) {
+                    eventsSelect.removeChild(eventsSelect.firstChild);
+                }
+                const listFirstElement = document.createElement("option");
+                listFirstElement.innerHTML = "SELECCIONAR EVENTO";
+                listFirstElement.value = 0;
+                eventsSelect.appendChild(listFirstElement);
+                eventsList.data.eventList.forEach(eventElement => {
+
+                    const listElement = document.createElement("option");
+
+                    // Contruye el string que contendrá el nombre del evento, solamente si se ingresó un nombre
+                    // al momento de dar de alta el evento.
+                    let nameString = '';
+                    if (eventElement.name !== null)
+                        nameString = `"${eventElement.name}" `;
+
+                    // Construye el string que contendrá el rango de fechas, solamente si ambas fechas
+                    // fueron ingresadas en la carga del evento; o será una cadena vacía, si alguna
+                    // de las fechas no fue ingresada.
+                    let dateTimeString = "";
+                    if (eventElement.initialDateTime !== null && eventElement.endDateTime !== null) {
+                        const initialDate =
+                            Intl.DateTimeFormat(
+                                'es-AR',
+                                {
+                                    weekday: 'short',
+                                    day: '2-digit',
+                                    month: '2-digit',
+                                    year: '2-digit',
+                                }
+                            ).format(new Date(eventElement.initialDateTime));
+                        const initialTime = 
+                            Intl.DateTimeFormat(
+                                'es-AR',
+                                {
+                                    hour: '2-digit',
+                                    minute: '2-digit',
+                                }
+                            ).format(new Date(eventElement.initialDateTime));
+                        const endDate =
+                            Intl.DateTimeFormat(
+                                'es-AR',
+                                {
+                                    weekday: 'short',
+                                    day: '2-digit',
+                                    month: '2-digit',
+                                    year: '2-digit',
+                                }
+                            ).format(new Date(eventElement.endDateTime));
+                        const endTime = 
+                            Intl.DateTimeFormat(
+                                'es-AR',
+                                {
+                                    hour: '2-digit',
+                                    minute: '2-digit',
+                                }
+                            ).format(new Date(eventElement.endDateTime));
+                        dateTimeString =
+                            initialDate.valueOf() === endDate.valueOf()
+                            ? `: ${initialDate} de ${initialTime} a ${endTime}`
+                            : `: ${initialDate} ${initialTime} - ${endDate} ${endTime}`;
+                    }
+                    
+                    let mandatoryString;
+                    if (eventElement.mandatory) mandatoryString = 'Asistencia obligatoria'
+                    else mandatoryString = 'Asistencia no obligatoria';
+
+                    const eventDescription = 
+                            `${eventElement.type} ${nameString}(${mandatoryString})${dateTimeString}`;
+
+                    listElement.innerHTML = eventDescription;
+                    listElement.value = eventElement.eventId;
+                    eventsSelect.appendChild(listElement);
                 });
 
-                // Obtiene los eventos.
-                const eventsList = await axios.get(
-                    `${process.env.REACT_APP_API_SERVER_URL}/api/v1/course/get-class-events`,
-                    {
-                        params: {
-                            'course-id': course.getId(),
-                        },
-                        headers: {
-                            Authorization: `Bearer ${auth0Token}`,
-                        },
-                    }
-                );
-
-                // Condición que se cumple cuando el resultado de la petición HTTP no fue
-                // existoso.
-                if (eventsList.status !== 200) {
-                
-                    // Guarda el mensaje de error traído del back al usuario, y
-                    // en el próximo renderizado se mostrará el mensaje.
-                    setError("Hubo un error. Por favor, contactarse con Soporte Técnico.");
-    
-                // Condición que se cumple cuando la cursada no tiene eventos asociados.
-                } else if (eventsList.data.eventList.length === 0) {
-    
-                    // Redirige a la página de creación de eventos.
-                    history.push('/profile?no-events');
-    
-                } else {
-    
-                    // Carga los eventos en la lista de selección.
-                    let eventsSelect = document.getElementById("events-select");
-                    while (eventsSelect.firstChild) {
-                        eventsSelect.removeChild(eventsSelect.firstChild);
-                    }
-                    const listFirstElement = document.createElement("option");
-                    listFirstElement.innerHTML = "SELECCIONAR EVENTO";
-                    listFirstElement.value = 0;
-                    eventsSelect.appendChild(listFirstElement);
-                    eventsList.data.eventList.forEach(eventElement => {
-
-                        const listElement = document.createElement("option");
-
-                        // Contruye el string que contendrá el nombre del evento, solamente si se ingresó un nombre
-                        // al momento de dar de alta el evento.
-                        let nameString = '';
-                        if (eventElement.name !== null)
-                            nameString = `"${eventElement.name}" `;
-
-                        // Construye el string que contendrá el rango de fechas, solamente si ambas fechas
-                        // fueron ingresadas en la carga del evento; o será una cadena vacía, si alguna
-                        // de las fechas no fue ingresada.
-                        let dateTimeString = "";
-                        if (eventElement.initialDateTime !== null && eventElement.endDateTime !== null) {
-                            const initialDate =
-                                Intl.DateTimeFormat(
-                                    'es-AR',
-                                    {
-                                        weekday: 'short',
-                                        day: '2-digit',
-                                        month: '2-digit',
-                                        year: '2-digit',
-                                    }
-                                ).format(new Date(eventElement.initialDateTime));
-                            const initialTime = 
-                                Intl.DateTimeFormat(
-                                    'es-AR',
-                                    {
-                                        hour: '2-digit',
-                                        minute: '2-digit',
-                                    }
-                                ).format(new Date(eventElement.initialDateTime));
-                            const endDate =
-                                Intl.DateTimeFormat(
-                                    'es-AR',
-                                    {
-                                        weekday: 'short',
-                                        day: '2-digit',
-                                        month: '2-digit',
-                                        year: '2-digit',
-                                    }
-                                ).format(new Date(eventElement.endDateTime));
-                            const endTime = 
-                                Intl.DateTimeFormat(
-                                    'es-AR',
-                                    {
-                                        hour: '2-digit',
-                                        minute: '2-digit',
-                                    }
-                                ).format(new Date(eventElement.endDateTime));
-                            dateTimeString =
-                                initialDate.valueOf() === endDate.valueOf()
-                                ? `: ${initialDate} de ${initialTime} a ${endTime}`
-                                : `: ${initialDate} ${initialTime} - ${endDate} ${endTime}`;
-                        }
-                        
-                        let mandatoryString;
-                        if (eventElement.mandatory) mandatoryString = 'Asistencia obligatoria'
-                        else mandatoryString = 'Asistencia no obligatoria';
-
-                        const eventDescription = 
-                              `${eventElement.type} ${nameString}(${mandatoryString})${dateTimeString}`;
-
-                        listElement.innerHTML = eventDescription;
-                        listElement.value = eventElement.eventId;
-                        eventsSelect.appendChild(listElement);
-                    });
-    
-                }
-
             }
-            getEventsList()
-            .catch(error => error.response);
 
         }
+        getEventsList()
+        .catch(error => error.response);
 
     }, []);
 
     // Actualiza el mensaje de error que se mostrará al usuario.
-    useEffect(() => {
+    useEffect(() => { console.debug("debug");
 
         // Obtiene el contenedor principal del mensaje de error.
         const msgContainer = document.getElementsByClassName("info-msg-container")[0];
@@ -213,7 +229,7 @@ export function AttendanceRegistering() {
     }, [error]);
 
     // Actualiza las tablas.
-    useEffect(() => {
+    useEffect(() => { console.debug("debug");
 
         // Actualiza la tabla de registros con formato incorrecto.
         let notValidFormatTable = document.getElementsByClassName(
@@ -291,7 +307,7 @@ export function AttendanceRegistering() {
     }, [okStudentsList, notOkStudentsList, invalidRegistersList, tableManualUpdateTrigger]);
 
     // Inicializa el objeto que manipula las planillas.
-    useState(() => {
+    useState(() => { console.debug("debug");
 
         setSpreadsheetManipulator(new SpreadsheetManipulator());
         
@@ -300,7 +316,7 @@ export function AttendanceRegistering() {
     /**
      * Carga el rango en memoria y lo muestra en pantalla.
      */
-    const finishedLoading = spreadsheetManipulator => {
+    const finishedLoading = spreadsheetManipulator => { console.debug("debug");
 
         // Lee un rango de celdas.
         spreadsheetManipulator.loadRangeSides(sheetNameValue, cellRangeName, ["Legajo", "Asistencia"]);
@@ -313,7 +329,7 @@ export function AttendanceRegistering() {
 
     }
 
-    const formatDateTime = dateTimeString => {
+    const formatDateTime = dateTimeString => { console.debug("debug");
 
         const dateTime = new Date(dateTimeString);
         const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: 'numeric', minute: 'numeric' };
@@ -325,7 +341,7 @@ export function AttendanceRegistering() {
      * Carga el archivo de planilla en memoria y al finalizar llama
      * a la función que carga el rango en memoria y lo muestra en pantalla.
      */
-    const loadFile = event => {
+    const loadFile = event => { console.debug("debug");
 
         // Evita que se ejecute la llamada del submit.
         event.preventDefault();
@@ -340,7 +356,7 @@ export function AttendanceRegistering() {
     /**
      * Carga los nombres de pestaña para que sean seleccionados.
      */
-    const loadSheetNames = () => {
+    const loadSheetNames = () => { console.debug("debug");
         
         // Obtiene la lista de nombres.
         let sheetNamesList = spreadsheetManipulator.getSheetNamesList();
@@ -367,7 +383,7 @@ export function AttendanceRegistering() {
      *
      * @param {Event} event Evento de cambio de la etiqueta input.
      */
-    const handleFileSelection = event => {
+    const handleFileSelection = event => { console.debug("debug");
 
         // Obtiene y almacena el nombre del archivo.
         const file = event.target.files[0];
@@ -393,7 +409,7 @@ export function AttendanceRegistering() {
      * Manejador del evento que se genera cuando se cambia
      * el valor del campo de rango de celdas.
      */
-    const handleCellRangeName = event => {
+    const handleCellRangeName = event => { console.debug("debug");
 
         setCellRangeName(event.target.value);
 
@@ -403,7 +419,7 @@ export function AttendanceRegistering() {
      * Manejador del evento que se genera cuando se selecciona
      * un valor en el select de eventos.
      */
-    const handleEventSelection = event => {
+    const handleEventSelection = event => { console.debug("debug");
 
         setEventId(Number(event.target.value));
         setEventDescription(event.target.selectedOptions[0].label);
@@ -418,10 +434,13 @@ export function AttendanceRegistering() {
      *
      * @param {Event} event Evento de clic.
      */
-    const handleRangeLoading = async event => {
+    const handleRangeLoading = async event => { console.debug("debug");
 
         // Evita que se ejecute la llamada del submit.
         event.preventDefault();
+
+        // Habilita el botón de registración.
+        setRegisterButtonEnabled(true);
 
         // Notifica al usuario si no se seleccionó el nombre de la pestaña
         // de la planilla.
@@ -600,7 +619,10 @@ export function AttendanceRegistering() {
      * Manejador del evento clic en el botón de registración
      * masiva de asistencia de alumnos.
      */
-    const handleRegistering = async () => {
+    const handleRegistering = async () => { console.debug("debug");
+
+        // Inhabilita el botón de registración.
+        setRegisterButtonEnabled(false);
 
         // Prepara la lista de estudiantes para ser enviada.
         const attendanceRegistrationInfo = okStudentsList
@@ -681,7 +703,7 @@ export function AttendanceRegistering() {
      * Manejador del evento de cambio del campo de selección
      * de nombre de pestaña.
      */
-    const handleSheetNameValueChange = event => {
+    const handleSheetNameValueChange = event => { console.debug("debug");
 
         if(event.target.value !== "SELECCIONAR PESTAÑA") 
             setSheetNameValue(event.target.value);
@@ -689,7 +711,7 @@ export function AttendanceRegistering() {
 
     }
 
-    const handleTemplateDownload = () => {
+    const handleTemplateDownload = () => { console.debug("debug");
         spreadsheetManipulator.create(
             "Plantilla de carga de asistencia",
             "registro-asistencias",
@@ -784,7 +806,7 @@ export function AttendanceRegistering() {
                 <table className="ok-students-table"></table>
                 <button
                     type="button"
-                    className="register-attendance-button"
+                    className="register-button"
                     onClick={handleRegistering}
                 >
                     Registrar asistencia

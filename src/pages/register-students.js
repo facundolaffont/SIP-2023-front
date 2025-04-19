@@ -20,14 +20,21 @@ export function StudentRegistering() {
 
     const [fileName, setFileName] = useState("");
     const [fileHandle, setFileHandle] = useState(null);
+
     const [sheetNameValue, setSheetNameValue] = useState("");
     const [cellRangeName, setCellRangeName] = useState("");
     const [spreadsheetManipulator, setSpreadsheetManipulator] = useState(null);
+
+    const [registerButtonEnabled, setRegisterButtonEnabled] = useState(true);
+
     const [okList, setOkList] = useState([]);
     const [notOkList, setNotOkList] = useState([]);
     const [invalidRegistersList, setInvalidRegistersList] = useState([]);
+
     const [tableManualUpdateTrigger, setTableManualUpdateTrigger] = useState(true);
+
     const [error, setError] = useState(null);
+
     const { getAccessTokenSilently } = useAuth0();
     /** @type {CourseDTO} */ const course = useSelectedCourse(false);
 
@@ -36,15 +43,34 @@ export function StudentRegistering() {
     // Condición que se cumple si todavía no se seleccionó una cursada, o
     // si se actualiza la página, ya que se pierde el contexto de la
     // selección que se había hecho.
-    useEffect(() => {
+    useEffect(() => { console.debug("debug");
 
         // Redirige a la página de selección de cursada.
         if (course === null) history.push('/profile?course-missing');
 
     }, []);
 
+    // Actualiza el estado del botón de registración.
+    useEffect(() => { console.debug("debug");
+
+        // Obtiene el manejador del botón de registración.
+        const registerButton = document.getElementsByClassName("register-button")[0];
+
+        // Habilita el botón de registración.
+        if (registerButtonEnabled) {
+            registerButton.disabled = false;
+            registerButton.classList.remove("disabled");
+        
+        // Inhabilita el botón de registración.
+        } else {
+            registerButton.disabled = true;
+            registerButton.classList.add("disabled");
+        }
+
+    }, [registerButtonEnabled]);
+
     // Actualiza las tablas.
-    useEffect(() => {
+    useEffect(() => { console.debug("debug");
 
         // Actualiza la tabla de registros con formato incorrecto.
         let notValidFormatTable = document.getElementsByClassName(
@@ -52,6 +78,7 @@ export function StudentRegistering() {
         )[0];
         if (invalidRegistersList.length !== 0) {
 
+            // Inserta los datos en la tabla.
             HTMLTableManipulator.insertDataIntoTable(
                 notValidFormatTable,
                 {
@@ -66,7 +93,10 @@ export function StudentRegistering() {
                 },
                 `Registros con formato inválido (${invalidRegistersList.length})`
             );
+
+            // Muestra la tabla.
             notValidFormatTable.classList.remove("not-displayed");
+
         } else notValidFormatTable.classList.add("not-displayed");
 
         // Actualiza la tabla de estudiantes que no están aptos para ser registrados.
@@ -74,6 +104,8 @@ export function StudentRegistering() {
             "not-ok-table"
         )[0];
         if (notOkList.length !== 0) {
+
+            // Inserta los datos en la tabla.
             HTMLTableManipulator.insertDataIntoTable(
                 notOkStudentsTable,
                 {
@@ -89,19 +121,24 @@ export function StudentRegistering() {
                 },
                 `Legajos que no se pueden registrar (${notOkList.length})`
             );
+
+            // Muestra la tabla.
             notOkStudentsTable.classList.remove("not-displayed");
+
         } else notOkStudentsTable.classList.add("not-displayed");
 
         // Actualiza la tabla de estudiantes que están aptos para ser registrados.
-        let okStudentsTable = document.getElementsByClassName(
-            "ok-table"
-        )[0];
         let okStudentsTableContainer = document.getElementsByClassName(
             "ok-table-container"
         )[0];
         if (okList.length !== 0) {
 
-            // Muestra por tabla los registros de estudiantes que no están registrados en
+            // Obtiene el manejador de la tabla.
+            let okStudentsTable = document.getElementsByClassName(
+                "ok-table"
+            )[0];
+
+            // Inserta en la tabla los registros de estudiantes que no están registrados en
             // sistema (mostrando la misma información cargada del Excel), y también
             // muestra los registros de estudiantes que están registrados en sistema pero no
             // están vinculadas con la cursada (mostrando la información traída del backend).
@@ -127,13 +164,15 @@ export function StudentRegistering() {
                 `Estudiantes para registrar en la comisión (${okList.length})`
             );
 
+            // Muestra la tabla.
             okStudentsTableContainer.classList.remove("not-displayed");
+
         } else okStudentsTableContainer.classList.add("not-displayed");
 
     }, [okList, notOkList, invalidRegistersList, tableManualUpdateTrigger]);
 
     // Actualiza el mensaje de error que se mostrará al usuario.
-    useEffect(() => {
+    useEffect(() => { console.debug("debug");
 
         // Obtiene el contenedor principal del mensaje de error.
         const msgContainer = document.getElementsByClassName("info-msg-container")[0];
@@ -163,7 +202,7 @@ export function StudentRegistering() {
     }, [error]);
 
     // Inicializa el objeto que manipula las planillas.
-    useState(() => {
+    useState(() => { console.debug("debug");
         setSpreadsheetManipulator(new SpreadsheetManipulator());
     }, []);
 
@@ -173,7 +212,7 @@ export function StudentRegistering() {
      *
      * @param {Event} event Evento de cambio de la etiqueta input.
      */
-    const handleFileSelection = event => {
+    const handleFileSelection = event => { console.debug("debug");
 
         // Obtiene y almacena el nombre del archivo.
         const file = event.target.files[0];
@@ -203,10 +242,13 @@ export function StudentRegistering() {
      *
      * @param {Event} event Evento de clic.
      */
-    const handleRangeLoading = async event => {
+    const handleRangeLoading = async event => { console.debug("debug");
 
         // Evita que se ejecute la llamada del submit.
         event.preventDefault();
+
+        // Habilita el botón de registración.
+        setRegisterButtonEnabled(true);
 
         // Notifica al usuario si el rango no fue ingresado.
         if (cellRangeName === "") {
@@ -497,7 +539,7 @@ export function StudentRegistering() {
     /**
      * Carga los nombres de pestaña para que sean seleccionados.
      */
-    const loadSheetNames = () => {
+    const loadSheetNames = () => { console.debug("debug");
         
         // Obtiene la lista de nombres.
         let sheetNamesList = spreadsheetManipulator.getSheetNamesList();
@@ -522,7 +564,7 @@ export function StudentRegistering() {
      * Manejador del evento de cambio del campo de selección
      * de nombre de pestaña.
      */
-    const handleSheetNameValueChange = event => {
+    const handleSheetNameValueChange = event => { console.debug("debug");
 
         if(event.target.value !== "SELECCIONAR PESTAÑA") 
             setSheetNameValue(event.target.value);
@@ -533,7 +575,7 @@ export function StudentRegistering() {
     /** 
      * Manejador del evento de cambio del campo de rango.
      */
-    const handleCellRangeName = event => {
+    const handleCellRangeName = event => { console.debug("debug");
         setCellRangeName(event.target.value.toUpperCase());
     };
 
@@ -541,7 +583,10 @@ export function StudentRegistering() {
      * Manejador del evento clic en el botón de registración
      * masiva de alumnos a cursada.
      */
-    const handleRegistering = async () => {
+    const handleRegistering = async () => { console.debug("debug");
+
+        // Inhabilita el botón de registración.
+        setRegisterButtonEnabled(false);
 
         // Prepara la lista de estudiantes para ser enviada.
         const studentsRegistrationInfo = okList
@@ -586,19 +631,15 @@ export function StudentRegistering() {
             .then(okResponse => okResponse)
             .catch(error => error);
 
-        // 6.A
+        // Si la petición no fue exitosa, se muestra un mensaje de error.
         if (response.status !== 200) {
             
-            // 6.A.1
             // Guarda el mensaje de error traído del back al usuario y,
             // en el próximo renderizado, se mostrará el mensaje.
             setError("Hubo un error. Por favor, contactarse con Soporte Técnico.");
 
+        // Si la petición fue exitosa, se actualiza la información de los estudiantes.
         } else {
-
-            // 3
-            // El front inserta un símbolo en la primera columna de cada registro para indicar
-            // que se registró en el sistema. [usar okList y notOkList]
 
             // Actualiza la información de los estudiantes que se registraron correctamente.
             response.data.ok.forEach(registeredStudentDossier => {
@@ -624,7 +665,7 @@ export function StudentRegistering() {
 
     };
 
-    const handleTemplateDownload = () => {
+    const handleTemplateDownload = () => { console.debug("debug");
 
         // Define el contenido de la plantilla.
         let sheetContent = [

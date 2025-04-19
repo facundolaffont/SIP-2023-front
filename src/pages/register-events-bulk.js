@@ -28,6 +28,8 @@ export function EventsBulkRegistering() {
     const [sheetNameValue, setSheetNameValue] = useState("");
     const [cellRangeName, setCellRangeName] = useState("");
 
+    const [registerButtonEnabled, setRegisterButtonEnabled] = useState(true);
+
     const [okList, setOkList] = useState([]);
     const [notOkList, setNotOkList] = useState([]);
 
@@ -50,47 +52,29 @@ export function EventsBulkRegistering() {
      */
     useEffect(() => {
 
-        // Si la variable de contexto, que contiene el código de cursada, está vacía,
-        // redirige al usuario a la página de selección de comisión.
         if (course === null) history.push('/profile?course-missing');
-
-        else {
-
-            // Crea la función que obtiene la lista de tipos de código y sus nombres.
-            const getEventTypeList = async () => {
-
-                // Obtiene el token Auth0.
-                const auth0Token = await getAccessTokenSilently()
-                .then(response => response)
-                .catch(error => {
-                    throw error;
-                });
-
-                // Realiza la solicitud al endpoint para crear los eventos.
-                const response = await axios.get(
-                    `${process.env.REACT_APP_API_SERVER_URL}/api/v1/events/get-event-types`,
-                    {
-                        headers: {
-                            Authorization: `Bearer ${auth0Token}`,
-                        },
-                    }
-                )
-                .then(response => response)
-                .catch(error => error.response);
-
-                // Si la petición al back no finalizó correctamente, se establece el mensaje de error
-                // que se le mostrará al usuario; si no, se guardan los códigos de tipo de evento.
-                if (response.status !== 200)
-                    setError("Hubo un error. Por favor, contactarse con Soporte Técnico.");
-                else { setEventTypeList(response.data.eventTypesList); }
-
-            }
-            getEventTypeList();
-
-        }
 
     }, []);
 
+    // Actualiza el estado del botón de registración.
+    useEffect(() => { console.debug("debug");
+
+        // Obtiene el manejador del botón de registración.
+        const registerButton = document.getElementsByClassName("register-button")[0];
+
+        // Habilita el botón de registración.
+        if (registerButtonEnabled) {
+            registerButton.disabled = false;
+            registerButton.classList.remove("disabled");
+        
+        // Inhabilita el botón de registración.
+        } else {
+            registerButton.disabled = true;
+            registerButton.classList.add("disabled");
+        }
+
+    }, [registerButtonEnabled]);
+    
     // Actualiza las tablas cuando hay un cambio en los correspondientes datos.
     useEffect(() => {
 
@@ -145,6 +129,41 @@ export function EventsBulkRegistering() {
 
     }, [okList, notOkList, invalidRegistersList, tableManualUpdateTrigger]);
 
+    // Obtiene la lista de tipos de código y sus nombres.
+    useEffect(() => {
+
+        const getEventTypeList = async () => {
+
+            // Obtiene el token Auth0.
+            const auth0Token = await getAccessTokenSilently()
+            .then(response => response)
+            .catch(error => {
+                throw error;
+            });
+
+            // Realiza la solicitud al endpoint para crear los eventos.
+            const response = await axios.get(
+                `${process.env.REACT_APP_API_SERVER_URL}/api/v1/events/get-event-types`,
+                {
+                    headers: {
+                        Authorization: `Bearer ${auth0Token}`,
+                    },
+                }
+            )
+            .then(response => response)
+            .catch(error => error.response);
+
+            // Si la petición al back no finalizó correctamente, se establece el mensaje de error
+            // que se le mostrará al usuario; si no, se guardan los códigos de tipo de evento.
+            if (response.status !== 200)
+                setError("Hubo un error. Por favor, contactarse con Soporte Técnico.");
+            else { setEventTypeList(response.data.eventTypesList); }
+
+        }
+        getEventTypeList();
+
+    }, []);
+
     /**
      * Actualiza el mensaje de error que se mostrará al usuario cuando hay un nuevo
      * mensaje.
@@ -196,6 +215,9 @@ export function EventsBulkRegistering() {
         // Evita que se ejecute la llamada del submit.
         event.preventDefault();
 
+        // Habilita el botón de registración.
+        setRegisterButtonEnabled(true);
+
         // Notifica al usuario si no se seleccionó el nombre de la pestaña
         // de la planilla.
         if (sheetNameValue === "") {
@@ -218,6 +240,12 @@ export function EventsBulkRegistering() {
 
             // Limpia el eventual mensaje de error que se encuentre en pantalla.
             setError(null);
+
+            // Habilita el botón de registrar eventos.
+            const registerButton = document.getElementsByClassName("register-button")[0];
+            registerButton.disabled = false;
+            registerButton.innerHTML = "Registrar eventos";
+            registerButton.classList.remove("disabled");
 
             // Lee un rango de celdas.
             spreadsheetManipulator.loadRange(sheetNameValue, cellRangeName, [
@@ -478,6 +506,9 @@ export function EventsBulkRegistering() {
      */
     const handleRegistering = async () => {
 
+        // Inhabilita el botón de registración.
+        setRegisterButtonEnabled(false);
+
         // Prepara la lista de eventos para ser enviada al back.
         const eventsCreationInfo = okList
             .map(eventCreationInfo => {
@@ -599,7 +630,7 @@ export function EventsBulkRegistering() {
     return (
         <PageLayout>
             <h1 id="page-title" className="content__title">
-                Carga masiva de eventos
+                Crear eventos
             </h1>
             <h2 className="selected-course-info">
                 {
@@ -673,7 +704,7 @@ export function EventsBulkRegistering() {
                 <table className="ok-table"></table>
                 <button
                     type="button"
-                    className="register-events-button"
+                    className="register-button"
                     onClick={handleRegistering}
                 >
                     Registrar estudiantes
