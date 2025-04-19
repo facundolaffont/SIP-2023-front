@@ -67,21 +67,25 @@ export const NavBarTabs = () => {
                             {showRegistrationsDropdown && (
                                 <div className="dropdown" style={{ top: dropdownTopStyle }}>
                                     <NavBarTab
-                                        path="/register-students"
-                                        label="Registrar estudiantes"
+                                        path="/register-events-bulk"
+                                        label="Crear eventos"
                                     />
-                                    {/*<NavBarTab
-                                        path="/register-students-in-course"
-                                        label="Vincular estudiantes con cursada"
-                                    />*/}
+                                    {/*
                                     <NavBarTab
                                         path="/register-event"
                                         label="Crear evento"
                                     />
+                                    */}
                                     <NavBarTab
-                                        path="/register-events-bulk"
-                                        label="Crear eventos masivamente"
+                                        path="/register-students"
+                                        label="Registrar estudiantes"
                                     />
+                                    {/*
+                                    <NavBarTab
+                                        path="/register-students-in-course"
+                                        label="Vincular estudiantes con cursada"
+                                    />
+                                    */}
                                     <NavBarTab
                                         path="/register-attendance"
                                         label="Registrar asistencias"

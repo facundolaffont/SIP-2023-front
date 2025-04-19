@@ -11,6 +11,11 @@ input[type="date"] {
     display: inline-block;
 }
 
+.disabled {
+    cursor: default;
+    opacity: 0.5;
+}
+
 .download-button {
     margin-left: 1rem;
 }

@@ -18,34 +18,64 @@ export function CalificationRegistering() {
 
     const [fileName, setFileName] = useState('');
     const [fileHandle, setFileHandle] = useState(null);
+
     const [sheetNameValue, setSheetNameValue] = useState('');
     const [cellRangeName, setCellRangeName] = useState('');
+
+    const [registerButtonEnabled, setRegisterButtonEnabled] = useState(true);
+
     const [eventId, setEventId] = useState(0);
     const [eventDescription, setEventDescription] = useState('');
     const [selectedEvent, setSelectedEvent] = useState(null);
+
     const [spreadsheetManipulator, setSpreadsheetManipulator] = useState(null);
+
     const [okStudentsList, setOkStudentsList] = useState([]);
     const [notOkStudentsList, setNotOkStudentsList] = useState([]);
-    const [tableManualUpdateTrigger, setTableManualUpdateTrigger] = useState(true);
     const [invalidRegistersList, setInvalidRegistersList] = useState([]);
+
+    const [tableManualUpdateTrigger, setTableManualUpdateTrigger] = useState(true);
+
     const [error, setError] = useState(null);
+
     const { getAccessTokenSilently } = useAuth0();
     const [, changeCourse] = useSelectedCourse(true);
     /** @type {CourseDTO} */ const course = useSelectedCourse(false);
 
     const history = useHistory();
 
+    // Condición que se cumple si todavía no se seleccionó una cursada, o
+    // si se actualiza la página, ya que se pierde el contexto de la
+    // selección que se había hecho.
+    useEffect(() => { console.debug("debug");
+
+        if (course === null) history.push('/profile?course-missing');
+
+    }, []);
+
+    // Actualiza el estado del botón de registración.
+    useEffect(() => { console.debug("debug");
+
+        // Obtiene el manejador del botón de registración.
+        const registerButton = document.getElementsByClassName("register-button")[0];
+
+        // Habilita el botón de registración.
+        if (registerButtonEnabled) {
+            registerButton.disabled = false;
+            registerButton.classList.remove("disabled");
+        
+        // Inhabilita el botón de registración.
+        } else {
+            registerButton.disabled = true;
+            registerButton.classList.add("disabled");
+        }
+
+    }, [registerButtonEnabled]);
+    
     // Obtiene la lista de eventos de evaluación de la cursada.
     useEffect(() => {
 
-        // Redirige a la página de selección de cursada, si todavía no se seleccionó una,
-        // o si se actualiza la página, ya que se pierde el contexto de la selección que
-        // se había hecho.
-        if (course === null) history.push('/profile?course-missing');
-
-        // Obtiene la lista de eventos de evaluación de la cursada y actualiza el campo de selección de cursada.
-        else {
-
+        if (course !== null) {
             const getEventsList = async () => {
 
                 // Obtiene el token Auth0.
@@ -163,7 +193,6 @@ export function CalificationRegistering() {
 
             }
             getEventsList();
-
         }
 
     }, []);
@@ -207,14 +236,13 @@ export function CalificationRegistering() {
         )[0];
         if (invalidRegistersList.length !== 0) {
 
+            // Inserta los datos en la tabla.
             HTMLTableManipulator.insertDataIntoTable(
                 notValidFormatTable,
                 {
                     tableRows: invalidRegistersList,
                     columnNames: [
                         "_row:Fila",
-                        "dossier:Legajo",
-                        "calification:Calificación",
                         "formatInfo:Error de formato",
                     ],
                     columnClasses: [
@@ -223,7 +251,10 @@ export function CalificationRegistering() {
                 },
                 `Registros con formato inválido (${invalidRegistersList.length})`
             );
+
+            // Muestra la tabla.
             notValidFormatTable.classList.remove("not-displayed");
+
         } else notValidFormatTable.classList.add("not-displayed");
 
         // Actualiza la tabla de estudiantes que no están aptos para ser registrados.
@@ -231,6 +262,8 @@ export function CalificationRegistering() {
             "not-ok-students-table"
         )[0];
         if (notOkStudentsList.length !== 0) {
+
+            // Inserta los datos en la tabla.
             HTMLTableManipulator.insertDataIntoTable(
                 notOkStudentsTable,
                 {
@@ -242,7 +275,10 @@ export function CalificationRegistering() {
                 },
                 `Legajos que no se pueden registrar (${notOkStudentsList.length})`
             );
+
+            // Muestra la tabla.
             notOkStudentsTable.classList.remove("not-displayed");
+
         } else notOkStudentsTable.classList.add("not-displayed");
 
         // Actualiza la tabla de estudiantes que están aptos para que su calificación
@@ -250,10 +286,14 @@ export function CalificationRegistering() {
         let okStudentsTableContainer = document.getElementsByClassName(
             "ok-students-table-container"
         )[0];
-        let okStudentsTable = document.getElementsByClassName(
-            "ok-students-table"
-        )[0];
         if (okStudentsList.length !== 0) {
+            
+            // Obtiene el manejador de la tabla.
+            let okStudentsTable = document.getElementsByClassName(
+                "ok-students-table"
+            )[0];
+
+            // Inserta los datos en la tabla.
             HTMLTableManipulator.insertDataIntoTable(
                 okStudentsTable,
                 {
@@ -272,7 +312,10 @@ export function CalificationRegistering() {
                 },
                 `Estudiantes para registrar calificación (${okStudentsList.length}) - ${selectedEvent.eventDescription}`
             );
+
+            // Muestra la tabla.
             okStudentsTableContainer.classList.remove("not-displayed");
+
         } else okStudentsTableContainer.classList.add("not-displayed");
 
     }, [okStudentsList, notOkStudentsList, invalidRegistersList, tableManualUpdateTrigger]);
@@ -407,6 +450,9 @@ export function CalificationRegistering() {
 
         // Evita que se ejecute la llamada del submit.
         event.preventDefault();
+
+        // Habilita el botón de registración.
+        setRegisterButtonEnabled(true);
 
         // Notifica al usuario si no se seleccionó el nombre de la pestaña
         // de la planilla.
@@ -590,6 +636,9 @@ export function CalificationRegistering() {
      */
     const handleRegistering = async () => {
 
+        // Inhabilita el botón de registración.
+        setRegisterButtonEnabled(false);
+
         // Prepara la lista de estudiantes para ser enviada.
         const calificationRegistrationInfo = okStudentsList
             .map(studentInfo => {
@@ -771,7 +820,7 @@ export function CalificationRegistering() {
                 <table className="ok-students-table"></table>
                 <button
                     type="button"
-                    className="register-califications-button"
+                    className="register-button"
                     onClick={handleRegistering}
                 >
                     Registrar calificaciones
