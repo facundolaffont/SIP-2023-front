@@ -104,10 +104,7 @@ export function EventsBulkRegistering() {
                 notValidFormatTable,
                 {
                     columnNames: [
-                        "eventTypeId:Tipo de evento",
-                        "eventName:Nombre del evento",
-                        "initialDatetime:Fecha y hora de inicio",
-                        "endDatetime:Fecha y hora de fin",
+                        "_row:Fila",
                         "formatInfo:Error de formato",
                     ],
                     tableRows: invalidRegistersList,
@@ -254,10 +251,10 @@ export function EventsBulkRegistering() {
 
                 // Verifica, si se ingresaron los valores de fecha y hora, si el formato es correcto.
                 else if (String(row.initialDatetime).trim() !== "" && !dateRegex.test(String(row.initialDatetime).trim())) {
-                    row.formatInfo = "El campo de fecha y hora inicial debe tener el formato DD/MM/AAAA HH:MM.";
+                    row.formatInfo = "El campo de fecha y hora inicial debe ser de tipo texto y tener el formato DD/MM/AAAA HH:MM.";
                     invalidFormat = true;
                 } else if (String(row.endDatetime).trim() !== "" && !dateRegex.test(String(row.endDatetime).trim())) {
-                    row.formatInfo = "El campo de fecha y hora final debe tener el formato DD/MM/AAAA HH:MM.";
+                    row.formatInfo = "El campo de fecha y hora final debe ser de tipo texto y tener el formato DD/MM/AAAA HH:MM.";
                     invalidFormat = true;
                 }
                 
