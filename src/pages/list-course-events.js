@@ -16,13 +16,11 @@ import ReactDOMServer from 'react-dom/server';
 import '../styles/list-course-events.css';
 
 export const ListCourseEvents = () => {
-    const [eventsList, setEventsList] = useState([]);
     const { getAccessTokenSilently } = useAuth0();
     const [spreadsheetManipulator, setSpreadsheetManipulator] = useState(null);
+    const [eventsList, setEventsList] = useState([]);
+    
     /** @type {CourseDTO} */ const course = useSelectedCourse(false);
-    // Define el estado para almacenar las fechas seleccionadas
-
-
     const history = useHistory();
 
     // Inicializa el objeto que manipula las planillas.
@@ -37,9 +35,9 @@ export const ListCourseEvents = () => {
     // se había hecho.
     useEffect(() => {
 
-        if (course === null) history.push('/profile?course-missing');
+        if (!course) history.push('/profile?course-missing');
 
-    });
+    }, []);
 
     // Muestra y actualiza la tabla de eventos.
     useEffect(() => {
@@ -218,61 +216,70 @@ export const ListCourseEvents = () => {
 
         const getCourseEvents = async () => {
 
-            // Obtiene el token Auth0.
-            const auth0Token = await getAccessTokenSilently()
-            .then(response => response)
-            .catch(error => {
-                throw error;
-            });
+            // Evita que el primer render arroje una excepción porque course es null.
+            if (!course) return;
 
-            // Realiza la petición al back para obtener la lista de eventos de la cursada.
-            axios.get(
-                `${process.env.REACT_APP_API_SERVER_URL}/api/v1/course/get-all-events?course-id=${course.getId()}`,
-                {
-                    headers: {
-                        Authorization: `Bearer ${auth0Token}`,
-                    },
-                }
-            )
+            try {
+            
+                // Obtiene el token Auth0.
+                const auth0Token = await getAccessTokenSilently()
+                .then(response => response)
+                .catch(error => {
+                    throw error;
+                });
 
-            // Si la petición fue exitosa, se guarda la información obtenida.
-            .then(response => {
-                const sortedEvents = response.data.eventList.sort((a, b) => a.eventId - b.eventId); // Ordena los eventos por ID
-                setEventsList(sortedEvents.map(event => {
-                    return {
-                        eventId: event.eventId,
-                        type: event.type,
-                        name: event.name,
-                        initialDateTime:
-                            event.initialDateTime !== null
-                            ? (
-                                getFormattedDateAndTime(event.initialDateTime)
-                            ) : '-',
-                        endDateTime:
-                            event.endDateTime !== null
-                            ? (
-                                getFormattedDateAndTime(event.endDateTime)
-                            ) : '-',
-                        mandatory: event.mandatory,
-                        actions: (
-                            <div className="actions-container">
-                                <button className="edit-button">Modificar</button>
-                                <button className="delete-button">Eliminar</button>
-                            </div>
-                        )
+                // Realiza la petición al back para obtener la lista de eventos de la cursada.
+                axios.get(
+                    `${process.env.REACT_APP_API_SERVER_URL}/api/v1/course/get-all-events?course-id=${course.getId()}`,
+                    {
+                        headers: {
+                            Authorization: `Bearer ${auth0Token}`,
+                        },
                     }
-                }));
-            })
+                )
 
-            // Si la petición no fue exitosa, se genera una excepción.
-            .catch(
-                error => error.response
-            );
+                // Si la petición fue exitosa, se guarda la información obtenida.
+                .then(response => {
+                    const sortedEvents = response.data.eventList.sort((a, b) => a.eventId - b.eventId); // Ordena los eventos por ID
+                    setEventsList(sortedEvents.map(event => {
+                        return {
+                            eventId: event.eventId,
+                            type: event.type,
+                            name: event.name,
+                            initialDateTime:
+                                event.initialDateTime !== null
+                                ? (
+                                    getFormattedDateAndTime(event.initialDateTime)
+                                ) : '-',
+                            endDateTime:
+                                event.endDateTime !== null
+                                ? (
+                                    getFormattedDateAndTime(event.endDateTime)
+                                ) : '-',
+                            mandatory: event.mandatory,
+                            actions: (
+                                <div className="actions-container">
+                                    <button className="edit-button">Modificar</button>
+                                    <button className="delete-button">Eliminar</button>
+                                </div>
+                            )
+                        }
+                    }));
+                })
+
+                // Si la petición no fue exitosa, se genera una excepción.
+                .catch(
+                    error => error.response
+                );
+
+            } catch (error) {
+                console.error('Error obteniendo eventos de cursada:', error);
+            }
 
         }
         getCourseEvents();
 
-    }, []); // El array vacío asegura que el efecto se ejecute solo una vez después del montaje del componente.
+    }, [course]); // El array vacío asegura que el efecto se ejecute solo una vez después del montaje del componente.
 
 
 

@@ -18,14 +18,17 @@ export const FinalCondition = () => {
     const [editedConditions, setEditedConditions] = useState({}); // Estado para manejar las condiciones editadas
     const [errorMessage, setErrorMessage] = useState(""); // Estado para manejar mensajes de error
     const [selectedLegajo, setSelectedLegajo] = useState(null); // Estado para almacenar el legajo de la celda seleccionada para editar
-    const course = useSelectedCourse();
+
+    /** @type {CourseDTO} */ const course = useSelectedCourse(false);
     const history = useHistory();
 
     // Redirige a la página de selección de cursada, si todavía no se seleccionó una,
     // o si se actualiza la página, ya que se pierde el contexto de la selección que
     // se había hecho.
     useEffect(() => {
-        if (course === null) history.push('/profile?course-missing');
+
+        if (!course) history.push('/profile?course-missing');
+        
     }, []);
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -33,33 +36,41 @@ export const FinalCondition = () => {
 
         const getEvaluationCriterias = async () => {
 
-            // Obtiene el token Auth0.
-            const auth0Token = await getAccessTokenSilently()
-            .then(response => response)
-            .catch(error => {
-                throw error;
-            });
+            // Evita que el primer render arroje una excepción porque course es null.
+            if (!course) return;
 
-            // 2
-            await axios
-            .get(
-                `${process.env.REACT_APP_API_SERVER_URL}/api/v1/criterion-course/evaluationCriterias?courseId=${course.getId()}`,
-                {
-                    headers: {
-                        Authorization: `Bearer ${auth0Token}`,
-                    },
-                }
-            )
-            .then(criteria => {
-                setCriterias(criteria.data);
-            })
-            .catch(error => error.response);
+            try {
+
+                // Obtiene el token Auth0.
+                const auth0Token = await getAccessTokenSilently()
+                .then(response => response)
+                .catch(error => {
+                    throw error;
+                });
+
+                await axios
+                .get(
+                    `${process.env.REACT_APP_API_SERVER_URL}/api/v1/criterion-course/evaluationCriterias?courseId=${course.getId()}`,
+                    {
+                        headers: {
+                            Authorization: `Bearer ${auth0Token}`,
+                        },
+                    }
+                )
+                .then(criteria => {
+                    setCriterias(criteria.data);
+                })
+                .catch(error => error.response);
+
+            } catch (error) {
+                console.error("Error al obtener los criterios de evaluación:", error);
+            }
 
         }
 
         getEvaluationCriterias();
 
-    }, [getAccessTokenSilently]);
+    }, [getAccessTokenSilently, course]);
 
     const handleSubmit = async (event) => {
 

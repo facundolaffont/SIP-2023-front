@@ -1,5 +1,6 @@
 // Componentes externos.
-import React, { useState } from "react";
+import { useEffect, useState } from "react";
+import { useHistory } from "react-router-dom";
 
 // Componentes internos.
 import { PageLayout } from "../components/page-layout";
@@ -15,7 +16,18 @@ export const SearchStudent = () => {
     const [eventos, setEventos] = useState(null);
     const [dataCursada, setDataCursada] = useState(null);
     const [spreadsheetManipulator, setSpreadsheetManipulator] = useState(null);
+
     /** @type {CourseDTO} */ const course = useSelectedCourse(false);
+    const history = useHistory();
+
+    // Redirige a la página de selección de cursada, si todavía no se seleccionó una,
+    // o si se actualiza la página, ya que se pierde el contexto de la selección que
+    // se había hecho.
+    useEffect(() => {
+
+        if (!course) history.push('/profile?course-missing');
+
+    }, []);
 
     // Inicializa el objeto que manipula las planillas.
     useState(() => {
@@ -27,6 +39,7 @@ export const SearchStudent = () => {
     };
 
     const handleSearch = () => {
+        
         // Realizar la solicitud al backend
         fetch(`${process.env.REACT_APP_API_SERVER_URL}/api/v1/course/getStudent?courseId=${course.getId()}&dossier=${legajo}`)
             .then(response => response.json())

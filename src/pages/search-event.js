@@ -1,5 +1,6 @@
 // Componentes externos.
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
+import { useHistory } from "react-router-dom";
 import axios from "axios";
 import { useAuth0 } from '@auth0/auth0-react';
 
@@ -22,6 +23,16 @@ export const SearchEvent = () => {
     const [spreadsheetManipulator, setSpreadsheetManipulator] = useState(null);
 
     /** @type {CourseDTO} */ const course = useSelectedCourse(false);
+    const history = useHistory();
+
+    // Redirige a la página de selección de cursada, si todavía no se seleccionó una,
+    // o si se actualiza la página, ya que se pierde el contexto de la selección que
+    // se había hecho.
+    useEffect(() => {
+
+        if (!course) history.push('/profile?course-missing');
+
+    }, []);
 
     // Inicializa el objeto que manipula las planillas.
     useState(() => {

@@ -36,22 +36,21 @@ export function StudentRegistering() {
     const [error, setError] = useState(null);
 
     const { getAccessTokenSilently } = useAuth0();
+    
     /** @type {CourseDTO} */ const course = useSelectedCourse(false);
-
     const history = useHistory();
 
-    // Condición que se cumple si todavía no se seleccionó una cursada, o
-    // si se actualiza la página, ya que se pierde el contexto de la
-    // selección que se había hecho.
-    useEffect(() => { console.debug("debug");
+    // Redirige a la página de selección de cursada, si todavía no se seleccionó una,
+    // o si se actualiza la página, ya que se pierde el contexto de la selección que
+    // se había hecho.
+    useEffect(() => {
 
-        // Redirige a la página de selección de cursada.
-        if (course === null) history.push('/profile?course-missing');
+        if (!course) history.push('/profile?course-missing');
 
     }, []);
 
     // Actualiza el estado del botón de registración.
-    useEffect(() => { console.debug("debug");
+    useEffect(() => { 
 
         // Obtiene el manejador del botón de registración.
         const registerButton = document.getElementsByClassName("register-button")[0];
@@ -70,7 +69,7 @@ export function StudentRegistering() {
     }, [registerButtonEnabled]);
 
     // Actualiza las tablas.
-    useEffect(() => { console.debug("debug");
+    useEffect(() => { 
 
         // Actualiza la tabla de registros con formato incorrecto.
         let notValidFormatTable = document.getElementsByClassName(
@@ -172,7 +171,7 @@ export function StudentRegistering() {
     }, [okList, notOkList, invalidRegistersList, tableManualUpdateTrigger]);
 
     // Actualiza el mensaje de error que se mostrará al usuario.
-    useEffect(() => { console.debug("debug");
+    useEffect(() => { 
 
         // Obtiene el contenedor principal del mensaje de error.
         const msgContainer = document.getElementsByClassName("info-msg-container")[0];
@@ -202,7 +201,7 @@ export function StudentRegistering() {
     }, [error]);
 
     // Inicializa el objeto que manipula las planillas.
-    useState(() => { console.debug("debug");
+    useState(() => { 
         setSpreadsheetManipulator(new SpreadsheetManipulator());
     }, []);
 
@@ -212,7 +211,7 @@ export function StudentRegistering() {
      *
      * @param {Event} event Evento de cambio de la etiqueta input.
      */
-    const handleFileSelection = event => { console.debug("debug");
+    const handleFileSelection = event => { 
 
         // Obtiene y almacena el nombre del archivo.
         const file = event.target.files[0];
@@ -242,7 +241,7 @@ export function StudentRegistering() {
      *
      * @param {Event} event Evento de clic.
      */
-    const handleRangeLoading = async event => { console.debug("debug");
+    const handleRangeLoading = async event => { 
 
         // Evita que se ejecute la llamada del submit.
         event.preventDefault();
@@ -539,7 +538,7 @@ export function StudentRegistering() {
     /**
      * Carga los nombres de pestaña para que sean seleccionados.
      */
-    const loadSheetNames = () => { console.debug("debug");
+    const loadSheetNames = () => { 
         
         // Obtiene la lista de nombres.
         let sheetNamesList = spreadsheetManipulator.getSheetNamesList();
@@ -564,7 +563,7 @@ export function StudentRegistering() {
      * Manejador del evento de cambio del campo de selección
      * de nombre de pestaña.
      */
-    const handleSheetNameValueChange = event => { console.debug("debug");
+    const handleSheetNameValueChange = event => { 
 
         if(event.target.value !== "SELECCIONAR PESTAÑA") 
             setSheetNameValue(event.target.value);
@@ -575,7 +574,7 @@ export function StudentRegistering() {
     /** 
      * Manejador del evento de cambio del campo de rango.
      */
-    const handleCellRangeName = event => { console.debug("debug");
+    const handleCellRangeName = event => { 
         setCellRangeName(event.target.value.toUpperCase());
     };
 
@@ -583,7 +582,7 @@ export function StudentRegistering() {
      * Manejador del evento clic en el botón de registración
      * masiva de alumnos a cursada.
      */
-    const handleRegistering = async () => { console.debug("debug");
+    const handleRegistering = async () => { 
 
         // Inhabilita el botón de registración.
         setRegisterButtonEnabled(false);
@@ -665,7 +664,7 @@ export function StudentRegistering() {
 
     };
 
-    const handleTemplateDownload = () => { console.debug("debug");
+    const handleTemplateDownload = () => { 
 
         // Define el contenido de la plantilla.
         let sheetContent = [
