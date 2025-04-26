@@ -41,8 +41,14 @@ export const ListCourseEvents = () => {
 
     // Muestra y actualiza la tabla de eventos.
     useEffect(() => {
+
+        // Obtiene el manejador de la tabla de eventos.
         let eventsTable = document.getElementsByClassName("events-table")[0];
+
         if (eventsList.length !== 0) {
+
+            // Agrega el div de clase "actions-container" y de su contenido, como texto, como un
+            // miembro más de cada objeto que representa un evento.
             const eventsWithActionsAsString = eventsList.map(event => {
                 return {
                     ...event,
@@ -50,6 +56,7 @@ export const ListCourseEvents = () => {
                 };
             });
     
+            // Ingresa los datos de los eventos en la tabla.
             HTMLTableManipulator.insertDataIntoTable(eventsTable, {
                 tableRows: eventsWithActionsAsString,
                 columnNames: [
@@ -64,14 +71,16 @@ export const ListCourseEvents = () => {
                 actionsColumnIndex: 4
             });
     
+            // Muestra la tabla de eventos.
             eventsTable.classList.remove("not-displayed");
-        } else {
-            eventsTable.classList.add("not-displayed");
-        }
+
+        } else eventsTable.classList.add("not-displayed");
+
     }, [eventsList]);
         
     // Agrega eventos de edición al hacer clic en el botón "Modificar".
     useEffect(() => {
+
         const handleEditButtonClick = (event) => {
             const row = event.target.closest('tr');
             const cells = row.querySelectorAll('td');
@@ -146,15 +155,16 @@ export const ListCourseEvents = () => {
             const cancelButton = document.createElement('button');
             cancelButton.textContent = 'Cancelar';
             cancelButton.addEventListener('click', () => {
-                // Restaurar los valores originales y deshabilitar la edición
-                cells[2].textContent = fechaInicioVieja; // Restaura el valor original de la fecha
-                cells[3].textContent = fechaFinVieja; // Restaura el valor original del campo obligatorio
+                
+                // Restaura los valores originales y deshabilita la edición.
+                cells[2].textContent = fechaInicioVieja; // Restaura el valor original de la fecha.
+                cells[3].textContent = fechaFinVieja; // Restaura el valor original del campo obligatorio.
                 cells[4].textContent = obligatorioViejo;
                 cells[2].contentEditable = false;
                 cells[3].contentEditable = false;
                 cells[4].contentEditable = false;
 
-                // Mostrar los botones "Modificar" y "Eliminar"
+                // Muestra los botones "Modificar" y "Eliminar".
                 const actionsCell = row.querySelector('.actions-container');
                 actionsCell.textContent = '';
     
@@ -166,6 +176,7 @@ export const ListCourseEvents = () => {
                 const deleteButton = document.createElement('button');
                 deleteButton.textContent = 'Eliminar';
                 deleteButton.className = 'delete-button';
+                deleteButton.addEventListener('click', handleDeleteButtonClick);
     
                 actionsCell.appendChild(modifyButton);
                 actionsCell.appendChild(deleteButton);
@@ -178,6 +189,8 @@ export const ListCourseEvents = () => {
             actionsCell.appendChild(cancelButton);
         };
     
+        // Obtiene el manejador de la tabla de eventos, y luego agrega a cada botón
+        // de modificar el evento un listener que llama a la función handleEditButtonClick.
         let eventsTable = document.getElementsByClassName("events-table")[0];
         eventsTable.querySelectorAll('.edit-button').forEach(button => {
             button.addEventListener('click', handleEditButtonClick);
@@ -188,27 +201,35 @@ export const ListCourseEvents = () => {
                 button.removeEventListener('click', handleEditButtonClick);
             });
         };
+
     }, [eventsList]);
 
     // Agrega eventos de eliminación al hacer clic en el botón "Eliminar".
     useEffect(() => {
-        const handleDeleteButtonClick = (event) => {
+
+        // Manejador del evento clic en el botón de eliminar.
+        const handleDeleteButtonClick_localScope = (event) => {
             const row = event.target.closest('tr');
             const cells = row.querySelectorAll('td');
             const eventId = cells[0].textContent;
-            handleDeleteButton(eventId);
+            handleDeleteButtonClick(eventId);
         };
 
+        // Agrega a cada botón de eliminar el evento un listener que llama a una función
+        // que está definida dentro de este useEffect.
         let eventsTable = document.getElementsByClassName("events-table")[0];
         eventsTable.querySelectorAll('.delete-button').forEach(button => {
-            button.addEventListener('click', handleDeleteButtonClick);
+            button.addEventListener('click', handleDeleteButtonClick_localScope);
         });
 
+        // Función de limpieza: evita que el listener se agregue más de una vez y que, 
+        // por ende, se generen múltiples eventos al hacer clic en el botón.
         return () => {
             eventsTable.querySelectorAll('.delete-button').forEach(button => {
-                button.removeEventListener('click', handleDeleteButtonClick);
+                button.removeEventListener('click', handleDeleteButtonClick_localScope);
             });
         };
+
     }, [eventsList]);
     
     // Obtiene los eventos de la cursada seleccionada.
@@ -279,12 +300,11 @@ export const ListCourseEvents = () => {
         }
         getCourseEvents();
 
-    }, [course]); // El array vacío asegura que el efecto se ejecute solo una vez después del montaje del componente.
+    }, [course]);
 
-
-
-    // Función para actualizar un evento en el backend
+    // Actualiza los datos de un evento.
     const updateEvent = async (eventId, newMandatory, initialDate, endDate) => {
+
         fetch(`${process.env.REACT_APP_API_SERVER_URL}/api/v1/events/update-event`, {
             method: "POST",
             headers: {
@@ -295,49 +315,78 @@ export const ListCourseEvents = () => {
             }), // Pasar un objeto con las propiedades eventId y newData
         })
         .then(response => {
+
             if (response.ok) {
-                // Si la respuesta es exitosa, muestra un mensaje
+
+                // Si la respuesta es exitosa, muestra un mensaje.
                 alert("¡El evento se ha actualizado exitosamente!");
-                // Elimina los botones de modificar y cancelar
+
+                
+                // Elimina los botones de modificar y cancelar.
                 const row = document.querySelector(`tr[data-event-id="${eventId}"]`);
                 const actionsCell = row.querySelector('.actions-container');
                 actionsCell.textContent = '';
+
             } else {
-                // Si la respuesta no es exitosa, muestra un mensaje de error
+
+                // Si la respuesta no es exitosa, notifica al usuario que hubo un error.
                 alert("Hubo un error al actualizar el evento.");
+                console.error(response);
+
             }
+
         })
         .catch(error => console.error(error));
     };
 
-    const handleDeleteButton = (eventId) => {
+    /**
+     * Maneja el evento clic en el botón de eliminar.
+     * 
+     * @param {*} eventId ID del evento a eliminar. 
+     */
+    const handleDeleteButtonClick = (eventId) => {
+        
         if (window.confirm("¿Estás seguro de que deseas eliminar este evento?")) {
-            // Lógica para eliminar el evento en el backend
+            
+            // Envìa el ID del evento para que el backend lo intente eliminar.
             fetch(`${process.env.REACT_APP_API_SERVER_URL}/api/v1/events/delete-event`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
                 },
-                body: JSON.stringify({ eventId: eventId }), // Pasar el ID del evento a eliminar
+                body: JSON.stringify({ eventId: eventId }),
             })
-            .then(response => response.json()) // Convertir la respuesta a JSON
+            .then(response => response.json())
             .then(data => {
                 if (data.message) {
-                    // Si hay un mensaje en la respuesta, mostrarlo al usuario
+                    
+                    // Si hay un mensaje en la respuesta, lo muestra al usuario.
                     alert(data.message);
-                    // Si la respuesta es exitosa, actualizar la lista de eventos en el estado local
+                    
+                    // Si la respuesta es exitosa, actualiza la lista de eventos.
                     if (data.success) {
                         setEventsList(eventsList.filter(event => event.eventId !== eventId));
                     }
+
                 } else {
-                    // Si no hay un mensaje en la respuesta, mostrar un mensaje genérico de error
+                    
+                    // Si no hay un mensaje en la respuesta, notifica al usuario que hubo un error.
                     alert("Hubo un error al eliminar el evento.");
+                    console.error(data);
+
                 }
             })
             .catch(error => console.error(error));
         }
+
     };
 
+    /**
+     * Formatea la fecha y hora de un evento.
+     * 
+     * @param {*} date 
+     * @returns La fecha y hora formateada.
+     */
     function getFormattedDateAndTime(date) {
 
         const initialDate =

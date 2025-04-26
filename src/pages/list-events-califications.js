@@ -109,7 +109,7 @@ export const ListCalifications = () => {
             error => error.response
         );
 
-    }, [course]); // El array vacío asegura que el efecto se ejecute solo una vez después del montaje del componente.
+    }, [course]);
 
     function getFormattedDateAndTime(initialDateAndTime, endDateAndTime) {
 
