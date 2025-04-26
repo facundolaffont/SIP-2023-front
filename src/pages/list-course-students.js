@@ -139,7 +139,7 @@ export const ListCourseStudents = () => {
     return (
         <PageLayout>
             <h1 id="page-title" className="content__title">
-                Alumnos de la cursada
+                Listar alumnos
             </h1>
             <h2 className="selected-course-info">
                 {

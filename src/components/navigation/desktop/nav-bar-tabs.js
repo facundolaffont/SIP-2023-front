@@ -137,7 +137,7 @@ export const NavBarTabs = () => {
                                     />*/}
                                     <NavBarTab
                                         path="/show-events-summary"
-                                        label="Mostrar resumen por evento"
+                                        label="Resumen de eventos"
                                     />
                                     {/*<NavBarTab
                                         path="/list-events-attendance"
@@ -162,11 +162,11 @@ export const NavBarTabs = () => {
                                 <div className="dropdown" style={{ top: dropdownTopStyle }}>
                                     <NavBarTab
                                         path="/create-criterion"
-                                        label="Crear criterio"
+                                        label="Crear criterio de evaluación"
                                     />
                                     <NavBarTab
                                         path="/modificate-criterion"
-                                        label="Modificar criterios"
+                                        label="Modificar criterios de evaluación"
                                     />
                                     <NavBarTab
                                         path="/final-condition"
