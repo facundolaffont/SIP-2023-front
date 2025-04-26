@@ -39,22 +39,21 @@ export function CalificationRegistering() {
     const [error, setError] = useState(null);
 
     const { getAccessTokenSilently } = useAuth0();
-    const [, changeCourse] = useSelectedCourse(true);
+    
     /** @type {CourseDTO} */ const course = useSelectedCourse(false);
-
     const history = useHistory();
 
-    // Condición que se cumple si todavía no se seleccionó una cursada, o
-    // si se actualiza la página, ya que se pierde el contexto de la
-    // selección que se había hecho.
-    useEffect(() => { console.debug("debug");
+    // Redirige a la página de selección de cursada, si todavía no se seleccionó una,
+    // o si se actualiza la página, ya que se pierde el contexto de la selección que
+    // se había hecho.
+    useEffect(() => {
 
-        if (course === null) history.push('/profile?course-missing');
+        if (!course) history.push('/profile?course-missing');
 
     }, []);
 
     // Actualiza el estado del botón de registración.
-    useEffect(() => { console.debug("debug");
+    useEffect(() => { 
 
         // Obtiene el manejador del botón de registración.
         const registerButton = document.getElementsByClassName("register-button")[0];
@@ -75,127 +74,128 @@ export function CalificationRegistering() {
     // Obtiene la lista de eventos de evaluación de la cursada.
     useEffect(() => {
 
-        if (course !== null) {
-            const getEventsList = async () => {
+        // Evita que el primer render arroje una excepción porque course es null.
+        if (!course) return;
+        
+        const getEventsList = async () => {
 
-                // Obtiene el token Auth0.
-                const auth0Token = await getAccessTokenSilently()
-                .then(response => response)
-                .catch(error => {
-                    throw error;
+            // Obtiene el token Auth0.
+            const auth0Token = await getAccessTokenSilently()
+            .then(response => response)
+            .catch(error => {
+                throw error;
+            });
+
+            // Obtiene los eventos de evaluación de la cursada.
+            const eventsList = await axios.get(
+                `${process.env.REACT_APP_API_SERVER_URL}/api/v1/course/get-evaluation-events`,
+                {
+                    params: {
+                        'course-id': course.getId(),
+                    },
+                    headers: {
+                        Authorization: `Bearer ${auth0Token}`,
+                    },
+                }
+            )
+                .then(okReponse => okReponse)
+                .catch(error => error.response);
+            
+            if (eventsList.status !== 200) {
+                
+                // Guarda el mensaje de error traído del back al usuario, y
+                // en el próximo renderizado se mostrará el mensaje.
+                setError("Hubo un error. Por favor, contactarse con Soporte Técnico.");
+
+            } else if (eventsList.data.eventList.length === 0) {
+
+                // Redirige a la página de selección de eventos, si la cursada no tiene eventos
+                // asociados.
+                history.push('/profile?no-events');
+
+            } else {
+
+                // Carga los eventos de evaluación en la lista de selección.
+                let eventsSelect = document.getElementById("events-select");
+                while (eventsSelect.firstChild) {
+                    eventsSelect.removeChild(eventsSelect.firstChild);
+                }
+                const listFirstElement = document.createElement("option");
+                listFirstElement.innerHTML = "SELECCIONAR EVENTO";
+                listFirstElement.value = 0;
+                eventsSelect.appendChild(listFirstElement);
+                eventsList.data.eventList.forEach(eventElement => {
+
+                    const listElement = document.createElement("option");
+
+                    // Contruye el string que contendrá el nombre del evento, solamente si se ingresó un nombre
+                    // al momento de dar de alta el evento.
+                    let nameString = '';
+                    if (eventElement.name !== null)
+                        nameString = ` "${eventElement.name}"`;
+
+                    // Construye el string que contendrá el rango de fechas, solamente si ambas fechas
+                    // fueron ingresadas en la carga del evento; o será una cadena vacía, si alguna
+                    // de las fechas no fue ingresada.
+                    let dateTimeString = "";
+                    if (eventElement.initialDateTime !== null && eventElement.endDateTime !== null) {
+                        const initialDate =
+                            Intl.DateTimeFormat(
+                                'es-AR',
+                                {
+                                    weekday: 'short',
+                                    day: '2-digit',
+                                    month: '2-digit',
+                                    year: '2-digit',
+                                }
+                            ).format(new Date(eventElement.initialDateTime));
+                        const initialTime = 
+                            Intl.DateTimeFormat(
+                                'es-AR',
+                                {
+                                    hour: '2-digit',
+                                    minute: '2-digit',
+                                }
+                            ).format(new Date(eventElement.initialDateTime));
+                        const endDate =
+                            Intl.DateTimeFormat(
+                                'es-AR',
+                                {
+                                    weekday: 'short',
+                                    day: '2-digit',
+                                    month: '2-digit',
+                                    year: '2-digit',
+                                }
+                            ).format(new Date(eventElement.endDateTime));
+                        const endTime = 
+                            Intl.DateTimeFormat(
+                                'es-AR',
+                                {
+                                    hour: '2-digit',
+                                    minute: '2-digit',
+                                }
+                            ).format(new Date(eventElement.endDateTime));
+                        dateTimeString =
+                            initialDate.valueOf() === endDate.valueOf()
+                            ? `: ${initialDate} de ${initialTime} a ${endTime}`
+                            : `: ${initialDate} ${initialTime} - ${endDate} ${endTime}`;
+                    }
+
+                    const eventDescription = 
+                        `${eventElement.type}${nameString}${dateTimeString}`;
+
+                    listElement.innerHTML = eventDescription;
+                    listElement.value = eventElement.eventId;
+                    eventsSelect.appendChild(listElement);
+                    
                 });
 
-                // Obtiene los eventos de evaluación de la cursada.
-                const eventsList = await axios.get(
-                    `${process.env.REACT_APP_API_SERVER_URL}/api/v1/course/get-evaluation-events`,
-                    {
-                        params: {
-                            'course-id': course.getId(),
-                        },
-                        headers: {
-                            Authorization: `Bearer ${auth0Token}`,
-                        },
-                    }
-                )
-                    .then(okReponse => okReponse)
-                    .catch(error => error.response);
-                
-                if (eventsList.status !== 200) {
-                    
-                    // Guarda el mensaje de error traído del back al usuario, y
-                    // en el próximo renderizado se mostrará el mensaje.
-                    setError("Hubo un error. Por favor, contactarse con Soporte Técnico.");
-
-                } else if (eventsList.data.eventList.length === 0) {
-
-                    // Redirige a la página de selección de eventos, si la cursada no tiene eventos
-                    // asociados.
-                    history.push('/profile?no-events');
-
-                } else {
-
-                    // Carga los eventos de evaluación en la lista de selección.
-                    let eventsSelect = document.getElementById("events-select");
-                    while (eventsSelect.firstChild) {
-                        eventsSelect.removeChild(eventsSelect.firstChild);
-                    }
-                    const listFirstElement = document.createElement("option");
-                    listFirstElement.innerHTML = "SELECCIONAR EVENTO";
-                    listFirstElement.value = 0;
-                    eventsSelect.appendChild(listFirstElement);
-                    eventsList.data.eventList.forEach(eventElement => {
-
-                        const listElement = document.createElement("option");
-
-                        // Contruye el string que contendrá el nombre del evento, solamente si se ingresó un nombre
-                        // al momento de dar de alta el evento.
-                        let nameString = '';
-                        if (eventElement.name !== null)
-                            nameString = ` "${eventElement.name}"`;
-
-                        // Construye el string que contendrá el rango de fechas, solamente si ambas fechas
-                        // fueron ingresadas en la carga del evento; o será una cadena vacía, si alguna
-                        // de las fechas no fue ingresada.
-                        let dateTimeString = "";
-                        if (eventElement.initialDateTime !== null && eventElement.endDateTime !== null) {
-                            const initialDate =
-                                Intl.DateTimeFormat(
-                                    'es-AR',
-                                    {
-                                        weekday: 'short',
-                                        day: '2-digit',
-                                        month: '2-digit',
-                                        year: '2-digit',
-                                    }
-                                ).format(new Date(eventElement.initialDateTime));
-                            const initialTime = 
-                                Intl.DateTimeFormat(
-                                    'es-AR',
-                                    {
-                                        hour: '2-digit',
-                                        minute: '2-digit',
-                                    }
-                                ).format(new Date(eventElement.initialDateTime));
-                            const endDate =
-                                Intl.DateTimeFormat(
-                                    'es-AR',
-                                    {
-                                        weekday: 'short',
-                                        day: '2-digit',
-                                        month: '2-digit',
-                                        year: '2-digit',
-                                    }
-                                ).format(new Date(eventElement.endDateTime));
-                            const endTime = 
-                                Intl.DateTimeFormat(
-                                    'es-AR',
-                                    {
-                                        hour: '2-digit',
-                                        minute: '2-digit',
-                                    }
-                                ).format(new Date(eventElement.endDateTime));
-                            dateTimeString =
-                                initialDate.valueOf() === endDate.valueOf()
-                                ? `: ${initialDate} de ${initialTime} a ${endTime}`
-                                : `: ${initialDate} ${initialTime} - ${endDate} ${endTime}`;
-                        }
-
-                        const eventDescription = 
-                            `${eventElement.type}${nameString}${dateTimeString}`;
-
-                        listElement.innerHTML = eventDescription;
-                        listElement.value = eventElement.eventId;
-                        eventsSelect.appendChild(listElement);
-                        
-                    });
-
-                }
-
             }
-            getEventsList();
-        }
 
-    }, []);
+        }
+        getEventsList();
+
+    }, [course]);
 
     // Actualiza el mensaje de error que se mostrará al usuario.
     useEffect(() => {

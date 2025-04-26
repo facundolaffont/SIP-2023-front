@@ -1,28 +1,3 @@
-// // Imports internos.
-// import { PageLayout } from "../components/page-layout";
-// import SpreadsheetManipulator from "../services/spreadsheet-manipulator.service";
-// import HTMLTableManipulator from "../services/html-table-manipulator";
-// import { useSelectedCourse } from "../contexts/course/course-provider.js";
-// import CourseDTO from "../contexts/course/course-d-t-o";
-
-// // Estilos.
-// import "../styles/components/table.css";
-// import "../styles/register-students.css";
-
-// export function StudentRegistering() {
-//     const [fileName, setFileName] = useState("");
-//     const [fileHandle, setFileHandle] = useState(null);
-//     const [sheetNameValue, setSheetNameValue] = useState("");
-//     const [cellRangeName, setCellRangeName] = useState("");
-//     const [spreadsheetManipulator, setSpreadsheetManipulator] = useState(null);
-//     const [okStudentsList, setOkStudentsList] = useState([]);
-//     const [notOkStudentsList, setNotOkStudentsList] = useState([]);
-//     const [invalidRegistersList, setInvalidRegistersList] = useState([]);
-//     const [tableManualUpdateTrigger, setTableManualUpdateTrigger] = useState(true);
-//     const [error, setError] = useState(null);
-    
-
-
 // Imports externos.
 import axios from "axios";
 import { useAuth0 } from "@auth0/auth0-react";
@@ -37,19 +12,25 @@ export const ModificateCriterion = () => {
     const [criterias, setCriterias] = useState([]);
     const { getAccessTokenSilently } = useAuth0();
     const [editedCriterias, setEditedCriterias] = useState([]);
-    const course = useSelectedCourse();
+
+    /** @type {CourseDTO} */ const course = useSelectedCourse(false);
     const history = useHistory();
 
     // Redirige a la página de selección de cursada, si todavía no se seleccionó una,
     // o si se actualiza la página, ya que se pierde el contexto de la selección que
     // se había hecho.
     useEffect(() => {
-        if (course === null) history.push('/profile?course-missing');
+
+        if (!course) history.push('/profile?course-missing');
+
     }, []);
 
     useEffect(() => {
 
         const getEvaluationCriteria = async () => {
+
+            // Evita que el primer render arroje una excepción porque course es null.
+            if (!course) return;
 
             // Obtiene el token Auth0.
             const auth0Token = await getAccessTokenSilently()
@@ -58,7 +39,6 @@ export const ModificateCriterion = () => {
                     throw error;
                 });
     
-            // 2
             await axios
                 .get(
                     `${process.env.REACT_APP_API_SERVER_URL}/api/v1/criterion-course/evaluationCriterias?courseId=${course.getId()}`,
@@ -76,7 +56,7 @@ export const ModificateCriterion = () => {
         }
         getEvaluationCriteria();
 
-    }, []);
+    }, [course]);
 
     const handleSubmitChanges = (index) => {
         

@@ -38,23 +38,21 @@ export function AttendanceRegistering() {
     const [error, setError] = useState(null);
 
     const { getAccessTokenSilently } = useAuth0();
-    const [, changeCourse] = useSelectedCourse(true);
-    /** @type {CourseDTO} */ const course = useSelectedCourse(false);
 
+    /** @type {CourseDTO} */ const course = useSelectedCourse(false);
     const history = useHistory();
 
-    // Condición que se cumple si todavía no se seleccionó una cursada, o
-    // si se actualiza la página, ya que se pierde el contexto de la
-    // selección que se había hecho.
-    useEffect(() => { console.debug("debug");
+    // Redirige a la página de selección de cursada, si todavía no se seleccionó una,
+    // o si se actualiza la página, ya que se pierde el contexto de la selección que
+    // se había hecho.
+    useEffect(() => {
 
-        // Redirige a la página de selección de cursada.
-        if (course === null) history.push('/profile?course-missing');
+        if (!course) history.push('/profile?course-missing');
 
     }, []);
 
     // Actualiza el estado del botón de registración.
-    useEffect(() => { console.debug("debug");
+    useEffect(() => { 
 
         // Obtiene el manejador del botón de registración.
         const registerButton = document.getElementsByClassName("register-button")[0];
@@ -73,7 +71,10 @@ export function AttendanceRegistering() {
     }, [registerButtonEnabled]);
     
     // Obtiene la lista de eventos de la cursada.
-    useEffect(() => { console.debug("debug");
+    useEffect(() => { 
+
+        // Evita que el primer render arroje una excepción porque course es null.
+        if (!course) return;
 
         const getEventsList = async () => {
 
@@ -196,10 +197,10 @@ export function AttendanceRegistering() {
         getEventsList()
         .catch(error => error.response);
 
-    }, []);
+    }, [course]);
 
     // Actualiza el mensaje de error que se mostrará al usuario.
-    useEffect(() => { console.debug("debug");
+    useEffect(() => { 
 
         // Obtiene el contenedor principal del mensaje de error.
         const msgContainer = document.getElementsByClassName("info-msg-container")[0];
@@ -229,7 +230,7 @@ export function AttendanceRegistering() {
     }, [error]);
 
     // Actualiza las tablas.
-    useEffect(() => { console.debug("debug");
+    useEffect(() => { 
 
         // Actualiza la tabla de registros con formato incorrecto.
         let notValidFormatTable = document.getElementsByClassName(
@@ -307,7 +308,7 @@ export function AttendanceRegistering() {
     }, [okStudentsList, notOkStudentsList, invalidRegistersList, tableManualUpdateTrigger]);
 
     // Inicializa el objeto que manipula las planillas.
-    useState(() => { console.debug("debug");
+    useState(() => { 
 
         setSpreadsheetManipulator(new SpreadsheetManipulator());
         
@@ -316,7 +317,7 @@ export function AttendanceRegistering() {
     /**
      * Carga el rango en memoria y lo muestra en pantalla.
      */
-    const finishedLoading = spreadsheetManipulator => { console.debug("debug");
+    const finishedLoading = spreadsheetManipulator => { 
 
         // Lee un rango de celdas.
         spreadsheetManipulator.loadRangeSides(sheetNameValue, cellRangeName, ["Legajo", "Asistencia"]);
@@ -329,7 +330,7 @@ export function AttendanceRegistering() {
 
     }
 
-    const formatDateTime = dateTimeString => { console.debug("debug");
+    const formatDateTime = dateTimeString => { 
 
         const dateTime = new Date(dateTimeString);
         const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: 'numeric', minute: 'numeric' };
@@ -341,7 +342,7 @@ export function AttendanceRegistering() {
      * Carga el archivo de planilla en memoria y al finalizar llama
      * a la función que carga el rango en memoria y lo muestra en pantalla.
      */
-    const loadFile = event => { console.debug("debug");
+    const loadFile = event => { 
 
         // Evita que se ejecute la llamada del submit.
         event.preventDefault();
@@ -356,7 +357,7 @@ export function AttendanceRegistering() {
     /**
      * Carga los nombres de pestaña para que sean seleccionados.
      */
-    const loadSheetNames = () => { console.debug("debug");
+    const loadSheetNames = () => { 
         
         // Obtiene la lista de nombres.
         let sheetNamesList = spreadsheetManipulator.getSheetNamesList();
@@ -383,7 +384,7 @@ export function AttendanceRegistering() {
      *
      * @param {Event} event Evento de cambio de la etiqueta input.
      */
-    const handleFileSelection = event => { console.debug("debug");
+    const handleFileSelection = event => { 
 
         // Obtiene y almacena el nombre del archivo.
         const file = event.target.files[0];
@@ -409,7 +410,7 @@ export function AttendanceRegistering() {
      * Manejador del evento que se genera cuando se cambia
      * el valor del campo de rango de celdas.
      */
-    const handleCellRangeName = event => { console.debug("debug");
+    const handleCellRangeName = event => { 
 
         setCellRangeName(event.target.value);
 
@@ -419,7 +420,7 @@ export function AttendanceRegistering() {
      * Manejador del evento que se genera cuando se selecciona
      * un valor en el select de eventos.
      */
-    const handleEventSelection = event => { console.debug("debug");
+    const handleEventSelection = event => { 
 
         setEventId(Number(event.target.value));
         setEventDescription(event.target.selectedOptions[0].label);
@@ -434,7 +435,7 @@ export function AttendanceRegistering() {
      *
      * @param {Event} event Evento de clic.
      */
-    const handleRangeLoading = async event => { console.debug("debug");
+    const handleRangeLoading = async event => { 
 
         // Evita que se ejecute la llamada del submit.
         event.preventDefault();
@@ -619,7 +620,7 @@ export function AttendanceRegistering() {
      * Manejador del evento clic en el botón de registración
      * masiva de asistencia de alumnos.
      */
-    const handleRegistering = async () => { console.debug("debug");
+    const handleRegistering = async () => { 
 
         // Inhabilita el botón de registración.
         setRegisterButtonEnabled(false);
@@ -703,7 +704,7 @@ export function AttendanceRegistering() {
      * Manejador del evento de cambio del campo de selección
      * de nombre de pestaña.
      */
-    const handleSheetNameValueChange = event => { console.debug("debug");
+    const handleSheetNameValueChange = event => { 
 
         if(event.target.value !== "SELECCIONAR PESTAÑA") 
             setSheetNameValue(event.target.value);
@@ -711,7 +712,7 @@ export function AttendanceRegistering() {
 
     }
 
-    const handleTemplateDownload = () => { console.debug("debug");
+    const handleTemplateDownload = () => { 
         spreadsheetManipulator.create(
             "Plantilla de carga de asistencia",
             "registro-asistencias",

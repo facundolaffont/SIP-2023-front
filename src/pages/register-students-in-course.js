@@ -33,9 +33,8 @@ export function CourseStudentRegistering() {
     const [error, setError] = useState(null);
 
     const { getAccessTokenSilently } = useAuth0();
-    const [, changeCourse] = useSelectedCourse(true);
+    
     /** @type {CourseDTO} */ const course = useSelectedCourse(false);
-
     const history = useHistory();
 
     // Redirige a la página de selección de cursada, si todavía no se seleccionó una,
@@ -43,7 +42,7 @@ export function CourseStudentRegistering() {
     // se había hecho.
     useEffect(() => {
 
-        if (course === null) history.push('/profile?course-missing');
+        if (!course) history.push('/profile?course-missing');
 
     }, []);
 

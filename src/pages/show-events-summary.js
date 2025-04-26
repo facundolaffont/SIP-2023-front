@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useAuth0 } from "@auth0/auth0-react";
+import { useHistory } from "react-router-dom";
 import { VictoryPie, VictoryLabel } from "victory";
 
 // Componentes internos.
@@ -17,9 +18,6 @@ import '../styles/show-events-summary.css';
 export const ShowEventsSummary = () => {
 
     const { getAccessTokenSilently } = useAuth0();
-
-    const [, changeCourse] = useSelectedCourse(true);
-    /** @type {CourseDTO} */ const course = useSelectedCourse(false);
 
     const [error, setError] = useState(null);
 
@@ -38,31 +36,22 @@ export const ShowEventsSummary = () => {
     const [approvalData, setApprovalData] = useState({});
     const [approvalPiechartColorScale, setApprovalPiechartColorScale] = useState([]);
 
-    function isApprovalDataEmpty(obj) {
-        for (const prop in obj) {
-            if (Object.hasOwn(obj, prop)) {
-            return false;
-            }
-        }
-        
-        return true;
-    }
+    /** @type {CourseDTO} */ const course = useSelectedCourse(false);
+    const history = useHistory();
 
     // 1. Inicializa el objeto que manipula las planillas.
     useState(() => {
         setSpreadsheetManipulator(new SpreadsheetManipulator());
     }, []);
 
-    // Verifica que se haya seleccionado una cursada.
+    // Redirige a la página de selección de cursada, si todavía no se seleccionó una,
+    // o si se actualiza la página, ya que se pierde el contexto de la selección que
+    // se había hecho.
     useEffect(() => {
 
-        // Redirige a la página de selección de cursada, si todavía no se seleccionó una,
-        // o si se actualiza la página, ya que se pierde el contexto de la selección que
-        // se había hecho.
-        if (course === null)
-            window.location.replace(`${process.env.REACT_APP_DOMAIN_URL}/profile?course-missing`);
+        if (!course) history.push('/profile?course-missing');
 
-    });
+    }, [course]);
 
     // Actualiza el mensaje de error que se mostrará al usuario.
     useEffect(() => {
@@ -96,6 +85,9 @@ export const ShowEventsSummary = () => {
 
     // Obtiene el resumen de los eventos, respecto de la cursada seleccionada.
     useEffect(() => {
+
+        // Evita que el primer render arroje una excepción porque course es null.
+        if (!course) return;
 
         const getEventsSummary = async () => {
 

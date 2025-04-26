@@ -10,14 +10,17 @@ export function CreateCriterion() {
   const [infoMessage, setInfoMessage] = useState("");
   const [submitMessage, setSubmitMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
-  const course = useSelectedCourse();
+
+  /** @type {CourseDTO} */ const course = useSelectedCourse(false);
   const history = useHistory();
 
   // Redirige a la página de selección de cursada, si todavía no se seleccionó una,
   // o si se actualiza la página, ya que se pierde el contexto de la selección que
   // se había hecho.
   useEffect(() => {
-    if (course === null) history.push('/profile?course-missing');
+
+      if (!course) history.push('/profile?course-missing');
+
   }, []);
 
   const handleCriterioChange = (e) => {
