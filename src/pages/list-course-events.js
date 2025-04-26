@@ -379,7 +379,7 @@ export const ListCourseEvents = () => {
     return (
         <PageLayout>
             <h1 id="page-title" className="content__title">
-                Eventos de la cursada
+                Listar eventos
             </h1>
             <h2 className="selected-course-info">
                 {

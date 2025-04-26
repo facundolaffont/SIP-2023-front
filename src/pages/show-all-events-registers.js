@@ -191,7 +191,7 @@ export const ShowAllEventsRegisters = () => {
     return (
         <PageLayout>
             <h1 id="page-title" className="content__title">
-                Consultar registros de todos los eventos
+                Listar detalle de eventos
             </h1>
             <div id="table" className="table-container not-displayed">
                 <table className="table"></table>
