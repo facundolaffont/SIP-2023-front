@@ -178,7 +178,7 @@ export const ShowEventsSummary = () => {
         }
         getEventsSummary();
 
-    }, []); // El array vacío asegura que el efecto se ejecute solo una vez después del montaje del componente.
+    }, []);
 
     // Actualiza las tablas.
     useEffect(() => {

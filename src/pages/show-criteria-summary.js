@@ -107,7 +107,7 @@ export const ShowCriteriaSummary = () => {
             error => error.response
         );
 
-    }, [course]); // El array vacío asegura que el efecto se ejecute solo una vez después del montaje del componente.
+    }, [course]);
 
     /**
      * Maneja el evento clic en el botón de exportar.
