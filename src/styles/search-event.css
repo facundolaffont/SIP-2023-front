@@ -1,3 +1,13 @@
+.event-title {
+  font-size: 2.2rem;
+  margin-top: 1rem;
+  margin-bottom: 0;
+}
+
+.table-container {
+  margin-top: 0.5rem;
+}
+
 /* Estilos para el contenedor de la información del alumno */
 .alumno-info-container {
     margin-top: 20px;
@@ -42,4 +52,13 @@
   
   .export-button {
     margin-top: 2rem;
+  }
+
+  #event-id-input {
+    width: 20%;
+  }
+
+  .event-search-button {
+    display: inline-block;
+    margin-left: 1rem;
   }

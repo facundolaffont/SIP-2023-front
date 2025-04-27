@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useAuth0 } from "@auth0/auth0-react";
 import { useHistory } from 'react-router-dom';
+import ReactDOMServer from 'react-dom/server';
 
 // Componentes internos.
 import { PageLayout } from "../components/page-layout.js";
@@ -10,19 +11,27 @@ import HTMLTableManipulator from "../services/html-table-manipulator";
 import SpreadsheetManipulator from "../services/spreadsheet-manipulator.service";
 import { useSelectedCourse } from "../contexts/course/course-provider.js";
 import CourseDTO from "../contexts/course/course-d-t-o";
-import ReactDOMServer from 'react-dom/server';
 
 // Estilos.
 import '../styles/list-course-events.css';
 
 export const ListCourseEvents = () => {
+
+    // #region ==== Definición de estados. ====
+    
     const { getAccessTokenSilently } = useAuth0();
+
     const [spreadsheetManipulator, setSpreadsheetManipulator] = useState(null);
+
     const [eventsList, setEventsList] = useState([]);
     
     /** @type {CourseDTO} */ const course = useSelectedCourse(false);
     const history = useHistory();
+    
+    // #endregion ==== Definición de estados. ====
 
+    // #region ==== Definición de useEffect. ====
+    
     // Inicializa el objeto que manipula las planillas.
     useState(() => {
 
@@ -57,19 +66,21 @@ export const ListCourseEvents = () => {
             });
     
             // Ingresa los datos de los eventos en la tabla.
-            HTMLTableManipulator.insertDataIntoTable(eventsTable, {
-                tableRows: eventsWithActionsAsString,
-                columnNames: [
-                    "eventId:ID",
-                    "type:Tipo de evento",
-                    "name:Nombre de evento",
-                    "initialDateTime:Fecha-Hora Inicio",
-                    "endDateTime: Fecha-Hora Fin",
-                    "mandatory:Obligatorio",
-                    "actions:Acciones"
-                ],
-                actionsColumnIndex: 4
-            });
+            HTMLTableManipulator.insertDataIntoTable(
+                eventsTable,
+                {
+                    tableRows: eventsWithActionsAsString,
+                    columnNames: [
+                        "eventId:ID",
+                        "type:Tipo de evento",
+                        "name:Nombre de evento",
+                        "initialDateTime:Fecha-Hora Inicio",
+                        "endDateTime: Fecha-Hora Fin",
+                        "mandatory:Obligatorio",
+                        "actions:Acciones"
+                    ],
+                }
+            );
     
             // Muestra la tabla de eventos.
             eventsTable.classList.remove("not-displayed");
@@ -78,124 +89,238 @@ export const ListCourseEvents = () => {
 
     }, [eventsList]);
         
-    // Agrega eventos de edición al hacer clic en el botón "Modificar".
+    // Agrega manejador para el evento clic del botón "Modificar".
     useEffect(() => {
 
+        /**
+         * Manejador del evento clic en el botón de modificar.
+         * 
+         * Habilita la edición de las correspondientes celdas, quitando los botones
+         * de modificación y eliminación, y agregando botones de confirmación y cancelación,
+         * agregando los correspondientes manejadores a estos últimos dos botones.
+         * 
+         * Si se presiona el botón de confirmación, se actualiza el evento, siempre que haya
+         * habido alguna modificación, y se muestan los nuevos valores en la tabla. También
+         * se vuelven a mostrar los botones de modificación y eliminación.
+         * 
+         * Si se presiona el botón de cancelación, se restauran los valores originales de las
+         * celdas editables y se deshabilita la edición, volviendo a aparecer los botones de
+         * edición y eliminación.
+         * 
+         * @param {*} event Evento clic.
+         */
         const handleEditButtonClick = (event) => {
-            const row = event.target.closest('tr');
-            const cells = row.querySelectorAll('td');
-    
-            const fechaInicioVieja = cells[2].textContent;
-            const fechaFinVieja = cells[3].textContent;
-            const obligatorioViejo = cells[4].textContent;
-    
-            // Habilita la edición solo para las celdas de fecha y obligatorio
-            cells[2].contentEditable = true; // Fecha y hora inicio
-            cells[3].contentEditable = true; // Fecha y hora fin
-            cells[4].contentEditable = true; // Obligatorio
 
+            // Obtiene la fila de la tabla que contiene el botón "Modificar" que fue presionado.
+            const row = event.target.closest('tr');
+
+            // Obtiene todas las celdas de la fila.
+            const cells = row.querySelectorAll('td');
+   
+            // #region ==== Obtiene los valores de las celdas y habilita su edición. ====
+            
+            const eventIdTdElement = cells[0];
+            const eventIdContent = eventIdTdElement.textContent;
+            
+            const eventNameTdElement = cells[2];
+            const oldEventNameContent = eventNameTdElement.textContent;
+            eventNameTdElement.contentEditable = true;
+
+            const initialDatetimeTdElement = cells[3];
+            const oldInitialDatetimeContent = initialDatetimeTdElement.textContent;
+
+            const endDatetimeTdElement = cells[4];
+            const oldEndDatetimeContent = endDatetimeTdElement.textContent;
+
+            const mandatoryTdElement = cells[5];
+            const oldMandatoryContent = mandatoryTdElement.textContent;
+            mandatoryTdElement.contentEditable = true;
+            
+            // #endregion ==== Obtiene los valores de las celdas y habilita su edición. ====
+
+            // Crea un elemento interactuable que permite seleccionar la fecha de inicio
+            // desde un calendario.
             const initialDateTimeInput = document.createElement('input');
             initialDateTimeInput.type = 'datetime-local';
-            cells[2].innerHTML = '';
-            cells[2].appendChild(initialDateTimeInput);
+            initialDatetimeTdElement.innerHTML = '';
+            initialDatetimeTdElement.appendChild(initialDateTimeInput);
 
-            // Crea un nuevo elemento input para la fecha y hora de fin
+            // Crea un elemento interactuable que permite seleccionar la fecha de fin
+            // desde un calendario.
             const endDateTimeInput = document.createElement('input');
             endDateTimeInput.type = 'datetime-local';
-            cells[3].innerHTML = '';
-            cells[3].appendChild(endDateTimeInput);
+            endDatetimeTdElement.innerHTML = '';
+            endDatetimeTdElement.appendChild(endDateTimeInput);
 
-            // Agregar botones de confirmar y cancelar
+            // #region ==== Crea y configura el botón de confirmación. ====
+            
             const confirmButton = document.createElement('button');
             confirmButton.textContent = 'Confirmar';
             confirmButton.addEventListener('click', () => {
-                // Guardar los cambios y deshabilitar la edición
-                cells[2].contentEditable = false;
-                cells[3].contentEditable = false;
-                cells[4].contentEditable = false;
-                // Aquí podrías agregar la lógica para guardar los cambios en el estado eventsList
                 
-                const eventId = cells[0].textContent;
-                let newMandatory = cells[4].textContent;
-                let newStartDate = new Date(initialDateTimeInput.value).toISOString();
-                let newEndDate = new Date(endDateTimeInput.value).toISOString();
-                cells[2].textContent = getFormattedDateAndTime(newStartDate);
-                cells[3].textContent = getFormattedDateAndTime(newEndDate);
+                // Obtiene el ID de evento.
+                const eventId = eventIdContent;
 
-                if (obligatorioViejo !== newMandatory ||
-                    fechaInicioVieja !== newStartDate ||
-                    fechaFinVieja !== newEndDate) {
-                    // Llamar a la función para actualizar el evento en el backend
+                // Obtiene los valores de las celdas editables.
+                let newEventNameContent = eventNameTdElement.textContent;
+                let newInitialDatetimeContent =
+                    initialDateTimeInput.value !== ''
+                    ? new Date(initialDateTimeInput.value).toISOString()
+                    : null;
+                let newEndDatetimeContent =
+                    endDateTimeInput.value !== ''
+                    ? new Date(endDateTimeInput.value).toISOString()
+                    : null;
+                let newMandatoryContent = mandatoryTdElement.textContent;
+
+                // Si hubo alguna modificación en los valores de las celdas, se actualiza el evento.
+                if (
+                    oldEventNameContent !== newEventNameContent ||
+                    oldInitialDatetimeContent !== newInitialDatetimeContent ||
+                    oldEndDatetimeContent !== newEndDatetimeContent ||
+                    oldMandatoryContent !== newMandatoryContent
+                ) {
+
+                    // #region ==== Si hubo cambio en las fechas y la fecha mínima es mayor que la fecha
+                    // máxima, se muestra un mensaje de error al usuario. ====
                     
-                    if (newMandatory === "x")                        
-                        newMandatory = true
-                    else
-                        newMandatory = false
+                    if (
+                        oldInitialDatetimeContent !== newInitialDatetimeContent ||
+                        oldEndDatetimeContent !== newEndDatetimeContent
+                    ) {
+                        if (
+                            newInitialDatetimeContent !== null &&
+                            newEndDatetimeContent !== null &&
+                            new Date(newInitialDatetimeContent) > new Date(newEndDatetimeContent)
+                        ) {
+                            alert("La fecha de inicio no puede ser mayor que la fecha de fin.");
+                            return;
+                        }
+                    }
                     
-                    updateEvent(eventId, newMandatory, newStartDate, newEndDate);
+                    // #endregion ==== Si hubo cambio en las fechas y la fecha mínima es mayor que la fecha
+                    // máxima, se muestra un mensaje de error al usuario. ====
+
+                    // #region ==== Si no hubo cambio en las fechas o si hubo, pero la fecha mínima es menor o igual
+                    // que la fecha máxima, o alguna de las fechas es nula, se modifica el evento. ====
+
+                    // Se deshabilita la edición de las celdas.
+                    eventNameTdElement.contentEditable = false;
+                    mandatoryTdElement.contentEditable = false;
+
+                    // Establece, en las celdas de fecha, el valor equivalente en texto de la nueva fecha seleccionada.
+                    initialDatetimeTdElement.textContent = 
+                        newInitialDatetimeContent !== null
+                        ? getHumanFormattedDateAndTime(newInitialDatetimeContent)
+                        : '-';
+                    endDatetimeTdElement.textContent = 
+                        newEndDatetimeContent !== null
+                        ? getHumanFormattedDateAndTime(newEndDatetimeContent)
+                        : '-';
+                    
+                    // Llama al método que actualiza el evento.
+                    updateEvent(
+                        eventId,
+                        newEventNameContent,
+                        newInitialDatetimeContent,
+                        newEndDatetimeContent,
+                        newMandatoryContent === 'x' ? true : false,
+                    );
+
+                    // #region ==== Vuelve a crear los botones de modificación y eliminación. ====
+                
+                    // Obtiene el elemento HTML que debe contener los botones de modificación
+                    // y eliminación de eventos.
+                    const actionsCell = row.querySelector('.actions-container');
+                    actionsCell.textContent = '';
+        
+                    // Crea y configura el botón de modificación.
+                    const modifyButton = document.createElement('button');
+                    modifyButton.textContent = 'Modificar';
+                    modifyButton.className = 'edit-button';
+                    modifyButton.addEventListener('click', handleEditButtonClick);
+        
+                    // Crea y configura el botón de eliminación.
+                    const deleteButton = document.createElement('button');
+                    deleteButton.textContent = 'Eliminar';
+                    deleteButton.className = 'delete-button';
+                    deleteButton.addEventListener('click', handleDeleteButtonClick);
+        
+                    // Agrega los botones.
+                    actionsCell.appendChild(modifyButton);
+                    actionsCell.appendChild(deleteButton);
+                    
+                    // #endregion ==== Vuelve a crear los botones de modificación y eliminación. ====
+                
+                    // #endregion ==== Si no hubo cambio en las fechas o si hubo, pero la fecha mínima es menor o igual
+                    // que la fecha máxima, se modifica el evento. ====
+
                 }
 
-                const actionsCell = row.querySelector('.actions-container');
-                actionsCell.textContent = '';
-    
-                const modifyButton = document.createElement('button');
-                modifyButton.textContent = 'Modificar';
-                modifyButton.className = 'edit-button';
-                modifyButton.addEventListener('click', handleEditButtonClick);
-    
-                const deleteButton = document.createElement('button');
-                deleteButton.textContent = 'Eliminar';
-                deleteButton.className = 'delete-button';
-    
-                actionsCell.appendChild(modifyButton);
-                actionsCell.appendChild(deleteButton);
-
             });
-    
+            
+            // #endregion ==== Crea y configura el botón de confirmación. ====
+                                                
+            // #region ==== Crea y configura el botón de cancelación. ====
+            
             const cancelButton = document.createElement('button');
             cancelButton.textContent = 'Cancelar';
             cancelButton.addEventListener('click', () => {
                 
-                // Restaura los valores originales y deshabilita la edición.
-                cells[2].textContent = fechaInicioVieja; // Restaura el valor original de la fecha.
-                cells[3].textContent = fechaFinVieja; // Restaura el valor original del campo obligatorio.
-                cells[4].textContent = obligatorioViejo;
-                cells[2].contentEditable = false;
-                cells[3].contentEditable = false;
-                cells[4].contentEditable = false;
+                // Restaura los valores originales de las celdas editables y deshabilita su edición.
+                eventNameTdElement.textContent = oldEventNameContent;
+                initialDatetimeTdElement.textContent = oldInitialDatetimeContent;
+                endDatetimeTdElement.textContent = oldEndDatetimeContent;
+                mandatoryTdElement.textContent = oldMandatoryContent;
+                eventNameTdElement.contentEditable = false;
+                mandatoryTdElement.contentEditable = false;
 
-                // Muestra los botones "Modificar" y "Eliminar".
+                // #region ==== Vuelve a crear los botones de modificación y eliminación. ====
+                
+                // Obtiene el elemento HTML que debe contener los botones de modificación
+                // y eliminación de eventos.
                 const actionsCell = row.querySelector('.actions-container');
                 actionsCell.textContent = '';
     
+                // Crea y configura el botón de modificación.
                 const modifyButton = document.createElement('button');
                 modifyButton.textContent = 'Modificar';
                 modifyButton.className = 'edit-button';
                 modifyButton.addEventListener('click', handleEditButtonClick);
     
+                // Crea y configura el botón de eliminación.
                 const deleteButton = document.createElement('button');
                 deleteButton.textContent = 'Eliminar';
                 deleteButton.className = 'delete-button';
                 deleteButton.addEventListener('click', handleDeleteButtonClick);
     
+                // Agrega los botones.
                 actionsCell.appendChild(modifyButton);
                 actionsCell.appendChild(deleteButton);
+                
+                // #endregion ==== Vuelve a crear los botones de modificación y eliminación. ====
+                
             });
-    
-            // Agregar los botones a la celda de acciones
+            
+            // #endregion ==== Crea y configura el botón de cancelación. ====
+                
+            // Agregar los botones.
             const actionsCell = row.querySelector('.actions-container');
-            actionsCell.textContent = ''; // Limpiar contenido existente
+            actionsCell.textContent = '';
             actionsCell.appendChild(confirmButton);
             actionsCell.appendChild(cancelButton);
         };
     
-        // Obtiene el manejador de la tabla de eventos, y luego agrega a cada botón
-        // de modificar el evento un listener que llama a la función handleEditButtonClick.
+        // Agrega un manejador para el evento clic de cada botón
+        // de modificación de la tabla de eventos.
         let eventsTable = document.getElementsByClassName("events-table")[0];
         eventsTable.querySelectorAll('.edit-button').forEach(button => {
             button.addEventListener('click', handleEditButtonClick);
         });
     
+        // Agrega una función de limpieza para evitar que el manejador de eventos
+        // se agregue más de una vez, debido a la naturaleza del ciclo de vida del
+        // useEffect.
         return () => {
             eventsTable.querySelectorAll('.edit-button').forEach(button => {
                 button.removeEventListener('click', handleEditButtonClick);
@@ -204,7 +329,7 @@ export const ListCourseEvents = () => {
 
     }, [eventsList]);
 
-    // Agrega eventos de eliminación al hacer clic en el botón "Eliminar".
+    // Agrega manejador para el evento clic del botón "Eliminar".
     useEffect(() => {
 
         // Manejador del evento clic en el botón de eliminar.
@@ -270,12 +395,12 @@ export const ListCourseEvents = () => {
                             initialDateTime:
                                 event.initialDateTime !== null
                                 ? (
-                                    getFormattedDateAndTime(event.initialDateTime)
+                                    getHumanFormattedDateAndTime(event.initialDateTime)
                                 ) : '-',
                             endDateTime:
                                 event.endDateTime !== null
                                 ? (
-                                    getFormattedDateAndTime(event.endDateTime)
+                                    getHumanFormattedDateAndTime(event.endDateTime)
                                 ) : '-',
                             mandatory: event.mandatory,
                             actions: (
@@ -301,18 +426,37 @@ export const ListCourseEvents = () => {
         getCourseEvents();
 
     }, [course]);
+    
+    // #endregion ==== Definición de useEffect. ====
 
-    // Actualiza los datos de un evento.
-    const updateEvent = async (eventId, newMandatory, initialDate, endDate) => {
+    // #region ==== Definición de funciones. ====
+    
+    /**
+     * Envía una solicitud de actualización de información de evento al backend.
+     * 
+     * Si el evento se actualiza correctamente, se muestra un mensaje de éxito. Si
+     * no, se muestra un mensaje de error.
+     * 
+     * @param {number} eventId ID del evento a modificar.
+     * @param {string} newName Nuevo nombre del evento.
+     * @param {string} newInitialDate Nueva fecha y hora inicial del evento.
+     * @param {string} newEndDate Nueva fecha y hora final del evento.
+     * @param {boolean} newMandatory Nuevo valor de obligatoriedad.
+     */
+    const updateEvent = async (eventId, newName, newInitialDate, newEndDate, newMandatory) => {
 
         fetch(`${process.env.REACT_APP_API_SERVER_URL}/api/v1/events/update-event`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
             },
-            body: JSON.stringify({ eventId: eventId, newMandatory: newMandatory, 
-                initialDate: initialDate, endDate: endDate
-            }), // Pasar un objeto con las propiedades eventId y newData
+            body: JSON.stringify({
+                eventId: eventId,
+                newName: newName,
+                newInitialDate: newInitialDate,
+                newEndDate: newEndDate,
+                newMandatory: newMandatory, 
+            }),
         })
         .then(response => {
 
@@ -382,12 +526,13 @@ export const ListCourseEvents = () => {
     };
 
     /**
-     * Formatea la fecha y hora de un evento.
+     * Formatea la fecha y hora de un evento con formato
+     * legible para las personas.
      * 
-     * @param {*} date 
+     * @param {*} date Fecha a formatear.
      * @returns La fecha y hora formateada.
      */
-    function getFormattedDateAndTime(date) {
+    function getHumanFormattedDateAndTime(date) {
 
         const initialDate =
             Intl.DateTimeFormat(
@@ -424,6 +569,8 @@ export const ListCourseEvents = () => {
         );
 
     }
+    
+    // #endregion ==== Definición de funciones. ====
 
     return (
         <PageLayout>
