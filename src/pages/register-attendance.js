@@ -16,6 +16,8 @@ import '../styles/register-attendance.css';
 
 export function AttendanceRegistering() {
 
+    // #region ==== Definición de parámetros. ====
+    
     const [fileName, setFileName] = useState('');
     const [fileHandle, setFileHandle] = useState(null);
 
@@ -41,7 +43,9 @@ export function AttendanceRegistering() {
 
     /** @type {CourseDTO} */ const course = useSelectedCourse(false);
     const history = useHistory();
-
+    
+    // #endregion ==== Definición de parámetros. ====
+    
     // Redirige a la página de selección de cursada, si todavía no se seleccionó una,
     // o si se actualiza la página, ya que se pierde el contexto de la selección que
     // se había hecho.
@@ -50,6 +54,36 @@ export function AttendanceRegistering() {
         if (!course) history.push('/profile?course-missing');
 
     }, []);
+
+    // Actualiza el mensaje de error que se mostrará al usuario.
+    useEffect(() => { 
+
+        // Obtiene el contenedor principal del mensaje de error.
+        const msgContainer = document.getElementsByClassName("info-msg-container")[0];
+
+        if (error === null) {
+
+            msgContainer.classList.add("not-displayed");
+
+        } else {
+
+            // Oculta las tablas.
+            setOkStudentsList([]);
+            setNotOkStudentsList([]);
+            setInvalidRegistersList([]);
+
+            // Obtiene el elemento HTML que contendrá el texto del mensaje.
+            const errorMsgTextContainer = document.getElementsByClassName("info-msg-description")[0];
+
+            // Guarda el mensaje.
+            errorMsgTextContainer.innerHTML = error;
+
+            // Muestra el mensaje.
+            msgContainer.classList.remove("not-displayed");
+
+        }
+
+    }, [error]);
 
     // Actualiza el estado del botón de registración.
     useEffect(() => { 
@@ -198,36 +232,6 @@ export function AttendanceRegistering() {
         .catch(error => error.response);
 
     }, [course]);
-
-    // Actualiza el mensaje de error que se mostrará al usuario.
-    useEffect(() => { 
-
-        // Obtiene el contenedor principal del mensaje de error.
-        const msgContainer = document.getElementsByClassName("info-msg-container")[0];
-
-        if (error === null) {
-
-            msgContainer.classList.add("not-displayed");
-
-        } else {
-
-            // Oculta las tablas.
-            setOkStudentsList([]);
-            setNotOkStudentsList([]);
-            setInvalidRegistersList([]);
-
-            // Obtiene el elemento HTML que contendrá el texto del mensaje.
-            const errorMsgTextContainer = document.getElementsByClassName("info-msg-description")[0];
-
-            // Guarda el mensaje.
-            errorMsgTextContainer.innerHTML = error;
-
-            // Muestra el mensaje.
-            msgContainer.classList.remove("not-displayed");
-
-        }
-
-    }, [error]);
 
     // Actualiza las tablas.
     useEffect(() => { 

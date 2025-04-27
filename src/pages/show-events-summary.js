@@ -283,7 +283,7 @@ export const ShowEventsSummary = () => {
     /**
      * Actualiza el gráfico de torta de asistencias.
      */
-    useEffect(() => { console.debug('debug');
+    useEffect(() => { 
 
         let elementsToGraph = [];
         let colorScale = [];
@@ -327,7 +327,7 @@ export const ShowEventsSummary = () => {
     /**
      * Actualiza el gráfico de torta de calificaciones.
      */
-    useEffect(() => { console.debug('debug');
+    useEffect(() => { 
 
         let elementsToGraph = [];
         let colorScale = [];
@@ -406,7 +406,7 @@ export const ShowEventsSummary = () => {
         classAttendingPercentage,
         classNonAttendingQuantity,
         classNonAttendingPercentage,
-    ) => { console.debug('debug');
+    ) => { 
 
         // Obtiene el manejador del gráfico de torta.
         const piechart = document.getElementById("attendancePiechart");
@@ -462,7 +462,7 @@ export const ShowEventsSummary = () => {
         evaluationEventDisapprovedPercentage,
         evaluationEventNonAttendingQuantity,
         evaluationEventNonAttendingPercentage
-    ) => { console.debug('debug');
+    ) => { 
 
         // Obtiene el manejador del gráfico de torta.
         const piechart = document.getElementById("approvalPiechart");
