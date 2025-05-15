@@ -124,221 +124,6 @@ export const SearchEvent = () => {
 
         // Evita la ejecución si todavía no hay información de evento.
         if (eventInfo === null) return;
-        
-        // /**
-        //  * Manejador del evento clic en el botón de modificar.
-        //  * 
-        //  * Habilita la edición de las correspondientes celdas, quitando los botones
-        //  * de modificación y eliminación, y agregando botones de confirmación y cancelación,
-        //  * agregando los correspondientes manejadores a estos últimos dos botones.
-        //  * 
-        //  * Si se presiona el botón de confirmación, se actualiza el evento, siempre que haya
-        //  * habido alguna modificación, y se muestan los nuevos valores en la tabla. También
-        //  * se vuelven a mostrar los botones de modificación y eliminación.
-        //  * 
-        //  * Si se presiona el botón de cancelación, se restauran los valores originales de las
-        //  * celdas editables y se deshabilita la edición, volviendo a aparecer los botones de
-        //  * edición y eliminación.
-        //  * 
-        //  * @param {*} event Evento clic.
-        //  */
-        // const handleEditButtonClick = (event) => {
-
-        //     // Obtiene la fila de la tabla que contiene el botón "Modificar" que fue presionado.
-        //     const row = event.target.closest('tr');
-
-        //     // Obtiene todas las celdas de la fila.
-        //     const cells = row.querySelectorAll('td');
-
-        //     // Obtiene el ID del registro de evento.
-        //     const eventRegisterIdTdElement = cells[0];
-        //     const eventRegisterIdTdContent = eventRegisterIdTdElement.textContent;
-            
-        //     // Obtiene el valor de la celda editable.
-        //     const eventRegisterTdElement = cells[4];
-        //     const oldEventRegisterValue = eventRegisterTdElement.textContent;
-
-        //     // #region ==== Crea un elemento interactuable que permite seleccionar
-        //     // el valor desde una lista desplegable. ====
-            
-        //     // Crea una lista desplegable de opciones con los valores que se pueden elegir.
-        //     const selectElement = document.createElement('select');
-        //     const options = 
-        //         eventInfo.eventInfo.eventTypeId === 1
-        //         ? ['Sí', 'No']
-        //         : ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'A', 'A-', 'D', 'AUSENTE'];
-
-        //     // Agrega cada opción al datalist.
-        //     options.forEach(optionValue => {
-        //         const option = document.createElement('option');
-        //         option.value = optionValue;
-        //         option.textContent = optionValue;
-
-        //         // Si el valor de la opción coincide con el valor de la celda editable,
-        //         // se selecciona la opción.
-        //         if (optionValue === oldEventRegisterValue) {
-        //             option.selected = true;
-        //         }
-
-        //         selectElement.appendChild(option);
-        //     });
-
-        //     // Reemplaza el contenido de la celda editable por el elemento select.
-        //     eventRegisterTdElement.innerHTML = '';
-        //     eventRegisterTdElement.appendChild(selectElement);
-            
-        //     // #endregion ==== Crea un elemento interactuable que permite seleccionar
-        //     // el valor desde una lista desplegable. ====
-
-        //     // #region ==== Crea y configura el botón de confirmación. ====
-            
-        //     const confirmButton = document.createElement('button');
-        //     confirmButton.textContent = 'Confirmar';
-        //     confirmButton.addEventListener('click', async () => {
-
-        //         // Obtiene el valor de la celda editable.
-        //         let newEventRegisterValue = selectElement.value;
-
-        //         // Si hubo alguna modificación en el valor de la celda, se actualiza el registro.
-        //         if (oldEventRegisterValue !== newEventRegisterValue) {
-
-        //             try {
-
-        //                 // Si se trata de una clase, envía solicitud de actualización de asistencia.
-        //                 if (eventInfo.eventInfo.eventTypeId === 1 /* Clase */)
-        //                     await updateEventRegisterAttendance(
-        //                         Number(eventRegisterIdTdContent),
-        //                         newEventRegisterValue === 'Sí' ? true : false,
-        //                     );
-                        
-        //                 // Si se trata de una nota, envía solicitud de actualización de nota.
-        //                 else
-        //                     await updateEventRegisterNote(
-        //                         Number(eventRegisterIdTdContent),
-        //                         newEventRegisterValue,
-        //                     );
-
-        //                 // Notifica al usuario que se pudo actualizar el registro de evento.
-        //                 alert("El registro de evento se ha actualizado exitosamente.");
-
-        //                 // Actualiza el estado de los registros de evento, para que se refleje
-        //                 // en la tabla.
-        //                 setEventInfo({
-        //                     eventInfo: eventInfo.eventInfo,
-        //                     eventRegistersList: eventInfo.eventRegistersList.map(
-        //                         (eventRegister) =>
-        //                             eventRegister.eventRegisterId === Number(eventRegisterIdTdContent)
-        //                                 ? {
-        //                                       ...eventRegister,
-        //                                       [eventInfo.eventInfo.eventTypeId === 1
-        //                                           ? "attendance"
-        //                                           : "note"]: newEventRegisterValue,
-        //                                   }
-        //                                 : eventRegister
-        //                     ),
-        //                 });
-        //                 //eventRegisterTdElement.innerHTML = newEventRegisterValue;
-
-        //             // Si hubo un error de red o si el código HTTP de la respuesta no es 2XX,
-        //             // notifica al usuario.
-        //             } catch (error) {
-                        
-        //                 // Notifica al usuario.
-        //                 alert(
-        //                     `Código de error ${error.response.data.errorCode}
-        //                     \n${error.response.data.errorDescription}`
-        //                 );
-
-        //                 // Registra el error en el log.
-        //                 console.error(`Código de error: ${error.response.data.errorCode}
-        //                     \nMensaje de error: ${error.response.data.errorDescription}`
-        //                 );
-
-        //                 // Establece el valor viejo en la celda editable.
-        //                 eventRegisterTdElement.innerHTML = oldEventRegisterValue;
-
-        //             } finally {
-
-        //                 // #region ==== Vuelve a crear los botones de modificación y eliminación. ====
-                    
-        //                 // Obtiene el elemento HTML que debe contener los botones de modificación
-        //                 // y eliminación de eventos.
-        //                 const actionsCell = row.querySelector('.actions-container');
-        //                 actionsCell.textContent = '';
-            
-        //                 // Crea y configura el botón de modificación.
-        //                 const modifyButton = document.createElement('button');
-        //                 modifyButton.textContent = 'Modificar';
-        //                 modifyButton.className = 'edit-button';
-        //                 modifyButton.addEventListener('click', handleEditButtonClick);
-            
-        //                 // Crea y configura el botón de eliminación.
-        //                 const deleteButton = document.createElement('button');
-        //                 deleteButton.textContent = 'Eliminar';
-        //                 deleteButton.className = 'delete-button';
-        //                 deleteButton.addEventListener('click', handleDeleteButtonClick); 
-            
-        //                 // Agrega los botones.
-        //                 actionsCell.appendChild(modifyButton);
-        //                 actionsCell.appendChild(deleteButton);
-                        
-        //                 // #endregion ==== Vuelve a crear los botones de modificación y eliminación. ====
-
-        //             }
-
-        //         }
-
-        //         // Si no hubo modificación, se notifica al usuario.
-        //         else alert('No se realizaron cambios en el registro. Realice un cambio o cancele la edición.');
-
-        //     });
-            
-        //     // #endregion ==== Crea y configura el botón de confirmación. ====
-            
-        //     // #region ==== Crea y configura el botón de cancelación. ====
-            
-        //     const cancelButton = document.createElement('button');
-        //     cancelButton.textContent = 'Cancelar';
-        //     cancelButton.addEventListener('click', () => {
-                
-        //         // Restaura los valores originales de las celdas editables y deshabilita su edición.
-        //         eventRegisterTdElement.textContent = oldEventRegisterValue;
-
-        //         // #region ==== Vuelve a crear los botones de modificación y eliminación. ====
-                
-        //         // Obtiene el elemento HTML que debe contener los botones de modificación
-        //         // y eliminación de eventos.
-        //         const actionsCell = row.querySelector('.actions-container');
-        //         actionsCell.textContent = '';
-    
-        //         // Crea y configura el botón de modificación.
-        //         const modifyButton = document.createElement('button');
-        //         modifyButton.textContent = 'Modificar';
-        //         modifyButton.className = 'edit-button';
-        //         modifyButton.addEventListener('click', handleEditButtonClick);
-    
-        //         // Crea y configura el botón de eliminación.
-        //         const deleteButton = document.createElement('button');
-        //         deleteButton.textContent = 'Eliminar';
-        //         deleteButton.className = 'delete-button';
-        //         deleteButton.addEventListener('click', handleDeleteButtonClick); 
-    
-        //         // Agrega los botones.
-        //         actionsCell.appendChild(modifyButton);
-        //         actionsCell.appendChild(deleteButton);
-                
-        //         // #endregion ==== Vuelve a crear los botones de modificación y eliminación. ====
-                
-        //     });
-            
-        //     // #endregion ==== Crea y configura el botón de cancelación. ====
-
-        //     // Agregar los botones.
-        //     const actionsCell = row.querySelector('.actions-container');
-        //     actionsCell.textContent = '';
-        //     actionsCell.appendChild(confirmButton);
-        //     actionsCell.appendChild(cancelButton);
-        // };
     
         // Agrega un manejador para el evento clic de cada botón
         // de modificación de la tabla de eventos.
@@ -651,27 +436,33 @@ export const SearchEvent = () => {
         // #endregion ==== Crea un elemento interactuable que permite seleccionar
         // el valor desde una lista desplegable. ====
 
-        // #region ==== Crea el botón de confirmación. ====
-        
+        // #region ==== Quita los botones de modificación y eliminación y agrega los botones de confirmación y cancelación. ====
+
+        // Limpia el contenido de la celda de acciones.
+        const actionsCell = row.querySelector('.actions-container');
+        actionsCell.textContent = '';
+
+        // Deshabilita los botones del resto de las filas.
+        const buttons = document.querySelectorAll('.actions-container button');
+        buttons.forEach(button => {
+            button.classList.add('disabled');
+            button.disabled = true;
+        });
+
+        // Agrega el botón de confirmación.
         const confirmButton = document.createElement('button');
         confirmButton.textContent = 'Confirmar';
         confirmButton.addEventListener('click', (event) => handleConfirmButtonClick(event, oldEventRegisterValue));
+        actionsCell.appendChild(confirmButton);
         
-        // #endregion ==== Crea y configura el botón de confirmación. ====
-        
-        // #region ==== Crea el botón de cancelación. ====
-        
+        // Agrega el botón de cancelación.
         const cancelButton = document.createElement('button');
         cancelButton.textContent = 'Cancelar';
         cancelButton.addEventListener('click', (event) => handleCancelButtonClick(event, oldEventRegisterValue));
-        
-        // #endregion ==== Crea y configura el botón de cancelación. ====
-
-        // Agregar los botones.
-        const actionsCell = row.querySelector('.actions-container');
-        actionsCell.textContent = '';
-        actionsCell.appendChild(confirmButton);
         actionsCell.appendChild(cancelButton);
+        
+        // #endregion ==== Quita los botones de modificación y eliminación y agrega los botones de confirmación y cancelación. ====
+
     };
 
     /**
@@ -758,30 +549,36 @@ export const SearchEvent = () => {
 
         } finally {
 
-            // #region ==== Vuelve a crear los botones de modificación y eliminación. ====
+            // #region ==== Quita los botones de confirmación y cancelación y vuelve a crear
+            // los botones de modificación y eliminación. ====
         
-            // Obtiene el elemento HTML que debe contener los botones de modificación
-            // y eliminación de eventos.
+            // Limpia la celda de acciones.
             const actionsCell = event.target.closest('tr').querySelector('.actions-container');
             actionsCell.textContent = '';
+
+            // Habilita los botones del resto de las filas.
+            const buttons = document.querySelectorAll('.actions-container button');
+            buttons.forEach(button => {
+                button.classList.remove('disabled');
+                button.disabled = false;
+            });
 
             // Crea el botón de modificación.
             const modifyButton = document.createElement('button');
             modifyButton.textContent = 'Modificar';
             modifyButton.className = 'edit-button';
             modifyButton.addEventListener('click', handleEditButtonClick);
+            actionsCell.appendChild(modifyButton);
 
             // Crea el botón de eliminación.
             const deleteButton = document.createElement('button');
             deleteButton.textContent = 'Eliminar';
             deleteButton.className = 'delete-button';
             deleteButton.addEventListener('click', handleDeleteButtonClick); 
-
-            // Agrega los botones.
-            actionsCell.appendChild(modifyButton);
             actionsCell.appendChild(deleteButton);
             
-            // #endregion ==== Vuelve a crear los botones de modificación y eliminación. ====
+            // #endregion ==== Quita los botones de confirmación y cancelación y vuelve a crear
+            // los botones de modificación y eliminación. ====
 
         }
 
@@ -800,30 +597,36 @@ export const SearchEvent = () => {
         const eventRegisterTdElement = event.target.closest('tr').querySelectorAll('td')[4];
         eventRegisterTdElement.textContent = oldEventRegisterValue;
 
-        // #region ==== Vuelve a crear los botones de modificación y eliminación. ====
-        
-        // Obtiene el elemento HTML que debe contener los botones de modificación
-        // y eliminación de eventos.
+        // #region ==== Quita los botones de confirmación y cancelación y vuelve a crear
+        // los botones de modificación y eliminación. ====
+
+        // Limpia la celda de acciones.
         const actionsCell = event.target.closest('tr').querySelector('.actions-container');
         actionsCell.textContent = '';
+
+        // Habilita los botones del resto de las filas.
+        const buttons = document.querySelectorAll('.actions-container button');
+        buttons.forEach(button => {
+            button.classList.remove('disabled');
+            button.disabled = false;
+        });
 
         // Crea y configura el botón de modificación.
         const modifyButton = document.createElement('button');
         modifyButton.textContent = 'Modificar';
         modifyButton.className = 'edit-button';
         modifyButton.addEventListener('click', handleEditButtonClick);
+        actionsCell.appendChild(modifyButton);
 
         // Crea y configura el botón de eliminación.
         const deleteButton = document.createElement('button');
         deleteButton.textContent = 'Eliminar';
         deleteButton.className = 'delete-button';
         deleteButton.addEventListener('click', handleDeleteButtonClick); 
-
-        // Agrega los botones.
-        actionsCell.appendChild(modifyButton);
         actionsCell.appendChild(deleteButton);
         
-        // #endregion ==== Vuelve a crear los botones de modificación y eliminación. ====
+        // #endregion ==== Quita los botones de confirmación y cancelación y vuelve a crear
+        // los botones de modificación y eliminación. ====
         
     }
 

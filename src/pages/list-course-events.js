@@ -227,12 +227,20 @@ export const ListCourseEvents = () => {
                         newMandatoryContent === 'x' ? true : false,
                     );
 
-                    // #region ==== Vuelve a crear los botones de modificación y eliminación. ====
+                    // #region ==== Quita los botones de confirmación y cancelación y vuelve a crear
+                    // los botones de modificación y eliminación. ====
                 
                     // Obtiene el elemento HTML que debe contener los botones de modificación
                     // y eliminación de eventos.
                     const actionsCell = row.querySelector('.actions-container');
                     actionsCell.textContent = '';
+
+                    // Habilita los botones del resto de las filas.
+                    const buttons = document.querySelectorAll('.actions-container button');
+                    buttons.forEach(button => {
+                        button.classList.remove('disabled');
+                        button.disabled = false;
+                    });
         
                     // Crea y configura el botón de modificación.
                     const modifyButton = document.createElement('button');
@@ -250,7 +258,8 @@ export const ListCourseEvents = () => {
                     actionsCell.appendChild(modifyButton);
                     actionsCell.appendChild(deleteButton);
                     
-                    // #endregion ==== Vuelve a crear los botones de modificación y eliminación. ====
+                    // #endregion ==== Quita los botones de confirmación y cancelación y vuelve a crear
+                    // los botones de modificación y eliminación. ====
                 
                     // #endregion ==== Si no hubo cambio en las fechas o si hubo, pero la fecha mínima es menor o igual
                     // que la fecha máxima, se modifica el evento. ====
@@ -275,38 +284,55 @@ export const ListCourseEvents = () => {
                 eventNameTdElement.contentEditable = false;
                 mandatoryTdElement.contentEditable = false;
 
-                // #region ==== Vuelve a crear los botones de modificación y eliminación. ====
+                // #region ==== Quita los botones de confirmación y cancelación y vuelve a crear
+                // los botones de modificación y eliminación. ====
                 
                 // Obtiene el elemento HTML que debe contener los botones de modificación
                 // y eliminación de eventos.
                 const actionsCell = row.querySelector('.actions-container');
                 actionsCell.textContent = '';
+
+                // Habilita los botones del resto de las filas.
+                const buttons = document.querySelectorAll('.actions-container button');
+                buttons.forEach(button => {
+                    button.classList.remove('disabled');
+                    button.disabled = false;
+                });
     
                 // Crea y configura el botón de modificación.
                 const modifyButton = document.createElement('button');
                 modifyButton.textContent = 'Modificar';
                 modifyButton.className = 'edit-button';
                 modifyButton.addEventListener('click', handleEditButtonClick);
+                actionsCell.appendChild(modifyButton);
     
                 // Crea y configura el botón de eliminación.
                 const deleteButton = document.createElement('button');
                 deleteButton.textContent = 'Eliminar';
                 deleteButton.className = 'delete-button';
                 deleteButton.addEventListener('click', handleDeleteButtonClick);
-    
-                // Agrega los botones.
-                actionsCell.appendChild(modifyButton);
                 actionsCell.appendChild(deleteButton);
                 
-                // #endregion ==== Vuelve a crear los botones de modificación y eliminación. ====
+                // #endregion ==== Quita los botones de confirmación y cancelación y vuelve a crear
+                // los botones de modificación y eliminación.
                 
             });
             
             // #endregion ==== Crea y configura el botón de cancelación. ====
                 
-            // Agregar los botones.
+            // Quita los botones de modificación y eliminación.
             const actionsCell = row.querySelector('.actions-container');
             actionsCell.textContent = '';
+
+            // Deshabilita los botones de modificación y eliminación del resto de las filas.
+            const buttons = document.querySelectorAll('.actions-container button');
+            buttons.forEach(button => {
+                button.classList.add('disabled');
+                button.disabled = true;
+            });
+            
+            // Agrega los botones de confirmación
+            // y cancelación.
             actionsCell.appendChild(confirmButton);
             actionsCell.appendChild(cancelButton);
         };
@@ -464,12 +490,11 @@ export const ListCourseEvents = () => {
 
                 // Si la respuesta es exitosa, muestra un mensaje.
                 alert("¡El evento se ha actualizado exitosamente!");
-
                 
-                // Elimina los botones de modificar y cancelar.
-                const row = document.querySelector(`tr[data-event-id="${eventId}"]`);
-                const actionsCell = row.querySelector('.actions-container');
-                actionsCell.textContent = '';
+                // // Elimina los botones de modificar y cancelar.
+                // const row = document.querySelector(`tr[data-event-id="${eventId}"]`);
+                // const actionsCell = row.querySelector('.actions-container');
+                // actionsCell.textContent = '';
 
             } else {
 
