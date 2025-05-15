@@ -9,12 +9,18 @@ import { PageLayout } from "../components/page-layout";
 import { useSelectedCourse } from "../contexts/course/course-provider.js";
 
 export const ModificateCriterion = () => {
-    const [criterias, setCriterias] = useState([]);
+    
+    // #region ==== Creación de variables de estado. ====
+    
     const { getAccessTokenSilently } = useAuth0();
+
+    const [criterias, setCriterias] = useState([]);
     const [editedCriterias, setEditedCriterias] = useState([]);
 
     /** @type {CourseDTO} */ const course = useSelectedCourse(false);
     const history = useHistory();
+    
+    // #endregion ==== Creación de variables de estado. ====
 
     // Redirige a la página de selección de cursada, si todavía no se seleccionó una,
     // o si se actualiza la página, ya que se pierde el contexto de la selección que
@@ -58,6 +64,10 @@ export const ModificateCriterion = () => {
 
     }, [course]);
 
+    /**
+     * 
+     * @param {*} index 
+     */
     const handleSubmitChanges = (index) => {
         
         const criteriaToSave = criterias[index];
@@ -132,88 +142,88 @@ export const ModificateCriterion = () => {
                             <th>Acciones</th> {/* Nuevo encabezado para los botones */}
                         </tr>
                     </thead>
-                    <tbody>
-                        {criterias.map((criteria, index) => {
-                        const isEdited = editedCriterias[index];
+                    <tbody> {
+                        criterias.map((criteria, index) => {
+                            const isEdited = editedCriterias[index];
 
-                        return (
-                            <tr key={index}>
-                                <td>{criteria.criteria.name}</td>
-                                <td>
-                                    {isEdited ? (
-                                        <input
-                                            type="text"
-                                            value={criteria.value_to_regulate}
-                                            onChange={(e) => {
-                                                const newCriterias = [...criterias];
-                                                newCriterias[index].value_to_regulate = e.target.value;
-                                                setEditedCriterias(newCriterias);
-                                            }}
-                                        />
-                                    ) : (
-                                        criteria.value_to_regulate
-                                    )}
-                                </td>
-                                <td>
-                                    {isEdited ? (
-                                        <input
-                                            type="text"
-                                            value={criteria.value_to_promote}
-                                            onChange={(e) => {
-                                                const newCriterias = [...criterias];
-                                                newCriterias[index].value_to_promote = e.target.value;
-                                                setEditedCriterias(newCriterias);
-                                            }}
-                                        />
-                                    ) : (
-                                        criteria.value_to_promote
-                                    )}
-                                </td>
-                                <td>
-                                    {isEdited ? (
-                                        <button
-                                            onClick={(event) => {
-                                                // Guarda los cambios y elimina la edición
-                                                event.preventDefault();
-                                                const newCriterias = [...criterias];
-                                                newCriterias[index] = editedCriterias[index];
-                                                setCriterias(newCriterias);
-                                                console.log("Estado criterias actualizado:", newCriterias); // Agregar esta línea
-                                                setEditedCriterias([]);
-                                                handleSubmitChanges(index);
-                                            }}
-                                        >
-                                            Guardar
-                                        </button>
-                                    ) : (
-                                        <>
-                                            <button
-                                                onClick={(event) => {
-                                                    event.preventDefault();
-                                                    const newEditedCriterias = [...editedCriterias];
-                                                    newEditedCriterias[index] = { ...criteria };
-                                                    setEditedCriterias(newEditedCriterias);
+                            return (
+                                <tr key={index}>
+                                    <td>{criteria.criteria.name}</td>
+                                    <td>
+                                        {isEdited ? (
+                                            <input
+                                                type="text"
+                                                value={criteria.value_to_regulate}
+                                                onChange={(e) => {
+                                                    const newCriterias = [...criterias];
+                                                    newCriterias[index].value_to_regulate = e.target.value;
+                                                    setEditedCriterias(newCriterias);
                                                 }}
-                                            >
-                                                Editar
-                                            </button>
+                                            />
+                                        ) : (
+                                            criteria.value_to_regulate
+                                        )}
+                                    </td>
+                                    <td>
+                                        {isEdited ? (
+                                            <input
+                                                type="text"
+                                                value={criteria.value_to_promote}
+                                                onChange={(e) => {
+                                                    const newCriterias = [...criterias];
+                                                    newCriterias[index].value_to_promote = e.target.value;
+                                                    setEditedCriterias(newCriterias);
+                                                }}
+                                            />
+                                        ) : (
+                                            criteria.value_to_promote
+                                        )}
+                                    </td>
+                                    <td>
+                                        {isEdited ? (
                                             <button
                                                 onClick={(event) => {
+                                                    // Guarda los cambios y elimina la edición
                                                     event.preventDefault();
-                                                    const newCriterias = criterias.filter((_, i) => i !== index);
-                                                    handleDeleteCriteria(index);
+                                                    const newCriterias = [...criterias];
+                                                    newCriterias[index] = editedCriterias[index];
                                                     setCriterias(newCriterias);
+                                                    console.log("Estado criterias actualizado:", newCriterias); // Agregar esta línea
+                                                    setEditedCriterias([]);
+                                                    handleSubmitChanges(index);
                                                 }}
                                             >
-                                                Eliminar
+                                                Guardar
                                             </button>
-                                        </>
-                                    )}
-                                </td>
-                            </tr>
-                        );
-                    })}
-                    </tbody>
+                                        ) : (
+                                            <>
+                                                <button
+                                                    onClick={(event) => {
+                                                        event.preventDefault();
+                                                        const newEditedCriterias = [...editedCriterias];
+                                                        newEditedCriterias[index] = { ...criteria };
+                                                        setEditedCriterias(newEditedCriterias);
+                                                    }}
+                                                >
+                                                    Editar
+                                                </button>
+                                                <button
+                                                    onClick={(event) => {
+                                                        event.preventDefault();
+                                                        const newCriterias = criterias.filter((_, i) => i !== index);
+                                                        handleDeleteCriteria(index);
+                                                        setCriterias(newCriterias);
+                                                    }}
+                                                >
+                                                    Eliminar
+                                                </button>
+                                            </>
+                                        )}
+                                    </td>
+                                </tr>
+                            );
+                        })
+                    } </tbody>
                 </table>
             </form>
 
