@@ -726,14 +726,27 @@ export function CalificationRegistering() {
     }
 
     const handleTemplateDownload = () => {
+
+        // Define el comentario que tendrá la hoja de cálculo.
+        let comment = "Números del 1 al 10, o A/A-/D, o dejar en blanco para indicar ausencia.";
+        let sheetComments = [
+            ["A2", comment]
+        ];
+
+        // Define el contenido de la plantilla.
+        let sheetContent = [
+            ["Legajo", "Calificación"],
+            [166364, 4],
+        ];
+
+        // Crea y descarga la plantilla.
         spreadsheetManipulator.create(
             "Plantilla de carga de calificaciones",
             "registro-calificaciones",
-            [
-                ["Legajo", "Calificación"],
-                [166364, 4],
-            ]
+            sheetContent,
+            sheetComments
         );
+        
     }
 
     return (
