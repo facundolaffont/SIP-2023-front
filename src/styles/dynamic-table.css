@@ -1,0 +1,58 @@
+table thead th {
+  cursor: pointer;
+  text-align: center;
+}
+
+tbody tr:nth-child(odd) {
+  background-color: #f2f2f2;
+}
+
+td.left {
+  text-align: left;
+}
+
+td.right {
+  text-align: right;
+}
+
+td.center {
+  text-align: center;
+}
+
+td.justify {
+  text-align: justify;
+}
+
+td input {
+  border-color: gray;
+  border-style: solid;
+  border-width: 1px;
+  border-collapse: collapse;
+}
+
+td input:hover {
+  background-color: #f0f8ff;
+}
+
+.actions {
+  text-align: center;
+}
+
+.actions button {
+  display: inline-block;
+  margin: 0 0.5rem;
+  width: 7em;
+}
+
+.actions .save,.cancel {
+  background-color: #635dff;
+  color: white;
+}
+
+.actions .save:hover,.cancel:hover {
+  background-color: #4e4bff;
+}
+
+.export-button {
+  margin-top: 1rem;
+}
