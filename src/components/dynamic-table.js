@@ -23,7 +23,7 @@ const alignEnum = /** @type {const} */ ({
  *
  * @param {Object} props - Parámetros del componente.
  * @param {string} props.tableTitle - Título de la tabla.
- * @param {Array<{name: string, label: string, editable: boolean, align?: typeof alignEnum[keyof typeof alignEnum], sortFunction?: Function, editOptions?: Array<string|number>}>} props.columnHeaders - Encabezados
+ * @param {Array<{name: string, label: string, editable: boolean, align?: typeof alignEnum[keyof typeof alignEnum], sortFunction?: (a: string|number, b: string|number) => number, editOptions?: Array<string|number>}>} props.columnHeaders - Encabezados
  * de columna. Cada uno debe tener un nombre único, una etiqueta a mostrar, una marca que indica
  * si la columna es editable o no, una propiedad opcional que determina la alineación, que sólo
  * puede tener los valores del enumerado alignEnum, y una función opcional de ordenamiento personalizada.
