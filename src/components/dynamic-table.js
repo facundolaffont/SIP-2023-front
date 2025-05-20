@@ -133,8 +133,6 @@ const DynamicTable = ({
             const sortColumn = columnHeaders.find(column => column.name === sortConfig.key);
 
             // Condición que se cumple si la columna a ordenar tiene una función de ordenamiento.
-            console.log('sortFunction:', sortColumn?.sortFunction);
-            console.log('Tipo de sortFunction:', typeof sortColumn?.sortFunction);
             if (sortColumn && typeof sortColumn.sortFunction === 'function') {
 
                 // Utiliza la función de ordenamiento personalizada para comparar los valores.

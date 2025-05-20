@@ -42,38 +42,42 @@ import { ListCalifications } from "./pages/list-events-califications";
 import { ShowAllEventsRegisters } from "./pages/show-all-events-registers";
 
 export const App = () => {
-
-    //const { getAccessTokenSilently } = useAuth0();
     const { isLoading, isAuthenticated, getIdTokenClaims } = useAuth0();
     const [isSuperAdmin, setIsSuperAdmin] = useState(false);
     const [isAdmin, setIsAdmin] = useState(false);
     const [isProfessor, setIsProfessor] = useState(false);
+    const [isCheckingRoles, setIsCheckingRoles] = useState(true);
 
     // Determina el rol del usuario.
     useEffect(() => {
         const checkRole = async () => {
-
-            if (isAuthenticated) {
-
-                //getNewToken();
-
-                // Obtiene y almacena los claims del token.
-                const idTokenClaims = await getIdTokenClaims();
-                const roles =
-                    idTokenClaims[`${process.env.REACT_APP_AUTH0_AUDIENCE}/roles`];
-
-                // Determina el rol del usuario.
-                if (roles && roles.includes("SuperAdministrador")) { setIsSuperAdmin(true); }
-                if (roles && roles.includes("Administrador")) { setIsAdmin(true); }
-                if (roles && roles.includes("Docente")) { setIsProfessor(true); }
-
+            try {
+                if (isAuthenticated) {
+                    const idTokenClaims = await getIdTokenClaims();
+                    const roles = idTokenClaims[`${process.env.REACT_APP_AUTH0_AUDIENCE}/roles`];
+                    
+                    setIsSuperAdmin(roles?.includes("SuperAdministrador") || false);
+                    setIsAdmin(roles?.includes("Administrador") || false);
+                    setIsProfessor(roles?.includes("Docente") || false);
+                } else {
+                    setIsSuperAdmin(false);
+                    setIsAdmin(false);
+                    setIsProfessor(false);
+                }
+            } catch (error) {
+                console.error("Error checking roles:", error);
+            } finally {
+                setIsCheckingRoles(false);
             }
         };
-        checkRole();
-    }, [isAuthenticated, getIdTokenClaims]);
+        
+        if (!isLoading) {
+            checkRole();
+        }
+    }, [isAuthenticated, getIdTokenClaims, isLoading]);
 
-    // Muestra el ícono de carga, si todavía no se resolvieron las llamadas de Auth0.
-    if (isLoading) {
+    // Muestra el loader mientras se verifica la autenticación o los roles
+    if (isLoading || isCheckingRoles) {
         return (
             <div className="page-layout">
                 <PageLoader />
