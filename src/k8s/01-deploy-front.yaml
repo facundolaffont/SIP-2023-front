@@ -33,7 +33,7 @@ spec:
       # https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/pod-v1/#Container
       containers:
       - name: front-container
-        image: facundol/sip-frontend:0.180525.1
+        image: facundol/sip-frontend:0.190525.1
         imagePullPolicy: Always
         env:
 

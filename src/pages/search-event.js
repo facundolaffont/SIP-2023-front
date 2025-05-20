@@ -75,6 +75,45 @@ export const SearchEvent = () => {
                         ? ['Sí', 'No']
                         : ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'A', 'A-', 'D', 'AUSENTE'],
                     align: "center",
+                    sortFunction: (a, b) => {
+
+                        // Si el evento es una clase, ordena por asistencia.
+                        if (eventInfo.eventInfo.eventTypeId === 1) {
+                            if (a < b) return -1;
+                            if (a > b) return 1;
+                            return 0;
+
+                        // Si no, ordena por nota.
+                        } else {
+
+                            // Mapeo que servirá para normalizar las notas.
+                            const notasNormalizadas = {
+                                'AUSENTE': 0,
+                                1: 1,
+                                2: 2,
+                                3: 3,
+                                4: 4,
+                                5: 5,
+                                6: 6,
+                                7: 7,
+                                8: 8,
+                                9: 9,
+                                10: 10,
+                                'A': 11,
+                                'A-': 12,
+                                'D': 13
+                            };
+
+                            // Compara las notas usando el mapeo.
+                            const valorA = notasNormalizadas[a];
+                            const valorB = notasNormalizadas[b];
+                            if (valorA < valorB) return -1;
+                            if (valorA > valorB) return 1;
+                            return 0;
+
+                        }
+
+                    }
                 },
             ]);
 
