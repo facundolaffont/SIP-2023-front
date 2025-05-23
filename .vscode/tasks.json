@@ -4,7 +4,7 @@
 		{
 			"label": "Correr front localmente",
 			"type": "shell",
-			"command": "cp envs/.env.spgda-frontend-desarrollo-local .env && npm start",
+			"command": "cp envs/.env.spgda-frontend-desarrollo-local .env && npm install && npm start",
 		}
 	]
 }
