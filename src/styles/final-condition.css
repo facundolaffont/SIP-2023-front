@@ -1,0 +1,45 @@
+.final-condition-table-container {
+    padding: 20px;
+    border-radius: 5px;
+    background: linear-gradient(to bottom, #ffffff 0%,#f6f6f6 100%);
+    margin-top: 20px;
+    overflow-x: auto;
+    color: black;
+    width: 100%;
+}
+
+.final-condition-table-container h2 {
+    color: black;
+}
+
+.final-condition-table {
+    border-radius: 5px;
+    border-collapse: collapse;
+    margin-bottom: 2rem;
+}
+
+.final-condition-table td, .final-condition-table th {
+    color: black;
+    border: 1px solid #ccc;
+    text-align: center;
+}
+
+.final-condition-table tbody tr:nth-child(odd) {
+  background-color: #f2f2f2;
+}
+
+.final-condition-table tbody tr:nth-child(even) {
+  background-color: white;
+}
+
+.final-condition-table-condition-cell span {
+  margin-right: 10px;
+}
+
+.final-condition-table-condition-cell button {
+  display: inline-block;
+}
+
+.final-condition-table-condition-cell p {
+  color: black;
+}

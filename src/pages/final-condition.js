@@ -1,7 +1,7 @@
 // Imports externos.
 import axios from "axios";
 import { useAuth0 } from "@auth0/auth0-react";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useHistory } from 'react-router-dom';
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPencilAlt } from "@fortawesome/free-solid-svg-icons";
@@ -9,6 +9,9 @@ import { faPencilAlt } from "@fortawesome/free-solid-svg-icons";
 // Imports internos.
 import { PageLayout } from "../components/page-layout";
 import { useSelectedCourse } from "../contexts/course/course-provider.js";
+
+// Estilos.
+import "../styles/final-condition.css";
 
 export const FinalCondition = () => {
     const [criterias, setCriterias] = useState([]);
@@ -196,9 +199,9 @@ export const FinalCondition = () => {
 
             {/* Mostrar la tabla de condiciones finales */}
             {sortedFinalConditions.length > 0 && (
-                <div>
+                <div className="final-condition-table-container">
                     <h2>Condiciones Finales de Alumnos (Ordenadas por legajo)</h2>
-                    <table className="condition-table">
+                    <table className="final-condition-table">
                         <thead>
                             <tr>
                                 <th>Legajo</th>
@@ -212,8 +215,12 @@ export const FinalCondition = () => {
                         <tbody>
                             {sortedFinalConditions.map((student, index) => (
                                 <tr key={index}>
+
                                     <td>{student.Legajo}</td>
-                                    <td>{student.Correlativas ? 'P' : ''}</td>                                    
+
+                                    <td>{student.Correlativas ? 'P' : ''}</td>
+
+                                    {/* Muestra las condiciones de cada criterio para el estudiante */}
                                     {criterias.map((criteria, criteriaIndex) => {
                                         const conditionObj = student.Detalle.find(
                                             (item) => item.Criterio === criteria.criteria.name
@@ -238,7 +245,9 @@ export const FinalCondition = () => {
                                             </td>
                                         );
                                     })}
-                                    <td className="condition-cell">
+
+                                    <td className="final-condition-table-condition-cell">
+
                                         {/* Utilizar un input en lugar de solo mostrar el valor */}
                                         {/* Mostrar el texto o el input dependiendo del modo de edición */}
                                         {selectedLegajo  === student.Legajo ? (
@@ -258,6 +267,7 @@ export const FinalCondition = () => {
                                         ) : (
                                             <span>{editedConditions[student.Legajo] || student.Condición}</span>
                                         )}
+
                                         {/* Mostrar el botón "Editar" si no estamos en modo de edición */}
                                         {!selectedLegajo && (
                                             <button onClick={() => handleEditClick(student.Legajo)}>
@@ -272,6 +282,7 @@ export const FinalCondition = () => {
                                         {errorMessage && selectedLegajo === student.Legajo &&
                                             <p>{errorMessage}</p>} {/* Mostramos el mensaje de error si existe */}
                                     </td>
+                                    
                                 </tr>
                             ))}
                         </tbody>
