@@ -76,7 +76,7 @@ else
     docker run --rm -it --mount type=bind,src=./,dst=/tmp hashicorp/terraform \
         -chdir=/tmp/00-base init \
         -reconfigure \
-        --backend-config bucket="bucket-ordinal-quarter-452701-f0" \
+        --backend-config bucket="bucket-wise-trainer-465222-m1" \
         --backend-config prefix="state/base" \
         --backend-config credentials=/tmp/gcloud-key.json
 
@@ -105,7 +105,7 @@ else
 
     # Establece el proyecto adecuado, si no está establecido aún.
     echo "Configurando el proyecto..."
-    gcloud config set project ordinal-quarter-452701-f0
+    gcloud config set project wise-trainer-465222-m1
     echo "Proyecto configurado."
 
     # Obtiene el archivo config de Kubernetes, que permite utilizar Kubernetes, y lo almacena en ~/.kube/.
@@ -200,7 +200,7 @@ else
     echo "Terraform init..."
     docker run --rm -it --mount type=bind,src=./,dst=/tmp hashicorp/terraform \
         -chdir=/tmp init \
-        --backend-config bucket="bucket-ordinal-quarter-452701-f0" \
+        --backend-config bucket="bucket-wise-trainer-465222-m1" \
         --backend-config prefix="state/dns" \
         --backend-config credentials=/tmp/gcloud-key.json
 
