@@ -8,16 +8,24 @@ import { faPencilAlt } from "@fortawesome/free-solid-svg-icons";
 
 // Imports internos.
 import { PageLayout } from "../components/page-layout";
+import { PopoverDetalleCriterio } from "../components/PopoverDetalleCriterio";
+
 import { useSelectedCourse } from "../contexts/course/course-provider.js";
 
 export const FinalCondition = () => {
     const [criterias, setCriterias] = useState([]);
     const { getAccessTokenSilently } = useAuth0();
-    const [sortedFinalConditions, setSortedFinalConditions] = useState([]);
+    const [sortedConditions, setSortedConditions] = useState([]);
     const [saveMessage, setSaveMessage] = useState("");
     const [editedConditions, setEditedConditions] = useState({}); // Estado para manejar las condiciones editadas
     const [errorMessage, setErrorMessage] = useState(""); // Estado para manejar mensajes de error
-    const [selectedLegajo, setSelectedLegajo] = useState(null); // Estado para almacenar el legajo de la celda seleccionada para editar
+    const [editedObservations, setEditedObservations] = useState({});
+    const [editingConditionLegajo, setEditingConditionLegajo] = useState(null); // Estado para almacenar el legajo de la celda seleccionada de condición final para editar
+    const [editingObservationLegajo, setEditingObservationLegajo] = useState(null); // Estado para almacenar el legajo de la celda seleccionada de observaciones para editar
+    const [calculationType, setCalculationType] = useState(null); // "cursada" o "final"
+    const [showInfo, setShowInfo] = useState(false);
+    const [infoText, setInfoText] = useState("");
+
 
     /** @type {CourseDTO} */ const course = useSelectedCourse(false);
     const history = useHistory();
@@ -72,54 +80,55 @@ export const FinalCondition = () => {
 
     }, [getAccessTokenSilently, course]);
 
-    const handleSubmit = async (event) => {
+    // const handleSubmit = async (event) => {
 
-        event.preventDefault();
+    //     event.preventDefault();
 
-        // Obtiene el token Auth0.
-        const auth0Token = await getAccessTokenSilently()
-            .then(response => {
-                return response;
-            })
-            .catch(error => {
-                throw error;
-            });
+    //     // Obtiene el token Auth0.
+    //     const auth0Token = await getAccessTokenSilently()
+    //         .then(response => {
+    //             return response;
+    //         })
+    //         .catch(error => {
+    //             throw error;
+    //         });
 
-        // Enviamos petición al back para calcular condicion final de los alumnos de la cursada
-        fetch(`${process.env.REACT_APP_API_SERVER_URL}/api/v1/course/finalCondition?courseId=${course.getId()}`, {
-            method: "GET",
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${auth0Token}`,
-            },
-        })
-            .then((response) => response.json())
-            .then((data) => {
-              //  setFinalConditions(data);
+    //     // Enviamos petición al back para calcular condicion final de los alumnos de la cursada
+    //     fetch(`${process.env.REACT_APP_API_SERVER_URL}/api/v1/course/finalCondition?courseId=${course.getId()}`, {
+    //         method: "GET",
+    //         headers: {
+    //             "Content-Type": "application/json",
+    //             "Authorization": `Bearer ${auth0Token}`,
+    //         },
+    //     })
+    //         .then((response) => response.json())
+    //         .then((data) => {
+    //           //  setFinalConditions(data);
 
-                const sortedConditions = data.sort((a, b) => a.Legajo - b.Legajo);
-                setSortedFinalConditions(sortedConditions);
-                const initialEditedConditions = {};
-                sortedConditions.forEach(student => {
-                    initialEditedConditions[student.Legajo] = student.Condición;
-                });
-                setEditedConditions(initialEditedConditions);
-            })
-            .catch((error) => console.error(error));
+    //             const sortedConditions = data.sort((a, b) => a.Legajo - b.Legajo);
+    //             setSortedConditions(sortedConditions);
+    //             const initialEditedConditions = {};
+    //             sortedConditions.forEach(student => {
+    //                 initialEditedConditions[student.Legajo] = student.Condición;
+    //             });
+    //             setEditedConditions(initialEditedConditions);
+    //         })
+    //         .catch((error) => console.error(error));
 
-    }
+    // }
 
     const handleSaveChanges = async () => {
         const auth0Token = await getAccessTokenSilently().catch(error => {
             throw error;
         });
 
-        if (sortedFinalConditions) {
+        if (sortedConditions) {
             const dataToSend = {
                 courseId: course.getId(),
-                finalConditions: sortedFinalConditions.map(student => ({
+                finalConditions: sortedConditions.map(student => ({
                     legajo: student.Legajo,
-                    nota: editedConditions[student.Legajo] || student.Condición // Utilizar la condición editada si existe
+                    nota: editedConditions[student.Legajo] || student.Condición, // Utilizar la condición editada si existe
+                    observaciones: editedObservations[student.Legajo] ?? ""
                 }))
             };
 
@@ -130,7 +139,7 @@ export const FinalCondition = () => {
                     "Content-Type": "application/json"
                 }
             }).then(response => {
-                console.log("Cambios guardados exitosament", response.data);
+                console.log("Cambios guardados exitosamente", response.data);
                 setSaveMessage("¡Cambios guardados exitosamente!");
             }).catch(error => {
                 console.error("Error al guardar cambios:", error);
@@ -141,16 +150,28 @@ export const FinalCondition = () => {
         }
     }
 
-    const handleEditClick = (legajo) => {
-        setSelectedLegajo(legajo); // Establecer el legajo de la celda seleccionada para editar
+    const handleEditCondition = (legajo) => {
+        setEditingConditionLegajo(legajo);
     };
 
-    const handleConfirmChange = (legajo) => {
-        setSelectedLegajo(null); // Desactivar el modo de edición
+    const handleEditObservation = (legajo) => {
+        setEditingObservationLegajo(legajo);
     };
 
-    const handleCancelChange = () => {
-        setSelectedLegajo(null); // Restablecer el estado de la celda seleccionada
+    const handleConfirmCondition = () => {
+        setEditingConditionLegajo(null);
+    };
+
+    const handleConfirmObservation = () => {
+        setEditingObservationLegajo(null);
+    };
+
+    const handleCancelCondition = () => {
+        setEditingConditionLegajo(null);
+    };
+
+    const handleCancelObservation = () => {
+        setEditingObservationLegajo(null);
     };
 
     const handleConditionChange = (legajo, value) => {
@@ -160,11 +181,91 @@ export const FinalCondition = () => {
         }));
     };
 
+    const handleObservationChange = (legajo, value) => {
+        setEditedObservations(prev => ({
+            ...prev,
+            [legajo]: value
+        }));
+    };
+
+    const handleCalculate = async (isFinal) => {
+        setCalculationType(isFinal ? "final" : "cursada");
+        console.log(calculationType);
+        // 🔹 Seteamos el mensaje antes de calcular
+        if (isFinal) {
+            setInfoText("Los resultados muestran la CONDICIÓN FINAL: P (Promueve), R (Regular), L (Libre).");
+        } else {
+            setInfoText("Los resultados muestran la CONDICIÓN DE CURSADA: En condiciones de integrar, R (Regular), L (Libre).");
+        }
+        setShowInfo(true);
+
+        try {
+            const auth0Token = await getAccessTokenSilently();
+            const response = await fetch(
+                `${process.env.REACT_APP_API_SERVER_URL}/api/v1/course/condition?courseId=${course.getId()}&isFinal=${isFinal}`,
+                {
+                    method: "GET",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": `Bearer ${auth0Token}`,
+                    },
+                }
+            );
+
+            const data = await response.json();
+            const sorted = data.sort((a, b) => a.Legajo - b.Legajo);
+            setSortedConditions(sorted);
+
+            if (isFinal) {
+                const initialEdited = {};
+                sorted.forEach(student => {
+                    initialEdited[student.Legajo] = student.Condición;
+                });
+                setEditedConditions(initialEdited);
+            } else {
+                setEditedConditions({});
+                setEditedObservations({});
+            }
+
+        } catch (error) {
+            console.error("Error al calcular condiciones:", error);
+        }
+    };
+
+    // Antes del return:
+    const criteriosFiltrados = criterias.filter(c => {
+        return calculationType === "cursada"
+            ? c.criteria.name !== "Integrador aprobado"
+            : true;
+    });
+
+
+    const esCondicionFinal = calculationType === "final";
+
+
+    const getCondicionFinalTexto = (condicion) => {
+
+        if (esCondicionFinal) {
+            return condicion;
+        }
+
+        switch (condicion) {
+            case "P":
+                return "En condiciones de integrar";
+            case "R":
+                return "R";
+            case "L":
+                return "L";
+            default:
+                return condicion;
+        }
+    };
+
     return (
         <PageLayout>
-            <h1 id="page-title" className="content__title">Calcular condición final</h1>
-            <form onSubmit={handleSubmit}>
-                <p>Se evaluará la condicion final de los estudiantes según los siguientes criterios:</p>
+            <h1 id="page-title" className="content__title">Calcular condiciones</h1>
+            <form>
+                <p>Se evaluará la condicion de los estudiantes según los siguientes criterios:</p>
                 <table className="criteria-table">
                     <thead>
                         <tr>
@@ -178,12 +279,12 @@ export const FinalCondition = () => {
                             <tr key={index}>
                                 <td>{criteria.criteria.name}</td>
                                 <td>
-                                    {criteria.criteria.name !== 'Promedio de parciales'
+                                    {criteria.criteria.name !== 'Promedio de parciales' && criteria.criteria.name !== 'Integrador aprobado'
                                         ? `${criteria.value_to_regulate} %`
                                         : criteria.value_to_regulate}
                                 </td>
                                 <td>
-                                    {criteria.criteria.name !== 'Promedio de parciales'
+                                    {criteria.criteria.name !== 'Promedio de parciales' && criteria.criteria.name !== 'Integrador aprobado'
                                         ? `${criteria.value_to_promote} %`
                                         : criteria.value_to_promote}
                                 </td>
@@ -191,30 +292,44 @@ export const FinalCondition = () => {
                         ))}
                     </tbody>
                 </table>
-                <button type="submit" className="calculate-button">Calcular Condicion Final de Alumnos</button>
+                <button type="button" onClick={() => handleCalculate(false)}>
+                    Calcular condición de cursada
+                </button>
+                <button type="button" onClick={() => handleCalculate(true)}>
+                    Calcular condición final
+                </button>
             </form>
 
             {/* Mostrar la tabla de condiciones finales */}
-            {sortedFinalConditions.length > 0 && (
+            {sortedConditions.length > 0 && (
                 <div>
-                    <h2>Condiciones Finales de Alumnos (Ordenadas por legajo)</h2>
+                    <h2>
+                    {
+                        esCondicionFinal
+                        ? "Resultado: Condición final de los alumnos"
+                        : "Resultado: Condición de cursada de los alumnos"
+                    }
+                    </h2>
                     <table className="condition-table">
                         <thead>
                             <tr>
+                                <th>Nombre</th>
                                 <th>Legajo</th>
                                 <th>Correlativas</th>
-                                {criterias.map((criteria, index) => (
+                                {criteriosFiltrados.map((criteria, index) => (
                                     <th>{criteria.criteria.name}</th>
                                 ))}
-                                <th>Condición Final</th>
+                                {esCondicionFinal ? <th>Condición Final</th> : <th>Condición de Cursada</th>}
+                                {esCondicionFinal && <th>Observaciones</th>}
                             </tr>
                         </thead>
                         <tbody>
-                            {sortedFinalConditions.map((student, index) => (
+                            {sortedConditions.map((student, index) => (
                                 <tr key={index}>
+                                    <td>{student.Nombre}</td>
                                     <td>{student.Legajo}</td>
                                     <td>{student.Correlativas ? 'P' : ''}</td>                                    
-                                    {criterias.map((criteria, criteriaIndex) => {
+                                    {criteriosFiltrados.map((criteria, criteriaIndex) => {
                                         const conditionObj = student.Detalle.find(
                                             (item) => item.Criterio === criteria.criteria.name
                                         );
@@ -234,53 +349,103 @@ export const FinalCondition = () => {
 
                                         return (
                                             <td key={criteriaIndex} className={cellClassName}>
-                                                {condition} {/* Mostrar la condición específica del criterio para cada estudiante */}
+                                            {condition}
+                                            <PopoverDetalleCriterio
+                                                detalle={student.Detalle.find((item) => item.Criterio === criteria.criteria.name)}
+                                            />
                                             </td>
                                         );
                                     })}
-                                    <td className="condition-cell">
-                                        {/* Utilizar un input en lugar de solo mostrar el valor */}
-                                        {/* Mostrar el texto o el input dependiendo del modo de edición */}
-                                        {selectedLegajo  === student.Legajo ? (
+                                    <td
+                                    className={`condition-cell ${
+                                        editedConditions[student.Legajo] !== undefined &&
+                                        editedConditions[student.Legajo] !== student.Condición
+                                        ? "edited-cell"
+                                        : ""
+                                    }`}
+                                    >
+                                    {esCondicionFinal ? (
+                                        <>
+                                        {editingConditionLegajo === student.Legajo ? (
                                             <input
                                                 type="text"
                                                 value={editedConditions[student.Legajo] || ""}
                                                 onChange={(e) => {
-                                                    const newValue = e.target.value.trim().toUpperCase(); // Convertimos el valor a mayúsculas y eliminamos espacios en blanco al inicio y al final
-                                                    if (newValue === "" || ["P", "R", "L", "A"].includes(newValue)) { // Validamos que el valor sea una de las letras permitidas o una cadena vacía
-                                                        setErrorMessage(""); // Limpiamos el mensaje de error si la entrada es válida
+                                                    const newValue = e.target.value.trim().toUpperCase();
+                                                    if (newValue === "" || ["P", "R", "L", "A"].includes(newValue)) {
+                                                        setErrorMessage("");
                                                         handleConditionChange(student.Legajo, newValue !== "" ? newValue : undefined);
                                                     } else {
-                                                        setErrorMessage("Solo se permiten las letras 'P', 'R', 'A' o 'L'"); // Establecemos el mensaje de error si la entrada no es válida
+                                                        setErrorMessage("Solo se permiten las letras 'P', 'R', 'A' o 'L'");
                                                     }
                                                 }}
                                             />
                                         ) : (
-                                            <span>{editedConditions[student.Legajo] || student.Condición}</span>
+                                            <span>{getCondicionFinalTexto(editedConditions[student.Legajo] || student.Condición)}</span>
                                         )}
-                                        {/* Mostrar el botón "Editar" si no estamos en modo de edición */}
-                                        {!selectedLegajo && (
-                                            <button onClick={() => handleEditClick(student.Legajo)}>
-                                                <FontAwesomeIcon icon={faPencilAlt} /> {/* Ícono de lápiz */}
-                                            </button>                                        )}
-                                        {selectedLegajo === student.Legajo && (
+                                        {!editingConditionLegajo && (
+                                            <button onClick={() => handleEditCondition(student.Legajo)}>
+                                                <FontAwesomeIcon icon={faPencilAlt} />
+                                            </button>
+                                        )}
+                                        {editingConditionLegajo === student.Legajo && (
                                             <td className="edit-buttons">
-                                                <button onClick={handleConfirmChange}>✔️</button>
-                                                <button onClick={handleCancelChange}>❌</button>
+                                                <button onClick={handleConfirmCondition}>✔️</button>
+                                                <button onClick={handleCancelCondition}>❌</button>
                                             </td>
                                         )}
-                                        {errorMessage && selectedLegajo === student.Legajo &&
-                                            <p>{errorMessage}</p>} {/* Mostramos el mensaje de error si existe */}
+                                        {errorMessage && editingConditionLegajo === student.Legajo &&
+                                            <p>{errorMessage}</p>}
+                                    </>
+                                    ) : (
+                                    // Si no es condición final, solo mostramos el texto sin permitir edición
+                                    <span>{getCondicionFinalTexto(editedConditions[student.Legajo] || student.Condición)}</span>
+                                    )}
                                     </td>
+                                    {esCondicionFinal && (
+                                        <td className="condition-cell">
+                                            {editingObservationLegajo === student.Legajo ? (
+                                                <input
+                                                    type="text"
+                                                    value={editedObservations[student.Legajo] || ""}
+                                                    onChange={(e) => handleObservationChange(student.Legajo, e.target.value)}
+                                                />
+                                            ) : (
+                                                <span>{editedObservations[student.Legajo] || ""}</span>
+                                            )}
+                                            {!editingObservationLegajo && (
+                                                <button onClick={() => handleEditObservation(student.Legajo)}>
+                                                    <FontAwesomeIcon icon={faPencilAlt} />
+                                                </button>
+                                            )}
+                                            {editingObservationLegajo === student.Legajo && (
+                                                <td className="edit-buttons">
+                                                    <button onClick={handleConfirmObservation}>✔️</button>
+                                                    <button onClick={handleCancelObservation}>❌</button>
+                                                </td>
+                                            )}
+                                        </td>
+                                    )}
                                 </tr>
                             ))}
                         </tbody>
                     </table>
-                    <div className="button-container">
-                        <button type="button" onClick={handleSaveChanges}>Guardar Cambios</button>
-                        {saveMessage && <p>{saveMessage}</p>}
-                    </div>
+                    {esCondicionFinal && (
+                        <div className="button-container">
+                            <button type="button" onClick={handleSaveChanges}>Guardar Cambios</button>
+                            {saveMessage && <p>{saveMessage}</p>}
+                        </div>
+                    )}
                 </div>
+            )}
+            {showInfo && (
+            <div className="modal-overlay">
+                <div className="modal">
+                    <h3>Información</h3>
+                    <p>{infoText}</p>
+                    <button onClick={() => setShowInfo(false)}>Cerrar</button>
+                </div>
+            </div>
             )}
         </PageLayout>
     );

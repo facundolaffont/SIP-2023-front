@@ -28,7 +28,7 @@ export function CreateCriterion() {
     setSubmitMessage("");
     setErrorMessage("");
     // Verificar el tipo de criterio seleccionado y mostrar un mensaje informativo
-    if (e.target.value === "5") {
+    if (e.target.value === "5" || e.target.value === "10") {
       setInfoMessage("Ingrese números enteros de 1 a 10 para este criterio.");
     } else {
       setInfoMessage("Ingrese valores entre 0 y 100 para este criterio. Se evaluará en forma de porcentaje.");
@@ -45,7 +45,7 @@ export function CreateCriterion() {
     let isValid = true;
 
     // Verificar el tipo de criterio seleccionado y validar los valores ingresados
-    if (criterio === "5") { // Promedio de parciales
+    if (criterio === "5" || criterio === "10") { // Promedio de parciales o Integrador
       if ((regularValue < 1 || regularValue > 10 || promovidoValue < 0 || promovidoValue > 10) || (regularValue > promovidoValue)){
         isValid = false;
       }
@@ -120,6 +120,8 @@ export function CreateCriterion() {
           <option value="7">Autoevaluaciones recuperadas</option>
           <option value="1">Asistencias</option>
           <option value="5">Promedio de parciales</option>
+          <option value="9">Correlativas</option>
+          <option value="10">Integrador</option>
         </select>
 
       {infoMessage && <p style={{ color: "blue" }}>{infoMessage}</p>}
