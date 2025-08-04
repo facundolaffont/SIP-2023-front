@@ -16,7 +16,6 @@ import '../styles/search-student.css';
 
 export const ListCourseStudents = () => {
     const [studentsList, setStudentsList] = useState([]);
-    const [, changeCourse] = useSelectedCourse(true);
     const { getAccessTokenSilently } = useAuth0();
     const [spreadsheetManipulator, setSpreadsheetManipulator] = useState(null);
 
@@ -55,7 +54,7 @@ export const ListCourseStudents = () => {
                         "email:Email",
                         "alreadyStudied:Recursante",
                         "allPreviousSubjectsApproved:Correlativas",
-                        "finalCondition:Condición final",
+                        "finalCondition:Condición",
                     ],
                 },
             );
