@@ -430,12 +430,10 @@ export const FinalCondition = () => {
                             ))}
                         </tbody>
                     </table>
-                    {esCondicionFinal && (
-                        <div className="button-container">
-                            <button type="button" onClick={handleSaveChanges}>Guardar Cambios</button>
-                            {saveMessage && <p>{saveMessage}</p>}
-                        </div>
-                    )}
+                    <div className="button-container">
+                        <button type="button" onClick={handleSaveChanges}>Guardar Cambios</button>
+                        {saveMessage && <p>{saveMessage}</p>}
+                    </div>
                 </div>
             )}
             {showInfo && (
