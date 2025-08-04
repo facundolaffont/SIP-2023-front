@@ -157,7 +157,7 @@ export const NavBarTabs = () => {
                             onMouseEnter={(event) => handleMouseEnter(event, setShowCalificationCriterionsDropdown)}
                             onMouseLeave={(event) => handleMouseLeave(event, setShowCalificationCriterionsDropdown)}
                         >
-                            <span>Condición final</span>
+                            <span>Condiciones</span>
                             {showCalificationCriterionsDropdown && (
                                 <div className="dropdown" style={{ top: dropdownTopStyle }}>
                                     <NavBarTab
@@ -170,7 +170,7 @@ export const NavBarTabs = () => {
                                     />
                                     <NavBarTab
                                         path="/final-condition"
-                                        label="Calcular condición final"
+                                        label="Calcular condiciones"
                                     />
                                 </div>
                             )}
