@@ -94,15 +94,15 @@ export const SearchStudent = () => {
                     <p><span className="data-label">Nombre:</span> <span className="data-value">{dataAlumno.nombre}</span></p>
                     <p><span className="data-label">Email:</span> <span className="data-value">{dataAlumno.email}</span></p>
                     <p><span className="data-label">DNI:</span> <span className="data-value">{dataAlumno.dni}</span></p>
-                    <p><span className="data-label">Correlativas Aprobadas?</span> <span className={`data-value ${dataCursada.previousSubjectsApproved ? 'yes' : 'no'}`}>{dataCursada.previousSubjectsApproved ? 'Sí' : 'No'}</span></p>
-                    <p><span className="data-label">Recursante?</span> <span className={`data-value ${dataCursada.recursante ? 'yes' : 'no'}`}>{dataCursada.recursante ? 'Sí' : 'No'}</span></p>
+                    <p><span className="data-label">Correlativas aprobadas:</span> <span className={`data-value ${dataCursada.previousSubjectsApproved ? 'yes' : 'no'}`}>{dataCursada.previousSubjectsApproved ? 'Sí' : 'No'}</span></p>
+                    <p><span className="data-label">Recursante:</span> <span className={`data-value ${dataCursada.recursante ? 'yes' : 'no'}`}>{dataCursada.recursante ? 'Sí' : 'No'}</span></p>
                 </div>
 
             )}
             {eventos && (
-                <div>
+                <div className="student-events-table-container">
                     <h2>Eventos del Alumno</h2>
-                    <table id="condition-table" class="condition-table">
+                    <table id="condition-table" class="student-events-table">
                         <thead>
                             <tr>
                                 <th>Tipo de Evento</th>

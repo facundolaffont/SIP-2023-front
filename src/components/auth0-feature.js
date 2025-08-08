@@ -1,5 +1,3 @@
-import React from "react";
-
 export const Auth0Feature = ({ title, description, resourceUrl, icon }) => (
   <a
     href={resourceUrl}

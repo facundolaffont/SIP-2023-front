@@ -1,6 +1,7 @@
+// Componentes externos.
 import { useAuth0 } from "@auth0/auth0-react";
-import React from "react";
-import { LoginButton } from "../../buttons/login-button";
+
+// Componentes internos.
 import { LogoutButton } from "../../buttons/logout-button";
 
 export const NavBarButtons = () => {
@@ -8,11 +9,6 @@ export const NavBarButtons = () => {
 
   return (
     <div className="nav-bar__buttons">
-      {!isAuthenticated && (
-        <>
-          <LoginButton />
-        </>
-      )}
       {isAuthenticated && (
         <>
           <LogoutButton />

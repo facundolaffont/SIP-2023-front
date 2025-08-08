@@ -1,6 +1,6 @@
 // Componentes externos.
 import { useAuth0 } from "@auth0/auth0-react";
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Route, Switch } from "react-router-dom";
 import { Helmet } from 'react-helmet';
 
@@ -25,20 +25,15 @@ import { AttendanceRegistering } from "./pages/register-attendance";
 import { CourseAttendanceRegistering } from "./pages/register-course-attendance";
 import { CalificationRegistering } from "./pages/register-califications";
 import { StudentRegistering } from "./pages/register-students";
-import { CourseStudentRegistering } from "./pages/register-students-in-course";
 import { FinalCondition } from "./pages/final-condition";
 import { CreateCriterion } from "./pages/create-criterion";
 import { ModificateCriterion } from "./pages/modificate-criterion";
-import { EventRegistering } from "./pages/register-event";
 import { EventsBulkRegistering } from "./pages/register-events-bulk";
 import { SearchStudent } from "./pages/search-student";
 import { SearchEvent } from "./pages/search-event";
 import { ListCourseStudents } from "./pages/list-course-students";
 import { ListCourseEvents } from "./pages/list-course-events";
-import { ShowCriteriaSummary } from "./pages/show-criteria-summary";
 import { ShowEventsSummary } from "./pages/show-events-summary";
-import { ListAttendance } from "./pages/list-events-attendance";
-import { ListCalifications } from "./pages/list-events-califications";
 import { ShowAllEventsRegisters } from "./pages/show-all-events-registers";
 
 export const App = () => {
@@ -76,7 +71,7 @@ export const App = () => {
         }
     }, [isAuthenticated, getIdTokenClaims, isLoading]);
 
-    // Muestra el loader mientras se verifica la autenticación o los roles
+    // Muestra un ícono de carga mientras se verifica la autenticación o los roles.
     if (isLoading || isCheckingRoles) {
         return (
             <div className="page-layout">
@@ -94,7 +89,7 @@ export const App = () => {
                 <meta property="og:url" content="https://spgda.fl.com.ar/" />
             </Helmet>
             <Switch>
-                    
+                
                 {/* Rutas públicas. */}
                 <Route path="/" exact component={HomePage} />
                 <Route path="/callback" component={CallbackPage} />
@@ -105,9 +100,7 @@ export const App = () => {
                 {isProfessor && <ProtectedRoute path="/register-attendance" component={AttendanceRegistering} />}
                 {isProfessor && <ProtectedRoute path="/register-course-attendance" component={CourseAttendanceRegistering} />}
                 {isProfessor && <ProtectedRoute path="/register-califications" component={CalificationRegistering} />}
-                {/*isProfessor && <ProtectedRoute path="/register-students-in-course" component={CourseStudentRegistering} />*/}
                 {isProfessor && <ProtectedRoute path="/register-students" component={StudentRegistering} />}
-                {/*isProfessor && <ProtectedRoute path="/register-event" component={EventRegistering} />*/}
                 {isProfessor && <ProtectedRoute path="/register-events-bulk" component={EventsBulkRegistering} />}
                 {isProfessor && <ProtectedRoute path="/final-condition" component={FinalCondition} />}
                 {isProfessor && <ProtectedRoute path="/modificate-criterion" component={ModificateCriterion} />}
@@ -117,10 +110,7 @@ export const App = () => {
                 {isProfessor && <ProtectedRoute path="/create-criterion" component={CreateCriterion} />}
                 {isProfessor && <ProtectedRoute path="/list-course-students" component={ListCourseStudents} />}
                 {isProfessor && <ProtectedRoute path="/list-course-events" component={ListCourseEvents} />}
-                {/*isProfessor && <ProtectedRoute path="/show-criteria-summary" component={ShowCriteriaSummary} />*/}
                 {isProfessor && <ProtectedRoute path="/show-events-summary" component={ShowEventsSummary} />}
-                {/*isProfessor && <ProtectedRoute path="/list-events-attendance" component={ListAttendance} />*/}
-                {/*isProfessor && <ProtectedRoute path="/list-events-califications" component={ListCalifications} />*/}
 
                 {/* Rutas para administradores. */}
                 {isAdmin && <ProtectedRoute path="/profile" component={HomePageAdmin} />}

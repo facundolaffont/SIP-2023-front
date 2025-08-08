@@ -1,7 +1,7 @@
 // Imports externos.
 import axios from "axios";
 import { useAuth0 } from "@auth0/auth0-react";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useHistory } from 'react-router-dom';
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPencilAlt } from "@fortawesome/free-solid-svg-icons";
@@ -11,6 +11,9 @@ import { PageLayout } from "../components/page-layout";
 import { PopoverDetalleCriterio } from "../components/PopoverDetalleCriterio";
 
 import { useSelectedCourse } from "../contexts/course/course-provider.js";
+
+// Estilos.
+import "../styles/final-condition.css";
 
 export const FinalCondition = () => {
     const [criterias, setCriterias] = useState([]);

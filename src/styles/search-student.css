@@ -1,45 +1,93 @@
 /* Estilos para el contenedor de la información del alumno */
 .alumno-info-container {
-    margin-top: 20px;
-    padding: 20px;
-    border: 1px solid #ccc;
+  margin-top: 20px;
+  padding: 20px;
+  border-radius: 5px;
+  background-color: white;;
+}
+
+/* Estilos para los títulos de sección */
+.alumno-info-container h2 {
+  font-size: 18px;
+  margin-top: 1px;
+  margin-bottom: 10px;
+  color: black;
+}
+
+/* Estilos para los párrafos de información */
+.alumno-info-container p {
+  margin-bottom: 5px;
+  font-size: 14px;
+}
+
+.alumno-info-container span {
+  color: black;
+}
+
+/* Estilos para los datos específicos (nombre, apellido, etc.) */
+.alumno-info-container .data-label {
+  font-weight: bold;
+}
+
+/* Estilos para los datos del alumno */
+.alumno-info-container .data-value {
+  margin-left: 10px;
+  color: black;
+}
+
+/* Estilos para resaltar "Sí" y "No" */
+.alumno-info-container .yes {
+  color: green;
+  font-weight: bold;
+}
+
+.alumno-info-container .no {
+  color: red;
+  font-weight: bold;
+}
+
+.student-events-table-container {
+  padding: 20px;
+  border-radius: 5px;
+  background: linear-gradient(to bottom, #ffffff 0%,#f6f6f6 100%);
+  margin-top: 20px;
+  overflow-x: auto;
+  color: black;
+  width: 100%;
+}
+
+.student-events-table-container h2 {
+    color: black;
+}
+
+.student-events-table {
     border-radius: 5px;
-  }
+    border-collapse: collapse;
+    margin-bottom: 2rem;
+}
+
+.student-events-table th {
+    background-color: white;;
+}
+
+.student-events-table td, .student-events-table th {
+    color: black;
+    border: 1px solid #ccc;
+    text-align: center;
+}
+
+.student-events-table tbody tr:nth-child(odd) {
+  background-color: #f2f2f2;
+}
+
+.student-events-table tbody tr:nth-child(even) {
+  background-color: white;
+}
+
+.student-events-table-condition-cell p {
+  color: black;
+}
   
-  /* Estilos para los títulos de sección */
-  .alumno-info-container h2 {
-    font-size: 18px;
-    margin-top: 1px;
-    margin-bottom: 10px;
-  }
-  
-  /* Estilos para los párrafos de información */
-  .alumno-info-container p {
-    margin-bottom: 5px;
-    color: white;
-    font-size: 14px;
-  }
-  
-  /* Estilos para los datos específicos (nombre, apellido, etc.) */
-  .alumno-info-container .data-label {
-    font-weight: bold;
-  }
-  
-  /* Estilos para los datos del alumno */
-  .alumno-info-container .data-value {
-    margin-left: 10px;
-    color: #ffffff;
-  }
-  
-  /* Estilos para resaltar "Sí" y "No" */
-  .alumno-info-container .yes {
-    color: green;
-  }
-  
-  .alumno-info-container .no {
-    color: red;
-  }
-  
-  .export-button {
-    margin-top: 2rem;
-  }
+.export-button {
+  margin-top: 2rem;
+}

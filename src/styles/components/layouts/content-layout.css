@@ -497,10 +497,6 @@ h2 {
   font-size: 16px;
 }
 
-.condition-cell {
-  background-color: #255f27;
-}
-
 /* Estilos para las celdas con contenido "L", "R" y "P" */
 .normal-cell {
   color: white; /* Por defecto, texto en negro */
