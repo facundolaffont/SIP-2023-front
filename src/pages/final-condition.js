@@ -25,7 +25,7 @@ export const FinalCondition = () => {
     const [calculationType, setCalculationType] = useState(null); // "cursada" o "final"
     const [showInfo, setShowInfo] = useState(false);
     const [infoText, setInfoText] = useState("");
-
+    const [isCalculating, setIsCalculating] = useState(false);
 
     /** @type {CourseDTO} */ const course = useSelectedCourse(false);
     const history = useHistory();
@@ -80,43 +80,6 @@ export const FinalCondition = () => {
 
     }, [getAccessTokenSilently, course]);
 
-    // const handleSubmit = async (event) => {
-
-    //     event.preventDefault();
-
-    //     // Obtiene el token Auth0.
-    //     const auth0Token = await getAccessTokenSilently()
-    //         .then(response => {
-    //             return response;
-    //         })
-    //         .catch(error => {
-    //             throw error;
-    //         });
-
-    //     // Enviamos petición al back para calcular condicion final de los alumnos de la cursada
-    //     fetch(`${process.env.REACT_APP_API_SERVER_URL}/api/v1/course/finalCondition?courseId=${course.getId()}`, {
-    //         method: "GET",
-    //         headers: {
-    //             "Content-Type": "application/json",
-    //             "Authorization": `Bearer ${auth0Token}`,
-    //         },
-    //     })
-    //         .then((response) => response.json())
-    //         .then((data) => {
-    //           //  setFinalConditions(data);
-
-    //             const sortedConditions = data.sort((a, b) => a.Legajo - b.Legajo);
-    //             setSortedConditions(sortedConditions);
-    //             const initialEditedConditions = {};
-    //             sortedConditions.forEach(student => {
-    //                 initialEditedConditions[student.Legajo] = student.Condición;
-    //             });
-    //             setEditedConditions(initialEditedConditions);
-    //         })
-    //         .catch((error) => console.error(error));
-
-    // }
-
     const handleSaveChanges = async () => {
         const auth0Token = await getAccessTokenSilently().catch(error => {
             throw error;
@@ -149,6 +112,11 @@ export const FinalCondition = () => {
             console.warn("No hay datos para enviar al backend.");
         }
     }
+
+    const [cacheConditions, setCacheConditions] = useState({
+    cursada: null,
+    final: null
+    });
 
     const handleEditCondition = (legajo) => {
         setEditingConditionLegajo(legajo);
@@ -189,15 +157,28 @@ export const FinalCondition = () => {
     };
 
     const handleCalculate = async (isFinal) => {
-        setCalculationType(isFinal ? "final" : "cursada");
-        console.log(calculationType);
-        // 🔹 Seteamos el mensaje antes de calcular
-        if (isFinal) {
-            setInfoText("Los resultados muestran la CONDICIÓN FINAL: P (Promueve), R (Regular), L (Libre).");
-        } else {
-            setInfoText("Los resultados muestran la CONDICIÓN DE CURSADA: En condiciones de integrar, R (Regular), L (Libre).");
-        }
+        const type = isFinal ? "final" : "cursada";
+        setCalculationType(type);
+
+        // Mensaje informativo según el tipo
+        setInfoText(
+        isFinal
+            ? "Los resultados muestran la CONDICIÓN FINAL: P (Promueve), R (Regular), L (Libre)."
+            : "Los resultados muestran la CONDICIÓN DE CURSADA: En condiciones de integrar, R (Regular), L (Libre)."
+        );
         setShowInfo(true);
+
+        // Si ya tenemos cache → mostramos los datos al instante
+        if (cacheConditions[type]) {
+            setSortedConditions(cacheConditions[type]);
+
+            // Mantenemos el popup 1.5s para que se lea el mensaje
+            setTimeout(() => setShowInfo(false), 1500);
+            return;
+        }
+
+        // Si no hay cache → mostramos spinner en el modal
+        setIsCalculating(true);
 
         try {
             const auth0Token = await getAccessTokenSilently();
@@ -214,7 +195,14 @@ export const FinalCondition = () => {
 
             const data = await response.json();
             const sorted = data.sort((a, b) => a.Legajo - b.Legajo);
+
             setSortedConditions(sorted);
+
+            // Cacheamos resultados
+            setCacheConditions(prev => ({
+                ...prev,
+                [type]: sorted
+            }));
 
             if (isFinal) {
                 const initialEdited = {};
@@ -229,6 +217,11 @@ export const FinalCondition = () => {
 
         } catch (error) {
             console.error("Error al calcular condiciones:", error);
+        } finally {
+            setIsCalculating(false);
+
+            // Cerramos modal después de 1.5s
+            setTimeout(() => setShowInfo(false), 1500);
         }
     };
 
@@ -437,13 +430,21 @@ export const FinalCondition = () => {
                 </div>
             )}
             {showInfo && (
-            <div className="modal-overlay">
-                <div className="modal">
-                    <h3>Información</h3>
-                    <p>{infoText}</p>
-                    <button onClick={() => setShowInfo(false)}>Cerrar</button>
+                <div className="modal-overlay">
+                    <div className="modal">
+                        <h3>Información</h3>
+                        <p>{infoText}</p>
+
+                        {isCalculating ? (
+                            <div className="modal-loading">
+                                <div className="spinner"></div>
+                                <p>Calculando condiciones...</p>
+                            </div>
+                        ) : (
+                            <button onClick={() => setShowInfo(false)}>Cerrar</button>
+                        )}
+                    </div>
                 </div>
-            </div>
             )}
         </PageLayout>
     );

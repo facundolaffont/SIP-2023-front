@@ -96,6 +96,8 @@ export function CreateCriterion() {
       });
   };
 
+  const esIntegrador = criterio === "10"; 
+
   return (
 
     <PageLayout>
@@ -126,16 +128,21 @@ export function CreateCriterion() {
 
       {infoMessage && <p style={{ color: "blue" }}>{infoMessage}</p>}
 
-      <label htmlFor="valorRegular">
-        <p>Valor para regular</p>
-      </label>
-      
-      <input
-        type="number"
-        value={vRegular}
-        onChange={(e) => setVRegular(e.target.value)}
-        required
-      />
+      {!esIntegrador && (
+          <>
+            <label htmlFor="valorRegular">
+              <p>Valor para regular</p>
+            </label>
+
+            <input
+              type="number"
+              value={vRegular}
+              onChange={(e) => setVRegular(e.target.value)}
+              required
+            />
+          </>
+      )}
+
 
       <label htmlFor="valorPromovido">
         <p>Valor para promovido</p>
