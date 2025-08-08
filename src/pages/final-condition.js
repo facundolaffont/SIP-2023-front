@@ -298,7 +298,7 @@ export const FinalCondition = () => {
 
             {/* Mostrar la tabla de condiciones finales */}
             {sortedConditions.length > 0 && (
-                <div>
+                <div className="final-condition-table-container">
                     <h2>
                     {
                         esCondicionFinal
@@ -306,7 +306,7 @@ export const FinalCondition = () => {
                         : "Resultado: Condición de cursada de los alumnos"
                     }
                     </h2>
-                    <table className="condition-table">
+                    <table className="final-condition-table">
                         <thead>
                             <tr>
                                 <th>Nombre</th>
@@ -324,7 +324,8 @@ export const FinalCondition = () => {
                                 <tr key={index}>
                                     <td>{student.Nombre}</td>
                                     <td>{student.Legajo}</td>
-                                    <td>{student.Correlativas ? 'P' : ''}</td>                                    
+                                    <td>{student.Correlativas ? 'P' : ''}</td>
+
                                     {criteriosFiltrados.map((criteria, criteriaIndex) => {
                                         const conditionObj = student.Detalle.find(
                                             (item) => item.Criterio === criteria.criteria.name
@@ -352,14 +353,16 @@ export const FinalCondition = () => {
                                             </td>
                                         );
                                     })}
+
                                     <td
-                                    className={`condition-cell ${
+                                    className={`final-condition-table-condition-cell ${
                                         editedConditions[student.Legajo] !== undefined &&
                                         editedConditions[student.Legajo] !== student.Condición
                                         ? "edited-cell"
                                         : ""
                                     }`}
                                     >
+                                    
                                     {esCondicionFinal ? (
                                         <>
                                         {editingConditionLegajo === student.Legajo ? (
@@ -399,7 +402,7 @@ export const FinalCondition = () => {
                                     )}
                                     </td>
                                     {esCondicionFinal && (
-                                        <td className="condition-cell">
+                                        <td className="final-condition-table-observation-cell">
                                             {editingObservationLegajo === student.Legajo ? (
                                                 <input
                                                     type="text"

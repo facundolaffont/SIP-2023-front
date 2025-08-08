@@ -32,6 +32,10 @@
   background-color: white;
 }
 
+td.final-condition-table-condition-cell {
+  background-color:rgb(197, 255, 197);
+}
+
 .final-condition-table-condition-cell span {
   margin-right: 10px;
 }
@@ -42,4 +46,12 @@
 
 .final-condition-table-condition-cell p {
   color: black;
+}
+
+.final-condition-table-observation-cell button {
+    display: inline-block;
+}
+
+div.button-container p {
+    color: black;
 }
