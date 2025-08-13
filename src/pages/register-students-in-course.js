@@ -33,9 +33,8 @@ export function CourseStudentRegistering() {
     const [error, setError] = useState(null);
 
     const { getAccessTokenSilently } = useAuth0();
-    const [, changeCourse] = useSelectedCourse(true);
+    
     /** @type {CourseDTO} */ const course = useSelectedCourse(false);
-
     const history = useHistory();
 
     // Redirige a la página de selección de cursada, si todavía no se seleccionó una,
@@ -43,7 +42,7 @@ export function CourseStudentRegistering() {
     // se había hecho.
     useEffect(() => {
 
-        if (course === null) history.push('/profile?course-missing');
+        if (!course) history.push('/profile?course-missing');
 
     }, []);
 
@@ -252,15 +251,6 @@ export function CourseStudentRegistering() {
                     row.formatInfo = "El legajo no es un entero.";
                     invalidFormat = true;
                 } else if (
-                    typeof row.Correlativas !== 'string'
-                    || (
-                        row.Correlativas !== ""
-                        && row.Correlativas.toLowerCase() !== "x"
-                    )
-                ) {
-                    row.formatInfo = "El campo que indica si tiene todas las correlativas debe estar marcado por una 'x' o debe estar vacío.";
-                    invalidFormat = true;
-                } else if (
                     typeof row.Recursante !== 'string'
                     || (
                         row.Recursante !== ""
@@ -280,7 +270,7 @@ export function CourseStudentRegistering() {
 
             });
 
-            // Crea un arreglo con los legajos de los registros con formato correctp.
+            // Crea un arreglo con los legajos de los registros con formato correcto.
             /** @type {Array.<number>} */ const dossierArray = validFormatRange.map(
                 element => element["Legajo"]
             );
@@ -333,7 +323,7 @@ export function CourseStudentRegistering() {
 
                             // Une la información traída del back con la que se cargó del Excel.
                             studentInfo.previousSubjectsApproved = 
-                                studentLoadedData.Correlativas === 'x'
+                                String(studentLoadedData.Correlativas).trim().length != 0
                                 ? "P"
                                 : false;
                             studentInfo.studiedPreviously =
@@ -566,7 +556,7 @@ export function CourseStudentRegistering() {
             "registrar-alumnos-en-cursada",
             [
                 ["Legajo", "Correlativas", "Recursante"],
-                [192656, "x", "x"],
+                [192656, "P", "x"],
             ]
         );
     }
@@ -625,10 +615,11 @@ export function CourseStudentRegistering() {
                     required
                 >
                 </select>
-                <p>Rango de celdas a cargar</p>
+                <p>Rango de celdas a cargar (excluir encabezados)</p>
                 <input
                     type="text"
                     id="cell-range"
+                    placeholder="Ejemplo para cargar los primeros dos registros: A2:C3"
                     onChange={handleCellRangeName}
                     required
                 />

@@ -22,9 +22,8 @@ export const ShowAllEventsRegisters = () => {
 
     const [spreadsheetManipulator, setSpreadsheetManipulator] = useState(null);
 
-    const history = useHistory();
-
     /** @type {CourseDTO} */ const course = useSelectedCourse(false);
+    const history = useHistory();
 
      // Inicializa el objeto que manipula las planillas.
      useState(() => {
@@ -33,65 +32,73 @@ export const ShowAllEventsRegisters = () => {
 
     }, []);
 
-    // Condición que se cumple si todavía no se seleccionó una cursada, o
-    // si se actualiza la página, ya que se pierde el contexto de la
-    // selección que se había hecho.
+    // Redirige a la página de selección de cursada, si todavía no se seleccionó una,
+    // o si se actualiza la página, ya que se pierde el contexto de la selección que
+    // se había hecho.
     useEffect(() => {
 
-        // Redirige a la página de selección de cursada.
-        if (course === null) history.push('/profile?course-missing');
-
-        // Ejecuta la consulta y muestra por tabla.
-        else {
-
-            // Realizar la solicitud al backend.
-            const getEventsDetails = async () => {
-
-                // Obtiene el token Auth0.
-                const auth0Token = await getAccessTokenSilently()
-                .catch(error => {
-                    throw error;
-                });
-
-                // Realiza la petición.
-                const eventsDetails = await axios.get(
-                    `${process.env.REACT_APP_API_SERVER_URL}/api/v1/events/get-events-details?course-id=${course.getId()}`,
-                    {
-                        headers: {
-                            Authorization: `Bearer ${auth0Token}`,
-                        },
-                    }
-                )
-                .catch(error => {
-                    throw error;
-                });
-
-                // Formatea las fechas de los eventos.
-                let formattedEventsDetailsList = eventsDetails.data.eventsDetailsList.map(eventDetailsRegister => {
-                    return {
-                        eventId: eventDetailsRegister.eventId,
-                        eventType: eventDetailsRegister.eventType,
-                        datetime: getFormattedDateAndTime(
-                            eventDetailsRegister.initialDatetime,
-                            eventDetailsRegister.endDatetime,
-                        ),
-                        studentDossier: eventDetailsRegister.studentDossier,
-                        studentId: eventDetailsRegister.studentId,
-                        studentName: eventDetailsRegister.studentName,
-                        attendance: eventDetailsRegister.attendance,
-                        note: eventDetailsRegister.note,
-                    };
-                });
-
-                // Muestra la lista recibida por tabla.
-                setEventsDetailsList(formattedEventsDetailsList);
-
-            }
-            getEventsDetails();
-
-        }
+        if (!course) history.push('/profile?course-missing');
 
     }, []);
+
+    /**
+     * Actualiza un arreglo con los datos de las cursadas.
+     */
+    useEffect(() => {
+
+        // Evita que el primer render arroje una excepción porque course es null.
+        if (!course) return;
+
+        // Realizar la solicitud al backend.
+        const getEventsDetails = async () => {
+
+            // Obtiene el token Auth0.
+            const auth0Token = await getAccessTokenSilently()
+            .catch(error => {
+                throw error;
+            });
+
+            // Realiza la petición.
+            const eventsDetails = await axios.get(
+                `${process.env.REACT_APP_API_SERVER_URL}/api/v1/events/get-events-details?course-id=${course.getId()}`,
+                {
+                    headers: {
+                        Authorization: `Bearer ${auth0Token}`,
+                    },
+                }
+            )
+            .catch(error => {
+                throw error;
+            });
+
+            // Formatea las fechas de los eventos.
+            let formattedEventsDetailsList = eventsDetails.data.eventsDetailsList.map(eventDetailsRegister => {
+                return {
+                    eventId: eventDetailsRegister.eventId,
+                    eventType: eventDetailsRegister.eventType,
+                    datetime: 
+                        eventDetailsRegister.initialDatetime !== null
+                        ? (
+                            getFormattedDateAndTime(
+                                eventDetailsRegister.initialDatetime,
+                                eventDetailsRegister.endDatetime,
+                            )
+                        ) : '-',
+                    studentDossier: eventDetailsRegister.studentDossier,
+                    studentId: eventDetailsRegister.studentId,
+                    studentName: eventDetailsRegister.studentName,
+                    attendance: eventDetailsRegister.attendance,
+                    note: eventDetailsRegister.note,
+                };
+            });
+
+            // Muestra la lista recibida por tabla.
+            setEventsDetailsList(formattedEventsDetailsList);
+
+        }
+        getEventsDetails();
+
+    }, [course]);
 
     // Actualiza la tabla.
     useEffect(() => {
@@ -184,7 +191,7 @@ export const ShowAllEventsRegisters = () => {
     return (
         <PageLayout>
             <h1 id="page-title" className="content__title">
-                Consultar registros de todos los eventos
+                Listar detalle de eventos
             </h1>
             <div id="table" className="table-container not-displayed">
                 <table className="table"></table>

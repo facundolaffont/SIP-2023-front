@@ -10,7 +10,7 @@ variable "zone" {
 
 variable "project_id" {
   type    = string
-  default = "ultimate-flare-420416"
+  default = "wise-trainer-465222-m1"
 }
 
 variable "LOADBALANCER_IP" {

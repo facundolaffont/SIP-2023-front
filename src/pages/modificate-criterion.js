@@ -1,28 +1,3 @@
-// // Imports internos.
-// import { PageLayout } from "../components/page-layout";
-// import SpreadsheetManipulator from "../services/spreadsheet-manipulator.service";
-// import HTMLTableManipulator from "../services/html-table-manipulator";
-// import { useSelectedCourse } from "../contexts/course/course-provider.js";
-// import CourseDTO from "../contexts/course/course-d-t-o";
-
-// // Estilos.
-// import "../styles/components/table.css";
-// import "../styles/register-students.css";
-
-// export function StudentRegistering() {
-//     const [fileName, setFileName] = useState("");
-//     const [fileHandle, setFileHandle] = useState(null);
-//     const [sheetNameValue, setSheetNameValue] = useState("");
-//     const [cellRangeName, setCellRangeName] = useState("");
-//     const [spreadsheetManipulator, setSpreadsheetManipulator] = useState(null);
-//     const [okStudentsList, setOkStudentsList] = useState([]);
-//     const [notOkStudentsList, setNotOkStudentsList] = useState([]);
-//     const [invalidRegistersList, setInvalidRegistersList] = useState([]);
-//     const [tableManualUpdateTrigger, setTableManualUpdateTrigger] = useState(true);
-//     const [error, setError] = useState(null);
-    
-
-
 // Imports externos.
 import axios from "axios";
 import { useAuth0 } from "@auth0/auth0-react";
@@ -34,24 +9,34 @@ import { PageLayout } from "../components/page-layout";
 import { useSelectedCourse } from "../contexts/course/course-provider.js";
 
 export const ModificateCriterion = () => {
-    const [criterias, setCriterias] = useState([]);
+    
+    // #region ==== Creación de variables de estado. ====
+    
     const { getAccessTokenSilently } = useAuth0();
+
+    const [criterias, setCriterias] = useState([]);
     const [editedCriterias, setEditedCriterias] = useState([]);
-    const course = useSelectedCourse();
+
+    /** @type {CourseDTO} */ const course = useSelectedCourse(false);
     const history = useHistory();
+    
+    // #endregion ==== Creación de variables de estado. ====
 
     // Redirige a la página de selección de cursada, si todavía no se seleccionó una,
     // o si se actualiza la página, ya que se pierde el contexto de la selección que
     // se había hecho.
     useEffect(() => {
-        if (course === null) history.push('/profile?course-missing');
+
+        if (!course) history.push('/profile?course-missing');
+
     }, []);
 
     useEffect(() => {
 
         const getEvaluationCriteria = async () => {
 
-            console.debug("Dentro de useEffect");
+            // Evita que el primer render arroje una excepción porque course es null.
+            if (!course) return;
 
             // Obtiene el token Auth0.
             const auth0Token = await getAccessTokenSilently()
@@ -60,7 +45,6 @@ export const ModificateCriterion = () => {
                     throw error;
                 });
     
-            // 2
             await axios
                 .get(
                     `${process.env.REACT_APP_API_SERVER_URL}/api/v1/criterion-course/evaluationCriterias?courseId=${course.getId()}`,
@@ -78,16 +62,16 @@ export const ModificateCriterion = () => {
         }
         getEvaluationCriteria();
 
-    }, []);
+    }, [course]);
 
-    console.debug("Antes de handleSubmit");
-
+    /**
+     * 
+     * @param {*} index 
+     */
     const handleSubmitChanges = (index) => {
         
-        console.log("dentro de handleSubmitChanges");
-        
         const criteriaToSave = criterias[index];
-        console.log("ddd" + criteriaToSave);
+
         // Prepara los datos para enviar al backend (según tus necesidades)
         const criteria = {
             id: criteriaToSave.id,
@@ -114,8 +98,7 @@ export const ModificateCriterion = () => {
         try {
             
             const criteriaToDelete = criterias[index];
-            console.log("criterio a eliminar:" + criteriaToDelete);
-            console.log("criterio a eliminar:" + criteriaToDelete.criteria);
+
             // Prepara los datos adicionales que deseas enviar al backend
             const criteria = {
                 id: criteriaToDelete.id,
@@ -124,7 +107,6 @@ export const ModificateCriterion = () => {
                 value_to_regulate: criteriaToDelete.value_to_regulate,
                 value_to_promote: criteriaToDelete.value_to_promote,
             };
-            console.log("dts" + criteriaToDelete.JSON);
 
             // Envia el criterio a borrar al backend
             fetch(`${process.env.REACT_APP_API_SERVER_URL}/api/v1/criterion-course/delete`, {
@@ -147,13 +129,8 @@ export const ModificateCriterion = () => {
         }
     };
     
-
-
-    console.debug("Antes de return");
-
     return (
         <PageLayout>
-        {console.debug("Dentro de return")}
             <h1 id="page-title" className="content__title">Modificar criterios de evaluación</h1>
             <form>
                 <table className="criteria-table">
@@ -165,90 +142,88 @@ export const ModificateCriterion = () => {
                             <th>Acciones</th> {/* Nuevo encabezado para los botones */}
                         </tr>
                     </thead>
-                    <tbody>
-                        {console.debug("Antes de criterias.map")}
-                        {criterias.map((criteria, index) => {
-                        const isEdited = editedCriterias[index];
+                    <tbody> {
+                        criterias.map((criteria, index) => {
+                            const isEdited = editedCriterias[index];
 
-                        return (
-                            <tr key={index}>
-                                <td>{criteria.criteria.name}</td>
-                                <td>
-                                    {isEdited ? (
-                                        <input
-                                            type="text"
-                                            value={criteria.value_to_regulate}
-                                            onChange={(e) => {
-                                                const newCriterias = [...criterias];
-                                                newCriterias[index].value_to_regulate = e.target.value;
-                                                setEditedCriterias(newCriterias);
-                                            }}
-                                        />
-                                    ) : (
-                                        criteria.value_to_regulate
-                                    )}
-                                </td>
-                                <td>
-                                    {isEdited ? (
-                                        <input
-                                            type="text"
-                                            value={criteria.value_to_promote}
-                                            onChange={(e) => {
-                                                const newCriterias = [...criterias];
-                                                newCriterias[index].value_to_promote = e.target.value;
-                                                setEditedCriterias(newCriterias);
-                                            }}
-                                        />
-                                    ) : (
-                                        criteria.value_to_promote
-                                    )}
-                                </td>
-                                <td>
-                                    {isEdited ? (
-                                        <button
-                                            onClick={(event) => {
-                                                // Guarda los cambios y elimina la edición
-                                                event.preventDefault();
-                                                const newCriterias = [...criterias];
-                                                newCriterias[index] = editedCriterias[index];
-                                                setCriterias(newCriterias);
-                                                console.log("Estado criterias actualizado:", newCriterias); // Agregar esta línea
-                                                setEditedCriterias([]);
-                                                handleSubmitChanges(index);
-                                            }}
-                                        >
-                                            Guardar
-                                        </button>
-                                    ) : (
-                                        <>
-                                            <button
-                                                onClick={(event) => {
-                                                    event.preventDefault();
-                                                    const newEditedCriterias = [...editedCriterias];
-                                                    newEditedCriterias[index] = { ...criteria };
-                                                    setEditedCriterias(newEditedCriterias);
+                            return (
+                                <tr key={index}>
+                                    <td>{criteria.criteria.name}</td>
+                                    <td>
+                                        {isEdited ? (
+                                            <input
+                                                type="text"
+                                                value={criteria.value_to_regulate}
+                                                onChange={(e) => {
+                                                    const newCriterias = [...criterias];
+                                                    newCriterias[index].value_to_regulate = e.target.value;
+                                                    setEditedCriterias(newCriterias);
                                                 }}
-                                            >
-                                                Editar
-                                            </button>
+                                            />
+                                        ) : (
+                                            criteria.value_to_regulate
+                                        )}
+                                    </td>
+                                    <td>
+                                        {isEdited ? (
+                                            <input
+                                                type="text"
+                                                value={criteria.value_to_promote}
+                                                onChange={(e) => {
+                                                    const newCriterias = [...criterias];
+                                                    newCriterias[index].value_to_promote = e.target.value;
+                                                    setEditedCriterias(newCriterias);
+                                                }}
+                                            />
+                                        ) : (
+                                            criteria.value_to_promote
+                                        )}
+                                    </td>
+                                    <td>
+                                        {isEdited ? (
                                             <button
                                                 onClick={(event) => {
+                                                    // Guarda los cambios y elimina la edición
                                                     event.preventDefault();
-                                                    const newCriterias = criterias.filter((_, i) => i !== index);
-                                                    handleDeleteCriteria(index);
-                                                 //   console.log(criterias[index]);
+                                                    const newCriterias = [...criterias];
+                                                    newCriterias[index] = editedCriterias[index];
                                                     setCriterias(newCriterias);
+                                                    console.log("Estado criterias actualizado:", newCriterias); // Agregar esta línea
+                                                    setEditedCriterias([]);
+                                                    handleSubmitChanges(index);
                                                 }}
                                             >
-                                                Eliminar
+                                                Guardar
                                             </button>
-                                        </>
-                                    )}
-                                </td>
-                            </tr>
-                        );
-                    })}
-                    </tbody>
+                                        ) : (
+                                            <>
+                                                <button
+                                                    onClick={(event) => {
+                                                        event.preventDefault();
+                                                        const newEditedCriterias = [...editedCriterias];
+                                                        newEditedCriterias[index] = { ...criteria };
+                                                        setEditedCriterias(newEditedCriterias);
+                                                    }}
+                                                >
+                                                    Editar
+                                                </button>
+                                                <button
+                                                    onClick={(event) => {
+                                                        event.preventDefault();
+                                                        const newCriterias = criterias.filter((_, i) => i !== index);
+                                                        handleDeleteCriteria(index);
+                                                        setCriterias(newCriterias);
+                                                    }}
+                                                >
+                                                    Eliminar
+                                                </button>
+                                            </>
+                                        )}
+                                    </td>
+                                </tr>
+                            );
+                        })
+                    } </tbody>
                 </table>
             </form>
 

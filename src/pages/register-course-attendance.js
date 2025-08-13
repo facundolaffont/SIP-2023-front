@@ -30,18 +30,16 @@ export function CourseAttendanceRegistering() {
     const [invalidRegistersList, setInvalidRegistersList] = useState([]);
     const [error, setError] = useState(null);
     const { getAccessTokenSilently } = useAuth0();
-    const [, changeCourse] = useSelectedCourse(true);
+    
     /** @type {CourseDTO} */ const course = useSelectedCourse(false);
-
     const history = useHistory();
 
-    // Obtiene la lista de eventos de la cursada.
+    // Redirige a la página de selección de cursada, si todavía no se seleccionó una,
+    // o si se actualiza la página, ya que se pierde el contexto de la selección que
+    // se había hecho.
     useEffect(() => {
 
-        // Redirige a la página de selección de cursada, si todavía no se seleccionó una,
-        // o si se actualiza la página, ya que se pierde el contexto de la selección que
-        // se había hecho.
-        if (course === null) history.push('/profile?course-missing');
+        if (!course) history.push('/profile?course-missing');
 
     }, []);
 

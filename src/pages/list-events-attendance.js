@@ -1,6 +1,7 @@
 // Componentes externos.
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import { useHistory } from 'react-router-dom';
 import { useAuth0 } from "@auth0/auth0-react";
 
 // Componentes internos.
@@ -18,23 +19,23 @@ export const ListAttendance = () => {
     const { getAccessTokenSilently } = useAuth0();
     const [, changeCourse] = useSelectedCourse(true);
     const [spreadsheetManipulator, setSpreadsheetManipulator] = useState(null);
+
     /** @type {CourseDTO} */ const course = useSelectedCourse(false);
+    const history = useHistory();
 
     // Inicializa el objeto que manipula las planillas.
     useState(() => {
         setSpreadsheetManipulator(new SpreadsheetManipulator());
     }, []);
 
-    // Verifica que se haya seleccionado una cursada.
+    // Redirige a la página de selección de cursada, si todavía no se seleccionó una,
+    // o si se actualiza la página, ya que se pierde el contexto de la selección que
+    // se había hecho.
     useEffect(() => {
 
-        // Redirige a la página de selección de cursada, si todavía no se seleccionó una,
-        // o si se actualiza la página, ya que se pierde el contexto de la selección que
-        // se había hecho.
-        if (course === null)
-            window.location.replace(`${process.env.REACT_APP_DOMAIN_URL}/profile?course-missing`);
+        if (!course) history.push('/profile?course-missing');
 
-    });
+    }, []);
 
     // Actualiza las tablas.
     useEffect(() => {
@@ -67,6 +68,9 @@ export const ListAttendance = () => {
 
     // Obtiene las cursadas de la comisión seleccionada.
     useEffect(async () => {
+
+        // Evita que el primer render arroje una excepción porque course es null.
+        if (!course) return;
 
         // Obtiene el token Auth0.
         const auth0Token = await getAccessTokenSilently()
@@ -105,7 +109,7 @@ export const ListAttendance = () => {
             error => error.response
         );
 
-    }, []); // El array vacío asegura que el efecto se ejecute solo una vez después del montaje del componente.
+    }, [course]);
 
     function getFormattedDateAndTime(initialDateAndTime, endDateAndTime) {
 

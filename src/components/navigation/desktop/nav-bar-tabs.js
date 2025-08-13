@@ -4,10 +4,12 @@ import { NavBarTab } from "./nav-bar-tab";
 
 export const NavBarTabs = () => {
     const { isAuthenticated, getIdTokenClaims } = useAuth0();
+    const [isSuperAdmin, setIsSuperAdmin] = useState(false);
     const [isAdmin, setIsAdmin] = useState(false);
     const [isProfessor, setIsProfessor] = useState(false);
     const [showRegistrationsDropdown, setShowRegistrationsDropdown] = useState(false);
     const [showListingsDropdown, setShowListingsDropdown] = useState(false);
+    const [showUsersManagementDropdown, setShowUsersManagementDropdown] = useState(false);
     const [showTeachersManagementDropdown, setShowTeachersManagementDropdown] = useState(false);
     const [showCalificationCriterionsDropdown, setShowCalificationCriterionsDropdown] = useState(false);
     const [dropdownTopStyle, setDropdownTopStyle] = useState(0);
@@ -16,12 +18,16 @@ export const NavBarTabs = () => {
     useEffect(() => {
         const checkRole = async () => {
             if (isAuthenticated) {
+                
                 // Obtiene y almacena los claims del token.
                 const idTokenClaims = await getIdTokenClaims();
                 const roles =
                     idTokenClaims[`${process.env.REACT_APP_AUTH0_AUDIENCE}/roles`];
 
                 // Determina el rol del usuario.
+                if (roles && roles.includes("SuperAdministrador")) {
+                    setIsSuperAdmin(true);
+                }
                 if (roles && roles.includes("Administrador")) {
                     setIsAdmin(true);
                 }
@@ -61,21 +67,25 @@ export const NavBarTabs = () => {
                             {showRegistrationsDropdown && (
                                 <div className="dropdown" style={{ top: dropdownTopStyle }}>
                                     <NavBarTab
-                                        path="/register-students"
-                                        label="Registrar estudiantes"
+                                        path="/register-events-bulk"
+                                        label="Crear eventos"
                                     />
-                                    {<NavBarTab
-                                        path="/register-students-in-course"
-                                        label="Vincular estudiantes con cursada"
-                                    />}
+                                    {/*
                                     <NavBarTab
                                         path="/register-event"
                                         label="Crear evento"
                                     />
+                                    */}
                                     <NavBarTab
-                                        path="/register-events-bulk"
-                                        label="Crear eventos masivamente"
+                                        path="/register-students"
+                                        label="Registrar estudiantes"
                                     />
+                                    {/*
+                                    <NavBarTab
+                                        path="/register-students-in-course"
+                                        label="Vincular estudiantes con cursada"
+                                    />
+                                    */}
                                     <NavBarTab
                                         path="/register-attendance"
                                         label="Registrar asistencias"
@@ -127,7 +137,7 @@ export const NavBarTabs = () => {
                                     />*/}
                                     <NavBarTab
                                         path="/show-events-summary"
-                                        label="Mostrar resumen por evento"
+                                        label="Resumen de eventos"
                                     />
                                     {/*<NavBarTab
                                         path="/list-events-attendance"
@@ -147,20 +157,20 @@ export const NavBarTabs = () => {
                             onMouseEnter={(event) => handleMouseEnter(event, setShowCalificationCriterionsDropdown)}
                             onMouseLeave={(event) => handleMouseLeave(event, setShowCalificationCriterionsDropdown)}
                         >
-                            <span>Condición final</span>
+                            <span>Condiciones</span>
                             {showCalificationCriterionsDropdown && (
                                 <div className="dropdown" style={{ top: dropdownTopStyle }}>
                                     <NavBarTab
                                         path="/create-criterion"
-                                        label="Crear criterio"
+                                        label="Crear criterio de evaluación"
                                     />
                                     <NavBarTab
                                         path="/modificate-criterion"
-                                        label="Modificar criterios"
+                                        label="Modificar criterios de evaluación"
                                     />
                                     <NavBarTab
                                         path="/final-condition"
-                                        label="Calcular condición final"
+                                        label="Calcular condiciones"
                                     />
                                 </div>
                             )}
@@ -178,8 +188,27 @@ export const NavBarTabs = () => {
                             {showTeachersManagementDropdown && (
                                 <div className="dropdown" style={{ top: dropdownTopStyle }}>
                                     <NavBarTab path="/search-professor" label="Buscar docente" />
+                                    <NavBarTab path="/create-professor" label="Alta de docente" />
+                                    <NavBarTab path="/down-professor" label="Baja de docente" />
+                                </div>
+                            )}
+                        </div>
+                    )}
+
+                    {/* Rutas para súper administradores */}
+                    {isSuperAdmin && (
+                        <div
+                            className="nav-bar__tab"
+                            onMouseEnter={(event) => handleMouseEnter(event, setShowUsersManagementDropdown)}
+                            onMouseLeave={(event) => handleMouseLeave(event, setShowUsersManagementDropdown)}
+                        >
+                            <span>Gestión de usuarios</span>
+                            {showUsersManagementDropdown && (
+                                <div className="dropdown" style={{ top: dropdownTopStyle }}>
+                                    <NavBarTab path="/search-user" label="Buscar usuario" />
                                     <NavBarTab path="/create-user" label="Alta de usuario" />
-                                    <NavBarTab path="/down-user" label="Baja de docente" />
+                                    <NavBarTab path="/down-user" label="Baja de usuario" />
+                                    <NavBarTab path="/assign-role" label="Asignar rol" />
                                 </div>
                             )}
                         </div>

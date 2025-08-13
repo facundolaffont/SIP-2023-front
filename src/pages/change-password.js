@@ -58,12 +58,10 @@ export const ChangePasswordForm = () => {
       },
       (err, resp) => {
         if (err) {
-          console.log(err.message);
           setFinalMessage(
             "No se pudo enviar el mail. Intente nuevamente más tarde, o contáctese con su administrador."
           );
         } else {
-          console.log(resp);
           setFinalMessage(
             "Se envío el mail para el cambio de contraseña a su casilla. Por favor, verifíquela."
           );
@@ -74,7 +72,7 @@ export const ChangePasswordForm = () => {
 
   return (
     <PageLayout>
-      <h1 id="page-title" className="content__title">Cambio de contraseña </h1>
+      <h1 id="page-title" className="content__title">Cambiar contraseña </h1>
       <form onSubmit={processSubmit}>
         <button type="submit">Solicitar cambio de contraseña</button>
         {<p>{finalMessage}</p>}

@@ -2,7 +2,7 @@ import { useState } from "react";
 import axios from "axios";
 import { PageLayout } from "../components/page-layout";
 
-export function CreateUser() {
+export function CreateProfessor() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [role, setRole] = useState("");
@@ -36,10 +36,9 @@ export function CreateUser() {
       );
 
       const token = response.data.access_token;
-      console.log("Token obtenido", token);
       return token;
     } catch (error) {
-      console.log("Error al obtener el token", error);
+      console.Error("Error al obtener el token", error);
       throw error;
     }
   };
@@ -75,7 +74,6 @@ export function CreateUser() {
     if (data.error) setError(data);
     else {
       setResult("Usuario creado exitosamente.");
-      console.log(data);
     }
 
     // Obtengo el user_id del usuario creado
@@ -136,7 +134,7 @@ export function CreateUser() {
     const data = {
       email: email,
       password: password,
-      rol: role,
+      rol: "Docente",
       nombre: nombre,
       apellido: apellido,
       legajo: legajo,
@@ -214,7 +212,7 @@ export function CreateUser() {
   return (
     <PageLayout>
       <h1 id="page-title" className="content__title">
-        Alta de usuario{" "}
+        Alta de docente{" "}
       </h1>
       <form onSubmit={handleSubmit}>
         <label htmlFor="email">
@@ -251,6 +249,7 @@ export function CreateUser() {
           <p id="password-digit">Debe contener al menos un número</p>
         </div>
 
+        {/*
         <label htmlFor="role">
           <p>Rol</p>
         </label>
@@ -259,6 +258,7 @@ export function CreateUser() {
           <option value="Administrador">Administrador</option>
           <option value="Docente">Docente</option>
         </select>
+        */}
 
         <label htmlFor="nombre">
           <p>Nombre</p>
@@ -306,4 +306,4 @@ export function CreateUser() {
   );
 }
 
-export default CreateUser;
+export default CreateProfessor;

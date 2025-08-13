@@ -1,5 +1,6 @@
 // Componentes externos.
-import React, { useState } from "react";
+import { useEffect, useState } from "react";
+import { useHistory } from "react-router-dom";
 
 // Componentes internos.
 import { PageLayout } from "../components/page-layout";
@@ -15,7 +16,18 @@ export const SearchStudent = () => {
     const [eventos, setEventos] = useState(null);
     const [dataCursada, setDataCursada] = useState(null);
     const [spreadsheetManipulator, setSpreadsheetManipulator] = useState(null);
+
     /** @type {CourseDTO} */ const course = useSelectedCourse(false);
+    const history = useHistory();
+
+    // Redirige a la página de selección de cursada, si todavía no se seleccionó una,
+    // o si se actualiza la página, ya que se pierde el contexto de la selección que
+    // se había hecho.
+    useEffect(() => {
+
+        if (!course) history.push('/profile?course-missing');
+
+    }, []);
 
     // Inicializa el objeto que manipula las planillas.
     useState(() => {
@@ -27,12 +39,12 @@ export const SearchStudent = () => {
     };
 
     const handleSearch = () => {
+        
         // Realizar la solicitud al backend
         fetch(`${process.env.REACT_APP_API_SERVER_URL}/api/v1/course/getStudent?courseId=${course.getId()}&dossier=${legajo}`)
             .then(response => response.json())
             .then(data => {
-                console.log(data)
-                console.log(data.eventos)
+                
                 // Verificar si se encontró un alumno
                 if (data) {
                     // Establecer la información del alumno
@@ -82,15 +94,15 @@ export const SearchStudent = () => {
                     <p><span className="data-label">Nombre:</span> <span className="data-value">{dataAlumno.nombre}</span></p>
                     <p><span className="data-label">Email:</span> <span className="data-value">{dataAlumno.email}</span></p>
                     <p><span className="data-label">DNI:</span> <span className="data-value">{dataAlumno.dni}</span></p>
-                    <p><span className="data-label">Correlativas Aprobadas?</span> <span className={`data-value ${dataCursada.previousSubjectsApproved ? 'yes' : 'no'}`}>{dataCursada.previousSubjectsApproved ? 'Sí' : 'No'}</span></p>
-                    <p><span className="data-label">Recursante?</span> <span className={`data-value ${dataCursada.recursante ? 'yes' : 'no'}`}>{dataCursada.recursante ? 'Sí' : 'No'}</span></p>
+                    <p><span className="data-label">Correlativas aprobadas:</span> <span className={`data-value ${dataCursada.previousSubjectsApproved ? 'yes' : 'no'}`}>{dataCursada.previousSubjectsApproved ? 'Sí' : 'No'}</span></p>
+                    <p><span className="data-label">Recursante:</span> <span className={`data-value ${dataCursada.recursante ? 'yes' : 'no'}`}>{dataCursada.recursante ? 'Sí' : 'No'}</span></p>
                 </div>
 
             )}
             {eventos && (
-                <div>
+                <div className="student-events-table-container">
                     <h2>Eventos del Alumno</h2>
-                    <table id="condition-table" class="condition-table">
+                    <table id="condition-table" class="student-events-table">
                         <thead>
                             <tr>
                                 <th>Tipo de Evento</th>

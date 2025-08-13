@@ -24,9 +24,11 @@ export const Auth0ProviderWithHistory = ({ children }) => {
       clientId={clientId}
       authorizationParams={{
         audience: audience,
-        redirect_uri: redirectUri,
+        redirect_uri: redirectUri
       }}
       onRedirectCallback={onRedirectCallback}
+      cacheLocation="localstorage" // Usa localStorage en lugar de memoria.
+      useRefreshTokens={true} // Habilita refresh tokens.
     >
       {children}
     </Auth0Provider>

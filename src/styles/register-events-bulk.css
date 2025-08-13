@@ -20,8 +20,13 @@ form button {
     display: inline;
 }
 
-.register-events-button {
+.register-button {
     margin-top: 2rem;
+}
+
+.disabled {
+    cursor: default;
+    opacity: 0.5;
 }
 
 input[type="date"] {

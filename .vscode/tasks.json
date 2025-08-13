@@ -1,0 +1,10 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Correr front localmente",
+			"type": "shell",
+			"command": "cp envs/.env.spgda-frontend-desarrollo-local .env && npm install && npm start",
+		}
+	]
+}

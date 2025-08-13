@@ -15,9 +15,8 @@ export function EventRegistering() {
     const [fechaInicio, setFechaInicio] = useState("");
     const [fechaFin, setFechaFin] = useState("");
     const [tipoEvento, setTipoEvento] = useState("");
-    const [, changeCourse] = useSelectedCourse(true);
+    
     /** @type {CourseDTO} */ const course = useSelectedCourse(false);
-
     const history = useHistory();
 
     // Redirige a la página de selección de cursada, si todavía no se seleccionó una,
@@ -25,7 +24,7 @@ export function EventRegistering() {
     // se había hecho.
     useEffect(() => {
 
-        if (course === null) history.push('/profile?course-missing');
+        if (!course) history.push('/profile?course-missing');
 
     }, []);
 
@@ -42,7 +41,6 @@ export function EventRegistering() {
             fechaInicio: fechaInicio,
             fechaFin: fechaFin,
         };
-        console.log(data);
 
         fetch(`${process.env.REACT_APP_API_SERVER_URL}/api/v1/events/create`, {
             method: "POST",

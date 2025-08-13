@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Termina el script cuando se produce cualquier error.
+# Termina la ejecución del script, si algún comando termina con un código de salida diferente de cero.
 set -e
 
 ###########
@@ -28,13 +28,13 @@ set -e
 ###############
 
 # Verifica que los comandos necesarios estén instalados.
-if ! command -v helm &> /dev/null; then echo "Debe instalar helm"; fi
-if ! command -v ssh-keygen &> /dev/null; then echo "Debe instalar ssh"; fi
-if ! command -v ssh-add &> /dev/null; then echo "Debe instalar ssh"; fi
-if ! command -v docker &> /dev/null; then echo "Debe instalar docker"; fi
-if ! command -v gcloud &> /dev/null; then echo "Debe instalar gcloud"; fi
-if ! command -v kubectl &> /dev/null; then echo "Debe instalar kubectl"; fi
-if ! command -v jq &> /dev/null; then echo "Debe instalar jq"; fi
+if ! command -v helm &> /dev/null; then echo "Debe instalar helm"; exit 1; fi
+if ! command -v ssh-keygen &> /dev/null; then echo "Debe instalar ssh"; exit 1; fi
+if ! command -v ssh-add &> /dev/null; then echo "Debe instalar ssh"; exit 1; fi
+if ! command -v docker &> /dev/null; then echo "Debe instalar docker"; exit 1; fi
+if ! command -v gcloud &> /dev/null; then echo "Debe instalar gcloud"; exit 1; fi
+if ! command -v kubectl &> /dev/null; then echo "Debe instalar kubectl"; exit 1; fi
+if ! command -v jq &> /dev/null; then echo "Debe instalar jq"; exit 1; fi
 
 # Cambiar el directorio actual para que sea el mismo que el de este mismo script.
 cd "$(dirname "$0")"
@@ -76,14 +76,13 @@ else
     docker run --rm -it --mount type=bind,src=./,dst=/tmp hashicorp/terraform \
         -chdir=/tmp/00-base init \
         -reconfigure \
-        --backend-config bucket="spgda-ac-bucket" \
+        --backend-config bucket="bucket-wise-trainer-465222-m1" \
         --backend-config prefix="state/base" \
         --backend-config credentials=/tmp/gcloud-key.json
 
     # Terraform validate.
     echo "Validando configuración de Terraform..."
     docker run \
-      --rm -it \
       --rm -it \
       --mount type=bind,src=./,dst=/tmp hashicorp/terraform \
       -chdir=/tmp/00-base validate
@@ -106,7 +105,7 @@ else
 
     # Establece el proyecto adecuado, si no está establecido aún.
     echo "Configurando el proyecto..."
-    gcloud config set project ultimate-flare-420416
+    gcloud config set project wise-trainer-465222-m1
     echo "Proyecto configurado."
 
     # Obtiene el archivo config de Kubernetes, que permite utilizar Kubernetes, y lo almacena en ~/.kube/.
@@ -128,7 +127,7 @@ else
     helm install quickstart ingress-nginx/ingress-nginx
 
     # Despliega el cert-manager.
-    kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.14.5/cert-manager.yaml
+    kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.17.1/cert-manager.yaml
 
     # Espera hasta que los objetos de cert-manager estén listos. [https://kubernetes.github.io/ingress-nginx/deploy/#pre-flight-check]
     echo "Esperando a que cert-manager esté listo..."
@@ -153,8 +152,8 @@ else
     kubectl apply -f letsencrypt-staging-issuer.yaml
     kubectl apply -f letsencrypt-production-issuer.yaml
 
-    pwd
-    cd ../k8s # DEBUG
+    # Cambia el directorio a la carpeta de objetos Kubernetes.
+    cd ../k8s
 
     # Despliega el certificado.
     kubectl apply -f certificate.yaml
@@ -174,9 +173,7 @@ else
     until
       kubectl get service quickstart-ingress-nginx-controller
     do
-      echo
       echo "Esperando a que el balanceador de carga esté listo..."
-      echo
       sleep 10
     done
 
@@ -185,35 +182,31 @@ else
       LOADBALANCER_IP=$(kubectl get -o json service quickstart-ingress-nginx-controller | jq -r .status.loadBalancer.ingress\[0\].ip)
       [ $LOADBALANCER_IP = null ]
     do
-      echo
       echo "Esperando a que esté disponible la IP pública del balanceador de carga..."
-      echo
       sleep 10
     done
 
-    echo
     echo "IP pública del balanceador de cargas = $LOADBALANCER_IP."
-    echo
 
 
     # ###################################################
     # ### Configuración de la infraestructura del DNS ###
     # ###################################################
 
+    # Vuelve a la carpeta de los scripts de Terraform.
     cd ../terraform
 
     # Terraform init.
     echo "Terraform init..."
     docker run --rm -it --mount type=bind,src=./,dst=/tmp hashicorp/terraform \
         -chdir=/tmp init \
-        --backend-config bucket="spgda-ac-bucket" \
+        --backend-config bucket="bucket-wise-trainer-465222-m1" \
         --backend-config prefix="state/dns" \
         --backend-config credentials=/tmp/gcloud-key.json
 
     # Terraform plan.
     echo "Ejecutando plan de Terraform..."
     docker run \
-        --rm -it \
         --rm -it \
         --mount type=bind,src=./,dst=/tmp hashicorp/terraform \
         -chdir=/tmp plan \
@@ -223,7 +216,6 @@ else
     # Terraform apply.
     echo "Aplicando cambios de Terraform..."
     docker run \
-        --rm -it \
         --rm -it \
         --mount type=bind,src=./,dst=/tmp hashicorp/terraform \
         -chdir=/tmp apply \

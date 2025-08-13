@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useAuth0 } from "@auth0/auth0-react";
+import { useHistory } from "react-router-dom";
 import { VictoryPie, VictoryLabel } from "victory";
 
 // Componentes internos.
@@ -18,8 +19,7 @@ export const ShowEventsSummary = () => {
 
     const { getAccessTokenSilently } = useAuth0();
 
-    const [, changeCourse] = useSelectedCourse(true);
-    /** @type {CourseDTO} */ const course = useSelectedCourse(false);
+    const [error, setError] = useState(null);
 
     const [spreadsheetManipulator, setSpreadsheetManipulator] = useState(null);
 
@@ -36,24 +36,58 @@ export const ShowEventsSummary = () => {
     const [approvalData, setApprovalData] = useState({});
     const [approvalPiechartColorScale, setApprovalPiechartColorScale] = useState([]);
 
-    // Inicializa el objeto que manipula las planillas.
+    /** @type {CourseDTO} */ const course = useSelectedCourse(false);
+    const history = useHistory();
+
+    // 1. Inicializa el objeto que manipula las planillas.
     useState(() => {
         setSpreadsheetManipulator(new SpreadsheetManipulator());
     }, []);
 
-    // Verifica que se haya seleccionado una cursada.
+    // Redirige a la página de selección de cursada, si todavía no se seleccionó una,
+    // o si se actualiza la página, ya que se pierde el contexto de la selección que
+    // se había hecho.
     useEffect(() => {
 
-        // Redirige a la página de selección de cursada, si todavía no se seleccionó una,
-        // o si se actualiza la página, ya que se pierde el contexto de la selección que
-        // se había hecho.
-        if (course === null)
-            window.location.replace(`${process.env.REACT_APP_DOMAIN_URL}/profile?course-missing`);
+        if (!course) history.push('/profile?course-missing');
 
-    });
+    }, [course]);
+
+    // Actualiza el mensaje de error que se mostrará al usuario.
+    useEffect(() => {
+
+        // Obtiene el contenedor principal del mensaje de error.
+        const msgContainer = document.getElementsByClassName("info-msg-container")[0];
+
+        if (error === null) {
+
+            msgContainer.classList.add("not-displayed");
+
+        } else {
+
+            // // Oculta las tablas.
+            // setOkList([]);
+            // setNotOkList([]);
+            // setInvalidRegistersList([]);
+
+            // Obtiene el elemento HTML que contendrá el texto del mensaje.
+            const errorMsgTextContainer = document.getElementsByClassName("info-msg-description")[0];
+
+            // Guarda el mensaje.
+            errorMsgTextContainer.innerHTML = error;
+
+            // Muestra el mensaje.
+            msgContainer.classList.remove("not-displayed");
+
+        }
+
+    }, [error]);
 
     // Obtiene el resumen de los eventos, respecto de la cursada seleccionada.
     useEffect(() => {
+
+        // Evita que el primer render arroje una excepción porque course es null.
+        if (!course) return;
 
         const getEventsSummary = async () => {
 
@@ -81,28 +115,45 @@ export const ShowEventsSummary = () => {
                 .data
                 .classEventsSummaryList
                 .forEach(element => {
-                    element.initialDatetime = element.initialDatetime.replace("T", " ");
-                    element.endDatetime = element.endDatetime.replace("T", " ");
-                    element.initialDatetime = element.initialDatetime.substring(0, 16);
-                    element.endDatetime = element.endDatetime.substring(0, 16);
+                    if (element.initialDatetime !== null) {
+                        element.initialDatetime = element.initialDatetime.replace("T", " ");
+                        element.initialDatetime = element.initialDatetime.substring(0, 16);
+                    } else element.initialDatetime = '-';
+
+                    if (element.endDatetime !== null) {
+                        element.endDatetime = element.endDatetime.replace("T", " ");
+                        element.endDatetime = element.endDatetime.substring(0, 16);
+                    } else element.endDatetime = '-';
                 });
+
                 response
                 .data
                 .evaluationEventsByNoteSummaryList
                 .forEach(element => {
-                    element.initialDatetime = element.initialDatetime.replace("T", " ");
-                    element.endDatetime = element.endDatetime.replace("T", " ");
-                    element.initialDatetime = element.initialDatetime.substring(0, 16);
-                    element.endDatetime = element.endDatetime.substring(0, 16);
+                    if (element.initialDatetime !== null) {
+                        element.initialDatetime = element.initialDatetime.replace("T", " ");
+                        element.initialDatetime = element.initialDatetime.substring(0, 16);
+                    } else element.initialDatetime = '-';
+
+                    if (element.endDatetime !== null) {
+                        element.endDatetime = element.endDatetime.replace("T", " ");
+                        element.endDatetime = element.endDatetime.substring(0, 16);
+                    } else element.endDatetime = '-';
                 });
+
                 response
                 .data
                 .evaluationEventsByApprovalRateSummaryList
                 .forEach(element => {
-                    element.initialDatetime = element.initialDatetime.replace("T", " ");
-                    element.endDatetime = element.endDatetime.replace("T", " ");
-                    element.initialDatetime = element.initialDatetime.substring(0, 16);
-                    element.endDatetime = element.endDatetime.substring(0, 16);
+                    if (element.initialDatetime !== null) {
+                        element.initialDatetime = element.initialDatetime.replace("T", " ");
+                        element.initialDatetime = element.initialDatetime.substring(0, 16);
+                    } else element.initialDatetime = '-';
+
+                    if (element.endDatetime !== null) {
+                        element.endDatetime = element.endDatetime.replace("T", " ");
+                        element.endDatetime = element.endDatetime.substring(0, 16);
+                    } else element.endDatetime = '-';
                 });
 
                 setAttendanceSummaryList(response.data.classEventsSummaryList);
@@ -113,13 +164,21 @@ export const ShowEventsSummary = () => {
 
             // Si la petición no fue exitosa, se genera una excepción.
             .catch(
-                error => error.response
+                error => {
+
+                    //error.response
+                    
+                    // Guarda el mensaje de error traído del back al usuario, y
+                    // en el próximo renderizado se mostrará el mensaje.
+                    setError("Hubo un error. Por favor, contactarse con Soporte Técnico.");
+
+                }
             );
 
         }
         getEventsSummary();
 
-    }, []); // El array vacío asegura que el efecto se ejecute solo una vez después del montaje del componente.
+    }, []);
 
     // Actualiza las tablas.
     useEffect(() => {
@@ -139,6 +198,7 @@ export const ShowEventsSummary = () => {
                     columnNames: [
                         "eventId:ID de evento",
                         "eventType:Tipo de evento",
+                        "eventName:Nombre",
                         "initialDatetime:Fecha de inicio",
                         "endDatetime:Fecha de fin",
                         "obligatory:Obligatorio",
@@ -147,7 +207,6 @@ export const ShowEventsSummary = () => {
                         "notAttended:Ausentes",
                         "notAttendedPercentage:%",
                         "missingRegisters:Sin registro",
-                        "missingRegistersPercentage:%",
                     ],
                     columnClasses: [
                         "obligatory:centered",
@@ -156,14 +215,12 @@ export const ShowEventsSummary = () => {
                         "notAttended:centered",
                         "notAttendedPercentage:centered",
                         "missingRegisters:centered",
-                        "missingRegistersPercentage:centered",
                     ],
                     onClickEventHandler: updateClassPiechart,
                     onClickEventHandlerParameters: [
-                        "eventId", "eventType",
+                        "eventId", "eventType", "eventName",
                         "attended", "attendedPercentage",
-                        "notAttended", "notAttendedPercentage",
-                        "missingRegisters", "missingRegistersPercentage"
+                        "notAttended", "notAttendedPercentage"
                     ],
                 },
                 "Resumen de asistencias."
@@ -186,6 +243,7 @@ export const ShowEventsSummary = () => {
                     columnNames: [
                         "eventId:ID de evento",
                         "eventType:Tipo de evento",
+                        "eventName:Nombre",
                         "initialDatetime:Fecha de inicio",
                         "endDatetime:Fecha de fin",
                         "obligatory:Obligatorio",
@@ -196,7 +254,6 @@ export const ShowEventsSummary = () => {
                         "nonAttendingStudents:Ausentes",
                         "nonAttendingStudentsPercentage:%",
                         "missingRegisters:Sin registro",
-                        "missingRegistersPercentage:%",
                     ],
                     columnClasses: [
                         "obligatory:centered",
@@ -207,15 +264,13 @@ export const ShowEventsSummary = () => {
                         "nonAttendingStudents:centered",
                         "nonAttendingStudentsPercentage:centered",
                         "missingRegisters:centered",
-                        "missingRegistersPercentage:centered",
                     ],
                     onClickEventHandler: updateEvaluationPiechart,
                     onClickEventHandlerParameters: [
-                        "eventId", "eventType",
+                        "eventId", "eventType", "eventName",
                         "approvedStudents", "approvedStudentsPercentage",
                         "disapprovedStudents", "disapprovedStudentsPercentage",
                         "nonAttendingStudents", "nonAttendingStudentsPercentage",
-                        "missingRegisters", "missingRegistersPercentage"
                     ],
                 },
                 "Resumen de evaluaciones."
@@ -228,8 +283,8 @@ export const ShowEventsSummary = () => {
     /**
      * Actualiza el gráfico de torta de asistencias.
      */
-    useEffect(() => {
-        
+    useEffect(() => { 
+
         let elementsToGraph = [];
         let colorScale = [];
         
@@ -272,8 +327,8 @@ export const ShowEventsSummary = () => {
     /**
      * Actualiza el gráfico de torta de calificaciones.
      */
-    useEffect(() => {
-        
+    useEffect(() => { 
+
         let elementsToGraph = [];
         let colorScale = [];
         if(
@@ -337,43 +392,60 @@ export const ShowEventsSummary = () => {
      * Cambia los valores del gráfico de torta de los eventos de clase y
      * lo muestra en pantalla.
      * 
+     * Si el evento seleccionado no tiene datos, esconde el gráfico.
+     * 
      * @param {number} classAttendingData 
      * @param {number} classNonAttendingData 
      * @param {number} classNoRegisterData
-     */
+     */ 
     const updateClassPiechart = (
         eventId,
         eventType,
+        eventName,
         classAttendingQuantity,
         classAttendingPercentage,
         classNonAttendingQuantity,
         classNonAttendingPercentage,
-        classNoRegisterQuantity,
-        classNoRegisterPercentage,
-    ) => {
+    ) => { 
 
-        let attendanceData = {
-            classAttendingQuantity,
-            classAttendingPercentage,
-
-            classNonAttendingQuantity,
-            classNonAttendingPercentage,
-
-            classNoRegisterQuantity,
-            classNoRegisterPercentage,
-        }
-
-        setAttendancePiechartTitle(eventType + " (ID " + eventId + ")");
-        setAttendanceData(attendanceData);
-
+        // Obtiene el manejador del gráfico de torta.
         const piechart = document.getElementById("attendancePiechart");
-        piechart.classList.remove("not-displayed");
+
+        /**
+         * Establece el objeto, con las cantidades y porcentajes, que se
+         * pasará al gráfico de torta para que se actualice, y lo muestra
+         * en pantalla, si el evento seleccionado tiene datos.
+         * 
+         * Si el evento seleccionado no tiene datos, no actualiza nada
+         * y esconde el gráfico de torta.
+         */
+        let attendanceData;
+        if (!(
+            classAttendingQuantity == 0
+            && classNonAttendingQuantity == 0
+        )) {
+
+            attendanceData = {
+                classAttendingQuantity,
+                classAttendingPercentage,
+                classNonAttendingQuantity,
+                classNonAttendingPercentage,
+            };
+
+            setAttendancePiechartTitle(`${eventType} "${eventName}" (ID ${eventId})"`);
+            setAttendanceData(attendanceData);
+
+            piechart.classList.remove("not-displayed");
+
+        } else piechart.classList.add("not-displayed");
 
     }
 
     /**
      * Cambia los valores del gráfico de torta de los eventos de evaluación y
      * lo muestra en pantalla.
+     * 
+     * Si el evento seleccionado no tiene datos, esconde el gráfico.
      * 
      * @param {String} evaluationEventApprovedData
      * @param {String} evaluationEventDisapprovedData
@@ -383,35 +455,50 @@ export const ShowEventsSummary = () => {
     const updateEvaluationPiechart = (
         eventId,
         eventType,
+        eventName,
         evaluationEventApprovedQuantity,
         evaluationEventApprovedPercentage,
         evaluationEventDisapprovedQuantity,
         evaluationEventDisapprovedPercentage,
         evaluationEventNonAttendingQuantity,
-        evaluationEventNonAttendingPercentage,
-        evaluationEventNoRegisterQuantity,
-        evaluationEventNoRegisterPercentage
-    ) => {
+        evaluationEventNonAttendingPercentage
+    ) => { 
 
-        let approvalData = {
-            evaluationEventApprovedQuantity,
-            evaluationEventApprovedPercentage,
-
-            evaluationEventDisapprovedQuantity,
-            evaluationEventDisapprovedPercentage,
-
-            evaluationEventNonAttendingQuantity,
-            evaluationEventNonAttendingPercentage,
-
-            evaluationEventNoRegisterQuantity,
-            evaluationEventNoRegisterPercentage,
-        };
-
-        setApprovalPiechartTitle(eventType + " (ID " + eventId + ")");
-        setApprovalData(approvalData);
-
+        // Obtiene el manejador del gráfico de torta.
         const piechart = document.getElementById("approvalPiechart");
-        piechart.classList.remove("not-displayed");
+
+        /**
+         * Establece el objeto, con las cantidades y porcentajes, que se
+         * pasará al gráfico de torta para que se actualice, y lo muestra
+         * en pantalla, si el evento seleccionado tiene datos.
+         * 
+         * Si el evento seleccionado no tiene datos, no actualiza nada
+         * y esconde el gráfico de torta.
+         */
+        let approvalData;
+        if (!(
+            evaluationEventApprovedQuantity == 0
+            && evaluationEventDisapprovedQuantity == 0
+            && evaluationEventNonAttendingQuantity == 0
+        )) {
+            
+            approvalData = {
+                evaluationEventApprovedQuantity,
+                evaluationEventApprovedPercentage,
+
+                evaluationEventDisapprovedQuantity,
+                evaluationEventDisapprovedPercentage,
+
+                evaluationEventNonAttendingQuantity,
+                evaluationEventNonAttendingPercentage,
+            };
+
+            setApprovalPiechartTitle(`${eventType} "${eventName}" (ID ${eventId})"`);
+            setApprovalData(approvalData);
+
+            piechart.classList.remove("not-displayed");
+
+        } else piechart.classList.add("not-displayed");
 
     }
 
@@ -428,6 +515,11 @@ export const ShowEventsSummary = () => {
                     course === null && 'Sin cursada seleccionada'
                 }
             </h2>
+            <div className="info-msg-container not-displayed">
+                <div className="info-msg-desc-container">
+                    <p className="info-msg-description"></p>
+                </div>
+            </div>
             {attendanceSummaryList && (
                 <div id="hola" className="attendance-summary-table-container table-container not-displayed">
                     <table id="attendance-summary-table" className="attendance-summary-table"></table>

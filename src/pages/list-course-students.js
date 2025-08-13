@@ -16,11 +16,10 @@ import '../styles/search-student.css';
 
 export const ListCourseStudents = () => {
     const [studentsList, setStudentsList] = useState([]);
-    const [, changeCourse] = useSelectedCourse(true);
     const { getAccessTokenSilently } = useAuth0();
     const [spreadsheetManipulator, setSpreadsheetManipulator] = useState(null);
-    /** @type {CourseDTO} */ const course = useSelectedCourse(false);
 
+    /** @type {CourseDTO} */ const course = useSelectedCourse(false);
     const history = useHistory();
 
     // Inicializa el objeto que manipula las planillas.
@@ -33,7 +32,7 @@ export const ListCourseStudents = () => {
     // se había hecho.
     useEffect(() => {
 
-        if (course === null) history.push('/profile?course-missing');
+        if (!course) history.push('/profile?course-missing');
 
     }, []);
 
@@ -55,7 +54,7 @@ export const ListCourseStudents = () => {
                         "email:Email",
                         "alreadyStudied:Recursante",
                         "allPreviousSubjectsApproved:Correlativas",
-                        "finalCondition:Condición final",
+                        "finalCondition:Condición",
                     ],
                 },
             );
@@ -69,52 +68,61 @@ export const ListCourseStudents = () => {
         
         const getCourseStudents = async () => {
 
-            // Obtiene el token Auth0.
-            const auth0Token = await getAccessTokenSilently()
-            .then(response => response)
-            .catch(error => {
-                throw error;
-            });
+            // Evita que el primer render arroje una excepción porque course es null.
+            if (!course) return;
 
-            // Realiza la petición al back para obtener la lista de alumnos de la cursada.
-            await axios.get(
-                `${process.env.REACT_APP_API_SERVER_URL}/api/v1/course/get-students?courseId=${course.getId()}`,
-                {
-                    headers: {
-                        Authorization: `Bearer ${auth0Token}`,
-                    },
-                }
-            )
+            try {
 
-            // Si la petición fue exitosa, se guarda la información obtenida.
-            .then(response => {
+                // Obtiene el token Auth0.
+                const auth0Token = await getAccessTokenSilently()
+                .then(response => response)
+                .catch(error => {
+                    throw error;
+                });
 
-                setStudentsList(response.data.studentsList.map(student => {
-                    return {
-                        dossier: student.dossier,
-                        id: student.id,
-                        name: student.name,
-                        email: student.email,
-                        alreadyStudied: student.alreadyStudied,
-                        allPreviousSubjectsApproved:
-                            student.allPreviousSubjectsApproved == true
-                            ? 'P'
-                            : false,
-                        finalCondition: student.finalCondition,
+                // Realiza la petición al back para obtener la lista de alumnos de la cursada.
+                await axios.get(
+                    `${process.env.REACT_APP_API_SERVER_URL}/api/v1/course/get-students?courseId=${course.getId()}`,
+                    {
+                        headers: {
+                            Authorization: `Bearer ${auth0Token}`,
+                        },
                     }
-                }));
+                )
 
-            })
+                // Si la petición fue exitosa, se guarda la información obtenida.
+                .then(response => {
 
-            // Si la petición no fue exitosa, se genera una excepción.
-            .catch(
-                error => error.response
-            );
+                    setStudentsList(response.data.studentsList.map(student => {
+                        return {
+                            dossier: student.dossier,
+                            id: student.id,
+                            name: student.name,
+                            email: student.email,
+                            alreadyStudied: student.alreadyStudied,
+                            allPreviousSubjectsApproved:
+                                student.allPreviousSubjectsApproved == true
+                                ? 'P'
+                                : false,
+                            finalCondition: student.finalCondition,
+                        }
+                    }));
+
+                })
+
+                // Si la petición no fue exitosa, se genera una excepción.
+                .catch(
+                    error => error.response
+                );
+
+            } catch (error) {
+                console.error("Error al obtener la lista de estudiantes:", error);
+            }
 
         }
         getCourseStudents();
 
-    }, []); // El array vacío asegura que el efecto se ejecute solo una vez después del montaje del componente
+    }, [course]);
 
     /**
      * Maneja el evento clic en el botón de exportar.
@@ -130,7 +138,7 @@ export const ListCourseStudents = () => {
     return (
         <PageLayout>
             <h1 id="page-title" className="content__title">
-                Alumnos de la cursada
+                Listar alumnos
             </h1>
             <h2 className="selected-course-info">
                 {

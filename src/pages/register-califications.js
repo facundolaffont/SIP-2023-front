@@ -18,83 +18,127 @@ export function CalificationRegistering() {
 
     const [fileName, setFileName] = useState('');
     const [fileHandle, setFileHandle] = useState(null);
+
     const [sheetNameValue, setSheetNameValue] = useState('');
     const [cellRangeName, setCellRangeName] = useState('');
+
+    const [registerButtonEnabled, setRegisterButtonEnabled] = useState(true);
+
     const [eventId, setEventId] = useState(0);
     const [eventDescription, setEventDescription] = useState('');
     const [selectedEvent, setSelectedEvent] = useState(null);
+
     const [spreadsheetManipulator, setSpreadsheetManipulator] = useState(null);
+
     const [okStudentsList, setOkStudentsList] = useState([]);
     const [notOkStudentsList, setNotOkStudentsList] = useState([]);
-    const [tableManualUpdateTrigger, setTableManualUpdateTrigger] = useState(true);
     const [invalidRegistersList, setInvalidRegistersList] = useState([]);
-    const [error, setError] = useState(null);
-    const { getAccessTokenSilently } = useAuth0();
-    const [, changeCourse] = useSelectedCourse(true);
-    /** @type {CourseDTO} */ const course = useSelectedCourse(false);
 
+    const [tableManualUpdateTrigger, setTableManualUpdateTrigger] = useState(true);
+
+    const [error, setError] = useState(null);
+
+    const { getAccessTokenSilently } = useAuth0();
+    
+    /** @type {CourseDTO} */ const course = useSelectedCourse(false);
     const history = useHistory();
 
+    // Redirige a la página de selección de cursada, si todavía no se seleccionó una,
+    // o si se actualiza la página, ya que se pierde el contexto de la selección que
+    // se había hecho.
+    useEffect(() => {
+
+        if (!course) history.push('/profile?course-missing');
+
+    }, []);
+
+    // Actualiza el estado del botón de registración.
+    useEffect(() => { 
+
+        // Obtiene el manejador del botón de registración.
+        const registerButton = document.getElementsByClassName("register-button")[0];
+
+        // Habilita el botón de registración.
+        if (registerButtonEnabled) {
+            registerButton.disabled = false;
+            registerButton.classList.remove("disabled");
+        
+        // Inhabilita el botón de registración.
+        } else {
+            registerButton.disabled = true;
+            registerButton.classList.add("disabled");
+        }
+
+    }, [registerButtonEnabled]);
+    
     // Obtiene la lista de eventos de evaluación de la cursada.
     useEffect(() => {
 
-        // Redirige a la página de selección de cursada, si todavía no se seleccionó una,
-        // o si se actualiza la página, ya que se pierde el contexto de la selección que
-        // se había hecho.
-        if (course === null) history.push('/profile?course-missing');
+        // Evita que el primer render arroje una excepción porque course es null.
+        if (!course) return;
+        
+        const getEventsList = async () => {
 
-        // Obtiene la lista de eventos de evaluación de la cursada y actualiza el campo de selección de cursada.
-        else {
+            // Obtiene el token Auth0.
+            const auth0Token = await getAccessTokenSilently()
+            .then(response => response)
+            .catch(error => {
+                throw error;
+            });
 
-            const getEventsList = async () => {
-
-                // Obtiene el token Auth0.
-                const auth0Token = await getAccessTokenSilently()
-                .then(response => response)
-                .catch(error => {
-                    throw error;
-                });
-
-                // Obtiene los eventos de evaluación de la cursada.
-                const eventsList = await axios.get(
-                    `${process.env.REACT_APP_API_SERVER_URL}/api/v1/course/get-evaluation-events`,
-                    {
-                        params: {
-                            'course-id': course.getId(),
-                        },
-                        headers: {
-                            Authorization: `Bearer ${auth0Token}`,
-                        },
-                    }
-                )
-                    .then(okReponse => okReponse)
-                    .catch(error => error.response);
+            // Obtiene los eventos de evaluación de la cursada.
+            const eventsList = await axios.get(
+                `${process.env.REACT_APP_API_SERVER_URL}/api/v1/course/get-evaluation-events`,
+                {
+                    params: {
+                        'course-id': course.getId(),
+                    },
+                    headers: {
+                        Authorization: `Bearer ${auth0Token}`,
+                    },
+                }
+            )
+                .then(okReponse => okReponse)
+                .catch(error => error.response);
+            
+            if (eventsList.status !== 200) {
                 
-                if (eventsList.status !== 200) {
-                    
-                    // Guarda el mensaje de error traído del back al usuario, y
-                    // en el próximo renderizado se mostrará el mensaje.
-                    setError("Hubo un error. Por favor, contactarse con Soporte Técnico.");
+                // Guarda el mensaje de error traído del back al usuario, y
+                // en el próximo renderizado se mostrará el mensaje.
+                setError("Hubo un error. Por favor, contactarse con Soporte Técnico.");
 
-                } else if (eventsList.data.eventList.length === 0) {
+            } else if (eventsList.data.eventList.length === 0) {
 
-                    // Redirige a la página de selección de eventos, si la cursada no tiene eventos
-                    // asociados.
-                    history.push('/profile?no-events');
+                // Redirige a la página de selección de eventos, si la cursada no tiene eventos
+                // asociados.
+                history.push('/profile?no-events');
 
-                } else {
+            } else {
 
-                    // Carga los eventos de evaluación en la lista de selección.
-                    let eventsSelect = document.getElementById("events-select");
-                    while (eventsSelect.firstChild) {
-                        eventsSelect.removeChild(eventsSelect.firstChild);
-                    }
-                    const listFirstElement = document.createElement("option");
-                    listFirstElement.innerHTML = "SELECCIONAR EVENTO";
-                    listFirstElement.value = 0;
-                    eventsSelect.appendChild(listFirstElement);
-                    eventsList.data.eventList.forEach(eventElement => {
-                        const listElement = document.createElement("option");
+                // Carga los eventos de evaluación en la lista de selección.
+                let eventsSelect = document.getElementById("events-select");
+                while (eventsSelect.firstChild) {
+                    eventsSelect.removeChild(eventsSelect.firstChild);
+                }
+                const listFirstElement = document.createElement("option");
+                listFirstElement.innerHTML = "SELECCIONAR EVENTO";
+                listFirstElement.value = 0;
+                eventsSelect.appendChild(listFirstElement);
+                eventsList.data.eventList.forEach(eventElement => {
+
+                    const listElement = document.createElement("option");
+
+                    // Contruye el string que contendrá el nombre del evento, solamente si se ingresó un nombre
+                    // al momento de dar de alta el evento.
+                    let nameString = '';
+                    if (eventElement.name !== null)
+                        nameString = ` "${eventElement.name}"`;
+
+                    // Construye el string que contendrá el rango de fechas, solamente si ambas fechas
+                    // fueron ingresadas en la carga del evento; o será una cadena vacía, si alguna
+                    // de las fechas no fue ingresada.
+                    let dateTimeString = "";
+                    if (eventElement.initialDateTime !== null && eventElement.endDateTime !== null) {
                         const initialDate =
                             Intl.DateTimeFormat(
                                 'es-AR',
@@ -131,25 +175,27 @@ export function CalificationRegistering() {
                                     minute: '2-digit',
                                 }
                             ).format(new Date(eventElement.endDateTime));
-                        const dateTimeString =
+                        dateTimeString =
                             initialDate.valueOf() === endDate.valueOf()
-                            ? `${initialDate} de ${initialTime} a ${endTime}`
-                            : `${initialDate} ${initialTime} - ${endDate} ${endTime}`;
-                        const eventDescription = 
-                            `${eventElement.type}: ${dateTimeString}`;
-                        listElement.innerHTML = eventDescription;
-                        listElement.value = eventElement.eventId;
-                        eventsSelect.appendChild(listElement);
-                    });
+                            ? `: ${initialDate} de ${initialTime} a ${endTime}`
+                            : `: ${initialDate} ${initialTime} - ${endDate} ${endTime}`;
+                    }
 
-                }
+                    const eventDescription = 
+                        `${eventElement.type}${nameString}${dateTimeString}`;
+
+                    listElement.innerHTML = eventDescription;
+                    listElement.value = eventElement.eventId;
+                    eventsSelect.appendChild(listElement);
+                    
+                });
 
             }
-            getEventsList();
 
         }
+        getEventsList();
 
-    }, []);
+    }, [course]);
 
     // Actualiza el mensaje de error que se mostrará al usuario.
     useEffect(() => {
@@ -190,14 +236,13 @@ export function CalificationRegistering() {
         )[0];
         if (invalidRegistersList.length !== 0) {
 
+            // Inserta los datos en la tabla.
             HTMLTableManipulator.insertDataIntoTable(
                 notValidFormatTable,
                 {
                     tableRows: invalidRegistersList,
                     columnNames: [
                         "_row:Fila",
-                        "dossier:Legajo",
-                        "calification:Calificación",
                         "formatInfo:Error de formato",
                     ],
                     columnClasses: [
@@ -206,7 +251,10 @@ export function CalificationRegistering() {
                 },
                 `Registros con formato inválido (${invalidRegistersList.length})`
             );
+
+            // Muestra la tabla.
             notValidFormatTable.classList.remove("not-displayed");
+
         } else notValidFormatTable.classList.add("not-displayed");
 
         // Actualiza la tabla de estudiantes que no están aptos para ser registrados.
@@ -214,6 +262,8 @@ export function CalificationRegistering() {
             "not-ok-students-table"
         )[0];
         if (notOkStudentsList.length !== 0) {
+
+            // Inserta los datos en la tabla.
             HTMLTableManipulator.insertDataIntoTable(
                 notOkStudentsTable,
                 {
@@ -225,7 +275,10 @@ export function CalificationRegistering() {
                 },
                 `Legajos que no se pueden registrar (${notOkStudentsList.length})`
             );
+
+            // Muestra la tabla.
             notOkStudentsTable.classList.remove("not-displayed");
+
         } else notOkStudentsTable.classList.add("not-displayed");
 
         // Actualiza la tabla de estudiantes que están aptos para que su calificación
@@ -233,10 +286,14 @@ export function CalificationRegistering() {
         let okStudentsTableContainer = document.getElementsByClassName(
             "ok-students-table-container"
         )[0];
-        let okStudentsTable = document.getElementsByClassName(
-            "ok-students-table"
-        )[0];
         if (okStudentsList.length !== 0) {
+            
+            // Obtiene el manejador de la tabla.
+            let okStudentsTable = document.getElementsByClassName(
+                "ok-students-table"
+            )[0];
+
+            // Inserta los datos en la tabla.
             HTMLTableManipulator.insertDataIntoTable(
                 okStudentsTable,
                 {
@@ -255,7 +312,10 @@ export function CalificationRegistering() {
                 },
                 `Estudiantes para registrar calificación (${okStudentsList.length}) - ${selectedEvent.eventDescription}`
             );
+
+            // Muestra la tabla.
             okStudentsTableContainer.classList.remove("not-displayed");
+
         } else okStudentsTableContainer.classList.add("not-displayed");
 
     }, [okStudentsList, notOkStudentsList, invalidRegistersList, tableManualUpdateTrigger]);
@@ -390,6 +450,9 @@ export function CalificationRegistering() {
 
         // Evita que se ejecute la llamada del submit.
         event.preventDefault();
+
+        // Habilita el botón de registración.
+        setRegisterButtonEnabled(true);
 
         // Notifica al usuario si no se seleccionó el nombre de la pestaña
         // de la planilla.
@@ -573,6 +636,9 @@ export function CalificationRegistering() {
      */
     const handleRegistering = async () => {
 
+        // Inhabilita el botón de registración.
+        setRegisterButtonEnabled(false);
+
         // Prepara la lista de estudiantes para ser enviada.
         const calificationRegistrationInfo = okStudentsList
             .map(studentInfo => {
@@ -606,12 +672,14 @@ export function CalificationRegistering() {
             .then(response => response)
             .catch(error => error);
 
+        // Si la respuesta del backend no fue satisfactoria...
         if (response.status !== 200) {
             
             // Guarda el mensaje de error traído del back al usuario y,
             // en el próximo renderizado, se mostrará el mensaje.
             setError("Hubo un error. Por favor, contactarse con Soporte Técnico.");
 
+        // Si la respuesta del backend fue satisfactoria...
         } else {
             
             // El front inserta un símbolo en la primera columna de cada registro para indicar
@@ -658,14 +726,27 @@ export function CalificationRegistering() {
     }
 
     const handleTemplateDownload = () => {
+
+        // Define el comentario que tendrá la hoja de cálculo.
+        let comment = "Números del 1 al 10, o A/A-/D, o dejar en blanco para indicar ausencia.";
+        let sheetComments = [
+            ["A2", comment]
+        ];
+
+        // Define el contenido de la plantilla.
+        let sheetContent = [
+            ["Legajo", "Calificación"],
+            [166364, 4],
+        ];
+
+        // Crea y descarga la plantilla.
         spreadsheetManipulator.create(
             "Plantilla de carga de calificaciones",
             "registro-calificaciones",
-            [
-                ["Legajo", "Calificación"],
-                [166364, 4],
-            ]
+            sheetContent,
+            sheetComments
         );
+        
     }
 
     return (
@@ -720,10 +801,11 @@ export function CalificationRegistering() {
                     required
                 >
                 </select>
-                <label htmlFor="cell-range"><p>Rango de celdas a cargar</p></label>
+                <p>Rango de celdas a cargar (excluir encabezados)</p>
                 <input
                     type="text"
                     id="cell-range"
+                    placeholder="Ejemplo para cargar los primeros dos registros: A2:B3"
                     onChange={handleCellRangeName}
                     required
                 />
@@ -751,7 +833,7 @@ export function CalificationRegistering() {
                 <table className="ok-students-table"></table>
                 <button
                     type="button"
-                    className="register-califications-button"
+                    className="register-button"
                     onClick={handleRegistering}
                 >
                     Registrar calificaciones
