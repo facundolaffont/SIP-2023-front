@@ -55,3 +55,7 @@ td.final-condition-table-condition-cell {
 div.button-container p {
     color: black;
 }
+
+div.button-container button.export-button {
+  margin-top: 3px;
+}

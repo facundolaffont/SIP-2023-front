@@ -9,6 +9,7 @@ import { faPencilAlt } from "@fortawesome/free-solid-svg-icons";
 // Imports internos.
 import { PageLayout } from "../components/page-layout";
 import { PopoverDetalleCriterio } from "../components/PopoverDetalleCriterio";
+import SpreadsheetManipulator from "../services/spreadsheet-manipulator.service";
 
 import { useSelectedCourse } from "../contexts/course/course-provider.js";
 
@@ -29,6 +30,7 @@ export const FinalCondition = () => {
     const [showInfo, setShowInfo] = useState(false);
     const [infoText, setInfoText] = useState("");
     const [isCalculating, setIsCalculating] = useState(false);
+    const [spreadsheetManipulator, setSpreadsheetManipulator] = useState(null);
 
     /** @type {CourseDTO} */ const course = useSelectedCourse(false);
     const history = useHistory();
@@ -40,6 +42,11 @@ export const FinalCondition = () => {
 
         if (!course) history.push('/profile?course-missing');
         
+    }, []);
+
+    // Inicializa el objeto que manipula las planillas.
+    useState(() => {
+        setSpreadsheetManipulator(new SpreadsheetManipulator());
     }, []);
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -160,10 +167,14 @@ export const FinalCondition = () => {
     };
 
     const handleCalculate = async (isFinal) => {
+        
+        // Oculta el mensaje de guardado exitoso, si se estuviese mostrando.
+        setSaveMessage(false);
+        
         const type = isFinal ? "final" : "cursada";
         setCalculationType(type);
 
-        // Mensaje informativo según el tipo
+        // Mensaje informativo según el tipo.
         setInfoText(
         isFinal
             ? "Los resultados muestran la CONDICIÓN FINAL: P (Promueve), R (Regular), L (Libre)."
@@ -235,9 +246,7 @@ export const FinalCondition = () => {
             : true;
     });
 
-
     const esCondicionFinal = calculationType === "final";
-
 
     const getCondicionFinalTexto = (condicion) => {
 
@@ -256,6 +265,17 @@ export const FinalCondition = () => {
                 return condicion;
         }
     };
+
+    /**
+     * Maneja el evento clic en el botón de exportar.
+     */
+    const handleExport = () => {
+        spreadsheetManipulator.export(
+            document.getElementById("final-condition-table"),
+            "Condición de los estudiantes",
+            "condición-estudiantes"
+        );
+    }
 
     return (
         <PageLayout>
@@ -306,7 +326,7 @@ export const FinalCondition = () => {
                         : "Resultado: Condición de cursada de los alumnos"
                     }
                     </h2>
-                    <table className="final-condition-table">
+                    <table id="final-condition-table" className="final-condition-table">
                         <thead>
                             <tr>
                                 <th>Nombre</th>
@@ -429,12 +449,31 @@ export const FinalCondition = () => {
                             ))}
                         </tbody>
                     </table>
+
                     <div className="button-container">
-                        <button type="button" onClick={handleSaveChanges}>Guardar Cambios</button>
+
+                        {/* Botón para exportar a Excel. */}
+                        <button
+                            type="button"
+                            className="export-button"
+                            onClick={handleExport}
+                        >
+                            Exportar a Excel
+                        </button>
+
+                        {/* Botón para guardar cambios. */}
+                        <button
+                            type="button"
+                            onClick={handleSaveChanges}
+                        >
+                            Guardar cambios
+                        </button>
                         {saveMessage && <p>{saveMessage}</p>}
+
                     </div>
                 </div>
             )}
+
             {showInfo && (
                 <div className="modal-overlay">
                     <div className="modal">
