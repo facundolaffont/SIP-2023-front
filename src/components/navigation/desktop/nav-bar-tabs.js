@@ -215,7 +215,7 @@ export const NavBarTabs = () => {
                     )}
 
                     {/* Rutas públicas */}
-                    <NavBarTab path="/change-password" label="Cambiar contraseña" />
+                    {/* <NavBarTab path="/change-password" label="Cambiar contraseña" /> */}
 
                 </>
             )}
