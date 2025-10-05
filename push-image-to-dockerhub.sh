@@ -8,6 +8,7 @@ else
 
     set -e
 
+    cp envs/.env.spgda-frontend-producción-nube .env
     docker build --no-cache -t facundol/sip-frontend:$1 .
     docker push facundol/sip-frontend:$1
 

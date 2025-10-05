@@ -10,7 +10,7 @@ variable "zone" {
 
 variable "project_id" {
   type    = string
-  default = "wise-trainer-465222-m1"
+  default = "resolute-land-474007-j8"
 }
 
 variable "credentials_file_path" {
