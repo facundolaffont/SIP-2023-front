@@ -1,21 +1,38 @@
 .final-condition-table-container {
-    padding: 20px;
+    padding: 0 20px 20px 20px;
     border-radius: 5px;
     background: linear-gradient(to bottom, #ffffff 0%,#f6f6f6 100%);
     margin-top: 20px;
     overflow-x: auto;
     color: black;
     width: 100%;
+
+    /* Cambios para hacer que la cabecera de las condiciones finales sea visible siempre */
+    max-height: 85vh;
+    overflow-y: auto; 
+    position: relative; 
+    display: block;
 }
 
 .final-condition-table-container h2 {
     color: black;
+    margin-top: 20px;
+    margin-bottom: 10px;
 }
 
 .final-condition-table {
     border-radius: 5px;
     border-collapse: collapse;
     margin-bottom: 2rem;
+}
+
+.final-condition-table thead tr th {
+    position: sticky;
+    top: -1px;
+    z-index: 100; 
+    background-color: #f2f2f2;
+    border-bottom: none;
+    box-shadow: 0 1px 0 #ccc;
 }
 
 .final-condition-table td, .final-condition-table th {

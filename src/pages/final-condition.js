@@ -1,7 +1,7 @@
 // Imports externos.
 import axios from "axios";
 import { useAuth0 } from "@auth0/auth0-react";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useHistory } from 'react-router-dom';
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPencilAlt } from "@fortawesome/free-solid-svg-icons";
@@ -31,6 +31,9 @@ export const FinalCondition = () => {
     const [infoText, setInfoText] = useState("");
     const [isCalculating, setIsCalculating] = useState(false);
     const [spreadsheetManipulator, setSpreadsheetManipulator] = useState(null);
+
+    // Estado del tipo de ordenamiento: 'ascending', 'descending', o null
+    const [sortDirection, setSortDirection] = useState(null);   
 
     /** @type {CourseDTO} */ const course = useSelectedCourse(false);
     const history = useHistory();
@@ -266,6 +269,43 @@ export const FinalCondition = () => {
         }
     };
 
+
+    // AGREGO LÓGICA DE ORDENAMIENTO (POR NOMBRE)
+    /**
+     * Función para cambiar el estado al hacer clic en el encabezado
+     */
+    const toggleSortNombre = () => {
+        if (sortDirection === 'ascending') {
+            setSortDirection('descending');
+        } else if (sortDirection === 'descending') {
+            setSortDirection(null); // Volver al orden original (por Legajo, como viene del back)
+        } else {
+            setSortDirection('ascending');
+        }
+    };
+
+    /**
+     * Hacemos una copia de sortedConditions y ordenamos si hace falta
+     */
+    // (Esto se ejecuta cada vez que el componente se dibuja)
+    // No modifico directamente porque pierdo el orden original por legajo.
+    let dataToDisplay = [...sortedConditions];
+
+    if (sortDirection !== null) {
+        dataToDisplay.sort((a, b) => {
+            const aValue = a.Nombre.toLowerCase();
+            const bValue = b.Nombre.toLowerCase();
+
+            if (aValue < bValue) {
+                return sortDirection === 'ascending' ? -1 : 1;
+            }
+            if (aValue > bValue) {
+                return sortDirection === 'ascending' ? 1 : -1;
+            }
+            return 0;
+        });
+    }
+
     /**
      * Maneja el evento clic en el botón de exportar.
      */
@@ -329,48 +369,101 @@ export const FinalCondition = () => {
                     <table id="final-condition-table" className="final-condition-table">
                         <thead>
                             <tr>
-                                <th>Nombre</th>
+                                <th 
+                                    onClick={toggleSortNombre}
+                                    style={{cursor: 'pointer', userSelect: 'none'}}
+                                    title="Ordenar por nombre"
+                                >Nombre {sortDirection === 'ascending' ? '▲' : (sortDirection === 'descending' ? '▼' : '')}
+                                </th>
                                 <th>Legajo</th>
+                                <th>Email</th>
                                 <th>Correlativas</th>
-                                {criteriosFiltrados.map((criteria, index) => (
+
+                                {criteriosFiltrados.map((criteria, index) => {
+                                    // Usamos el primer alumno para ver qué columnas hay que agregar para este criterio
+                                    const primerAlumno = sortedConditions[0];
+                                    const detalle = primerAlumno?.Detalle.find(d => d.Criterio === criteria.criteria.name);
+                                    
+                                    // Obtenemos las claves (ej: "Nota TP1 - FODA") si existen
+                                    const notasKeys = detalle?.DetalleNotas ? Object.keys(detalle.DetalleNotas) : [];
+                                    
+                                    return (
+                                        <React.Fragment key={index}>
+                                            {/* A. Columnas de Notas Individuales*/}
+                                            {notasKeys.map((keyNota) => (
+                                                <th key={keyNota}>
+                                                    {keyNota}
+                                                </th>
+                                            ))}
+                                            {/* B. Columna de la Condición General */}
                                     <th>{criteria.criteria.name}</th>
-                                ))}
+                                        </React.Fragment>
+                                    );
+                                })}
+
                                 {esCondicionFinal ? <th>Condición Final</th> : <th>Condición de Cursada</th>}
                                 {esCondicionFinal && <th>Observaciones</th>}
                             </tr>
                         </thead>
                         <tbody>
-                            {sortedConditions.map((student, index) => (
+                            {dataToDisplay.map((student, index) => (
                                 <tr key={index}>
                                     <td>{student.Nombre}</td>
                                     <td>{student.Legajo}</td>
+                                    <td>{student.Email}</td>  
                                     <td>{student.Correlativas ? 'P' : ''}</td>
 
                                     {criteriosFiltrados.map((criteria, criteriaIndex) => {
-                                        const conditionObj = student.Detalle.find(
-                                            (item) => item.Criterio === criteria.criteria.name
-                                        );
-                                        const condition = conditionObj ? conditionObj.Condición : "N/A";
 
-                                        let cellClassName = "normal-cell"; // Clase por defecto
+                                        // 1. Buscamos el detalle del alumno actual
+                                        const detalleObj = student.Detalle.find(d => d.Criterio === criteria.criteria.name);
+                                        
+                                        // 2. Obtenemos las mismas claves de notas (para mantener el orden con el thead)
+                                        const notasKeys = detalleObj?.DetalleNotas ? Object.keys(detalleObj.DetalleNotas) : [];
 
-                                        if (condition === "L") {
-                                            cellClassName = "red-cell"; // Si el contenido es L, aplicamos la clase "red-cell"
-                                        } else if (condition === "R") {
-                                            cellClassName = "yellow-cell"; // Si el contenido es R, aplicamos la clase "yellow-cell"
-                                        } else if (condition === "P") {
-                                            cellClassName = "green-cell"; // Si el contenido es P, aplicamos la clase "green-cell"
-                                        } else if (condition === "N/A") {
-                                            cellClassName = "common-cell"
+                                        // 3. Estilo de la condición
+                                        const condition = detalleObj ? detalleObj.Condición : "N/A";
+                                        let cellClassName = "normal-cell";  // Clase por defecto
+                                        if (condition === "L") cellClassName = "red-cell"; // Si el contenido es L, aplicamos la clase "red-cell"
+                                        else if (condition === "R") cellClassName = "yellow-cell"; // Si el contenido es R, aplicamos la clase "yellow-cell"
+                                        else if (condition === "P") cellClassName = "green-cell";   // Si el contenido es P, aplicamos la clase "green-cell"
+                                        else if (condition === "N/A") cellClassName = "common-cell";
+
+                                        let textoMostrar = condition;
+
+                                        if (detalleObj) {
+                                            // Caso ASISTENCIAS:
+                                            if (detalleObj.PresenciasAlumno !== undefined && detalleObj !== undefined) {
+                                                textoMostrar = `${condition} (${detalleObj.PresenciasAlumno}/${detalleObj.CantidadEventos})`;
+                                            }
+                                            // Caso PROMEDIO PARCIALES:
+                                            else if (detalleObj.PromedioParciales !== undefined) {
+                                                textoMostrar = `${condition} (${detalleObj.PromedioParciales})`;
+                                            }
+                                            // Caso INTEGRADOR
+                                            else if (detalleObj.NotaIntegrador !== undefined) {
+                                                textoMostrar = `${condition} (${detalleObj.NotaIntegrador})`;
+                                            }
                                         }
 
                                         return (
-                                            <td key={criteriaIndex} className={cellClassName}>
-                                            {condition}
-                                            <PopoverDetalleCriterio
-                                                detalle={student.Detalle.find((item) => item.Criterio === criteria.criteria.name)}
-                                            />
+                                            <React.Fragment key={criteriaIndex}>
+                                                
+                                                {/* A. Celdas de NOTAS INDIVIDUALES */}
+                                                {notasKeys.map((keyNota) => (
+                                                    <td key={keyNota}>
+                                                        {/* Accedemos al valor de la nota en el mapa */}
+                                                        {detalleObj.DetalleNotas[keyNota]}
+                                                    </td>
+                                                ))}
+
+                                                {/* B. Celda de CONDICIÓN (Con Popover) */}
+                                                <td className={cellClassName}>
+                                                    {textoMostrar}
+                                                    <PopoverDetalleCriterio detalle={detalleObj} />
                                             </td>
+
+                                            </React.Fragment>
                                         );
                                     })}
 
