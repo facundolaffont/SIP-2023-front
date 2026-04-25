@@ -12,6 +12,7 @@ export const NavBarTabs = () => {
     const [showUsersManagementDropdown, setShowUsersManagementDropdown] = useState(false);
     const [showTeachersManagementDropdown, setShowTeachersManagementDropdown] = useState(false);
     const [showCalificationCriterionsDropdown, setShowCalificationCriterionsDropdown] = useState(false);
+    const [showCourseManagementDropdown, setShowCourseManagementDropdown] = useState(false);
     const [dropdownTopStyle, setDropdownTopStyle] = useState(0);
 
     // Determina el rol del usuario.
@@ -209,6 +210,23 @@ export const NavBarTabs = () => {
                                     <NavBarTab path="/create-user" label="Alta de usuario" />
                                     <NavBarTab path="/down-user" label="Baja de usuario" />
                                     <NavBarTab path="/assign-role" label="Asignar rol" />
+                                </div>
+                            )}
+                        </div>
+                    )}
+                    
+                    {/* Rutas en común para administradores y súper administradores */}
+                    {(isSuperAdmin || isAdmin) && (
+                        <div
+                            className="nav-bar__tab"
+                            onMouseEnter={(event) => handleMouseEnter(event, setShowCourseManagementDropdown)}
+                            onMouseLeave={(event) => handleMouseLeave(event, setShowCourseManagementDropdown)}
+                        >
+                            <span>Gestión de cursadas</span>
+                            {showCourseManagementDropdown && (
+                                <div className="dropdown" style={{ top: dropdownTopStyle }}>
+                                    <NavBarTab path="/create-course" label="Alta de cursada" />
+                                    <NavBarTab path="/list-courses" label="Listar cursadas" />
                                 </div>
                             )}
                         </div>

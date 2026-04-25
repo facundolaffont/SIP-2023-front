@@ -15,6 +15,7 @@ import { HomePageAdmin } from "./pages/home-page-admin";
 import { HomePageSuperAdmin } from "./pages/home-page-super-admin";
 import { CreateProfessor } from "./pages/create-professor";
 import { CreateUser } from "./pages/create-user";
+import { CreateCourse } from "./pages/create-course";
 import { SearchProfessor } from "./pages/search-professor";
 import { SearchUser } from "./pages/search-user";
 import { ChangePasswordForm } from "./pages/change-password";
@@ -28,9 +29,11 @@ import { StudentRegistering } from "./pages/register-students";
 import { FinalCondition } from "./pages/final-condition";
 import { CreateCriterion } from "./pages/create-criterion";
 import { ModificateCriterion } from "./pages/modificate-criterion";
+import { ModificateCourse } from "./pages/modificate-course";
 import { EventsBulkRegistering } from "./pages/register-events-bulk";
 import { SearchStudent } from "./pages/search-student";
 import { SearchEvent } from "./pages/search-event";
+import { ListCourses } from "./pages/list-courses";
 import { ListCourseStudents } from "./pages/list-course-students";
 import { ListCourseEvents } from "./pages/list-course-events";
 import { ShowEventsSummary } from "./pages/show-events-summary";
@@ -124,6 +127,11 @@ export const App = () => {
                 {isSuperAdmin && <ProtectedRoute path="/assign-role" component={AssignRole} />}
                 {isSuperAdmin && <ProtectedRoute path="/search-user" component={SearchUser} />}
                 {isSuperAdmin && <ProtectedRoute path="/down-user" component={DownUser} />}
+
+                {/* Rutas en común para administradores y súper administradores*/}
+                {(isSuperAdmin || isAdmin) && <ProtectedRoute path="/create-course" component={CreateCourse} />}
+                {(isSuperAdmin || isAdmin) && <ProtectedRoute path="/list-courses" component={ListCourses} />}
+                {(isSuperAdmin || isAdmin) && <ProtectedRoute path="/modificate-course/:id" component={ModificateCourse} />}
 
                 {/* Dirección para el resto de las rutas. */}
                 <Route path="*" component={NotFoundPage} />
