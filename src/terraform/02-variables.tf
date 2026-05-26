@@ -10,7 +10,7 @@ variable "zone" {
 
 variable "project_id" {
   type    = string
-  default = "resolute-land-474007-j8"
+  default = "project-1468504d-445e-406d-838"
 }
 
 variable "LOADBALANCER_IP" {
