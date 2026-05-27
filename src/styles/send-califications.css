@@ -1,0 +1,98 @@
+/* ============================================================
+   send-califications.css
+   Estilos mínimos para la página de Envío de Calificaciones
+   ============================================================ */
+
+.send-cal__loading {
+    color: #888;
+    font-style: italic;
+    padding: 1.5rem 0;
+}
+
+/* --- Alerta global de cobertura de email --- */
+.send-cal__email-alert {
+    padding: 0.85rem 1.1rem;
+    border-radius: 6px;
+    margin-bottom: 1.5rem;
+    border: 1px solid transparent;
+    line-height: 1.5;
+    font-size: 1.6rem;
+}
+
+.send-cal__email-alert--ok {
+    background-color: #eaffef;
+    border-color: #4caf50;
+    color: #2e7d32;
+}
+
+.send-cal__email-alert--warning {
+    background-color: #fff8e1;
+    border-color: #ffc107;
+    color: #6d4c00;
+}
+
+.send-cal__email-alert__sub {
+    display: block;
+    margin-top: 0.2rem;
+}
+
+/* --- Listado de eventos --- */
+.send-cal__no-events {
+    color: #888;
+    font-style: italic;
+    margin-top: 1rem;
+}
+
+.send-cal__events-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+/* --- Tarjeta de evento --- */
+.send-cal__event-card {
+    background-color: #f0f7ff; /* Fondo claro azulado */
+    border: 1px solid #d0e7ff;
+    border-radius: 8px;
+    padding: 1.5rem;
+    font-size: 1.6rem; /* Tamaño estándar 16px */
+}
+
+.send-cal__event-card__header {
+    margin-bottom: 1rem;
+}
+
+.send-cal__event-card__name {
+    font-weight: 600;
+    margin-right: 1.5rem;
+    font-size: 1.8rem; /* Un poco más grande para el título */
+    color: #1976d2; /* Azul visible */
+}
+
+.send-cal__event-card__date {
+    color: #555;
+}
+
+/* --- Estadísticas --- */
+.send-cal__stats {
+    display: flex;
+    gap: 2rem;
+    flex-wrap: wrap;
+    color: #333;
+    margin-bottom: 1rem;
+}
+
+.send-cal__stats p {
+    margin: 0;
+}
+
+/* --- Estados --- */
+.send-cal__status {
+    margin-top: 1rem;
+    font-weight: 500;
+}
+
+.send-cal__status--sending { color: #d97706; }
+.send-cal__status--sent    { color: #059669; }
+.send-cal__status--error   { color: #dc2626; }
+

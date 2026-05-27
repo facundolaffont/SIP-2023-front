@@ -124,6 +124,7 @@ export const App = () => {
                 {isProfessor && <ProtectedRoute path="/list-course-events" component={ListCourseEvents} />}
                 {isProfessor && <ProtectedRoute path="/show-events-summary" component={ShowEventsSummary} />}
                 {isProfessor && <ProtectedRoute path="/event-detail/:eventId" component={EventDetail} />}
+                {isProfessor && <ProtectedRoute path="/send-califications" component={SendCalifications} />}
 
                 {/* Rutas para administradores. */}
                 {isAdmin && <ProtectedRoute path="/profile" component={HomePageAdmin} />}

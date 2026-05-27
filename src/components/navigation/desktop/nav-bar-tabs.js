@@ -146,6 +146,10 @@ export const NavBarTabs = () => {
                                         path="/show-events-summary"
                                         label="Resumen de eventos"
                                     />
+                                    <NavBarTab
+                                        path="/send-califications"
+                                        label="Envío de calificaciones"
+                                    />
                                     {/*<NavBarTab
                                         path="/list-events-attendance"
                                         label="Listar asistencia"
