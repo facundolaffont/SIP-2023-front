@@ -30,6 +30,7 @@ import { FinalCondition } from "./pages/final-condition";
 import { CreateCriterion } from "./pages/create-criterion";
 import { ModificateCriterion } from "./pages/modificate-criterion";
 import { ModificateCourse } from "./pages/modificate-course";
+import { EventDetail } from "./pages/event-detail";
 import { EventsBulkRegistering } from "./pages/register-events-bulk";
 import { SearchStudent } from "./pages/search-student";
 import { SearchEvent } from "./pages/search-event";
@@ -120,6 +121,7 @@ export const App = () => {
                 {isProfessor && <ProtectedRoute path="/list-course-students" component={ListCourseStudents} />}
                 {isProfessor && <ProtectedRoute path="/list-course-events" component={ListCourseEvents} />}
                 {isProfessor && <ProtectedRoute path="/show-events-summary" component={ShowEventsSummary} />}
+                {isProfessor && <ProtectedRoute path="/event-detail/:eventId" component={EventDetail} />}
 
                 {/* Rutas para administradores. */}
                 {isAdmin && <ProtectedRoute path="/profile" component={HomePageAdmin} />}

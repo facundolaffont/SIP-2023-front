@@ -31,7 +31,7 @@ export const FinalCondition = () => {
     const [infoText, setInfoText] = useState("");
     const [isCalculating, setIsCalculating] = useState(false);
     const [spreadsheetManipulator, setSpreadsheetManipulator] = useState(null);
-
+    
     // Estado del tipo de ordenamiento: 'ascending', 'descending', o null
     const [sortDirection, setSortDirection] = useState(null);   
 
@@ -160,6 +160,60 @@ export const FinalCondition = () => {
             ...prevState,
             [legajo]: value
         }));
+    };
+
+    // --- FUNCIONES PARA ORDENAR CRITERIOS ---
+    const handleMoveUp = (index) => {
+        if (index === 0) return; 
+        
+        const newCriterias = [...criterias];
+        const temp = newCriterias[index - 1];
+        newCriterias[index - 1] = newCriterias[index];
+        newCriterias[index] = temp;
+        
+        setCriterias(newCriterias);
+    };
+
+    const handleMoveDown = (index) => {
+        if (index === criterias.length - 1) return; 
+        
+        const newCriterias = [...criterias];
+        const temp = newCriterias[index + 1];
+        newCriterias[index + 1] = newCriterias[index];
+        newCriterias[index] = temp;
+        
+        setCriterias(newCriterias);
+    };
+
+    const handleSaveOrder = async () => {
+        try {
+            const auth0Token = await getAccessTokenSilently();
+            
+            // Armamos el array con el ID de la base de datos y su nueva posición (índice)
+            const orderPayload = criterias.map((c, index) => ({
+                id: c.id, 
+                orden: index
+            }));
+
+            const response = await fetch(`${process.env.REACT_APP_API_SERVER_URL}/api/v1/criterion-course/update-order`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${auth0Token}`,
+                },
+                body: JSON.stringify(orderPayload),
+            });
+
+            if (!response.ok) {
+                throw new Error("Error al guardar el orden");
+            }
+            
+            alert("¡Orden de criterios guardado con éxito!");
+
+        } catch (error) {
+            console.error("Error al guardar orden:", error);
+            alert("Hubo un error al guardar el orden.");
+        }
     };
 
     const handleObservationChange = (legajo, value) => {
@@ -325,6 +379,7 @@ export const FinalCondition = () => {
                 <table className="criteria-table">
                     <thead>
                         <tr>
+                            <th>Orden</th> {/* NUEVA COLUMNA */}
                             <th>Criterio</th>
                             <th>Valor para regular</th>
                             <th>Valor para promover</th>
@@ -332,7 +387,28 @@ export const FinalCondition = () => {
                     </thead>
                     <tbody>
                         {criterias.map((criteria, index) => (
-                            <tr key={index}>
+                            <tr key={criteria.id || index}>
+
+                                {/* CELDA DE LAS FLECHAS */}
+                                <td>
+                                    <button 
+                                        type="button" 
+                                        onClick={() => handleMoveUp(index)}
+                                        disabled={index === 0}
+                                        title="Mover arriba"
+                                    >
+                                        ⬆️
+                                    </button>
+                                    <button 
+                                        type="button" 
+                                        onClick={() => handleMoveDown(index)}
+                                        disabled={index === criterias.length - 1}
+                                        title="Mover abajo"
+                                    >
+                                        ⬇️
+                                    </button>
+                                </td>
+                                
                                 <td>{criteria.criteria.name}</td>
                                 <td>
                                     {criteria.criteria.name !== 'Promedio de parciales' && criteria.criteria.name !== 'Integrador aprobado'
@@ -348,6 +424,15 @@ export const FinalCondition = () => {
                         ))}
                     </tbody>
                 </table>
+                <div className="correlatives-info-box">
+                    <p>
+                        ℹ️ <strong>Importante:</strong> La verificación de materias <strong>correlativas</strong> se realiza automáticamente por el sistema, no es necesario crear un criterio.
+                    </p>
+                </div>
+                {/* BOTÓN PARA GUARDAR EL ORDEN EN LA BD */}
+                <button type="button" onClick={handleSaveOrder}>
+                    Guardar Orden de Criterios
+                </button>
                 <button type="button" onClick={() => handleCalculate(false)}>
                     Calcular condición de cursada
                 </button>
@@ -396,7 +481,7 @@ export const FinalCondition = () => {
                                                 </th>
                                             ))}
                                             {/* B. Columna de la Condición General */}
-                                    <th>{criteria.criteria.name}</th>
+                                            <th>{criteria.criteria.name}</th>
                                         </React.Fragment>
                                     );
                                 })}
@@ -461,7 +546,7 @@ export const FinalCondition = () => {
                                                 <td className={cellClassName}>
                                                     {textoMostrar}
                                                     <PopoverDetalleCriterio detalle={detalleObj} />
-                                            </td>
+                                                </td>
 
                                             </React.Fragment>
                                         );

@@ -138,10 +138,27 @@ export const ListCourseEvents = () => {
             
             // #endregion ==== Obtiene los valores de las celdas y habilita su edición. ====
 
+            const formatForDatetimeLocal = (isoString) => {
+                if (!isoString) return '';
+                const date = new Date(isoString);
+                const year = date.getFullYear();
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const day = String(date.getDate()).padStart(2, '0');
+                const hours = String(date.getHours()).padStart(2, '0');
+                const minutes = String(date.getMinutes()).padStart(2, '0');
+                return `${year}-${month}-${day}T${hours}:${minutes}`;
+            }; 
+
+            const originalEvent = eventsList.find(e => e.eventId.toString() === eventIdContent.trim());
+
             // Crea un elemento interactuable que permite seleccionar la fecha de inicio
             // desde un calendario.
             const initialDateTimeInput = document.createElement('input');
             initialDateTimeInput.type = 'datetime-local';
+            // NUEVO: Le asignamos el valor que tenía antes
+            if (originalEvent && originalEvent.rawInitialDateTime) {
+                initialDateTimeInput.value = formatForDatetimeLocal(originalEvent.rawInitialDateTime);
+            }
             initialDatetimeTdElement.innerHTML = '';
             initialDatetimeTdElement.appendChild(initialDateTimeInput);
 
@@ -149,6 +166,10 @@ export const ListCourseEvents = () => {
             // desde un calendario.
             const endDateTimeInput = document.createElement('input');
             endDateTimeInput.type = 'datetime-local';
+            // NUEVO: Le asignamos el valor que tenía antes
+            if (originalEvent && originalEvent.rawEndDateTime) {
+                endDateTimeInput.value = formatForDatetimeLocal(originalEvent.rawEndDateTime);
+            }
             endDatetimeTdElement.innerHTML = '';
             endDatetimeTdElement.appendChild(endDateTimeInput);
 
@@ -242,6 +263,12 @@ export const ListCourseEvents = () => {
                         button.disabled = false;
                     });
         
+                    // Crea y configura el botón de detalle.
+                    const detailButton = document.createElement('button');
+                    detailButton.textContent = '🔍';
+                    detailButton.className = 'detail-button';
+                    detailButton.addEventListener('click', handleDetailButtonClick);
+
                     // Crea y configura el botón de modificación.
                     const modifyButton = document.createElement('button');
                     modifyButton.textContent = 'Modificar';
@@ -253,8 +280,9 @@ export const ListCourseEvents = () => {
                     deleteButton.textContent = 'Eliminar';
                     deleteButton.className = 'delete-button';
                     deleteButton.addEventListener('click', handleDeleteButtonClick);
-        
+
                     // Agrega los botones.
+                    actionsCell.appendChild(detailButton);
                     actionsCell.appendChild(modifyButton);
                     actionsCell.appendChild(deleteButton);
                     
@@ -298,7 +326,14 @@ export const ListCourseEvents = () => {
                     button.classList.remove('disabled');
                     button.disabled = false;
                 });
-    
+                
+                // Crea y configura el botón de detalle.
+                const detailButton = document.createElement('button');
+                detailButton.textContent = '🔍';
+                detailButton.className = 'detail-button';
+                detailButton.addEventListener('click', handleDetailButtonClick);
+                actionsCell.appendChild(detailButton);
+
                 // Crea y configura el botón de modificación.
                 const modifyButton = document.createElement('button');
                 modifyButton.textContent = 'Modificar';
@@ -353,7 +388,7 @@ export const ListCourseEvents = () => {
             });
         };
 
-    }, [eventsList]);
+    }, [eventsList]);   
 
     // Agrega manejador para el evento clic del botón "Eliminar".
     useEffect(() => {
@@ -381,6 +416,20 @@ export const ListCourseEvents = () => {
             });
         };
 
+    }, [eventsList]);
+    
+    // Agrega manejador para el evento clic del botón "Buscar" (lupa)
+    useEffect(() => {
+        let eventsTable = document.getElementsByClassName("events-table")[0];
+        eventsTable.querySelectorAll('.detail-button').forEach(button => {
+            button.addEventListener('click', handleDetailButtonClick);
+        });
+
+        return () => {
+            eventsTable.querySelectorAll('.detail-button').forEach(button => {
+                button.removeEventListener('click', handleDetailButtonClick);
+            });
+        };
     }, [eventsList]);
     
     // Obtiene los eventos de la cursada seleccionada.
@@ -428,9 +477,15 @@ export const ListCourseEvents = () => {
                                 ? (
                                     getHumanFormattedDateAndTime(event.endDateTime)
                                 ) : '-',
+
+                            // NUEVO: Guardamos la fecha original para usarla al editar
+                            rawInitialDateTime: event.initialDateTime, 
+                            rawEndDateTime: event.endDateTime,
+
                             mandatory: event.mandatory,
                             actions: (
                                 <div className="actions-container">
+                                    <button className="detail-button">🔍</button>
                                     <button className="edit-button">Modificar</button>
                                     <button className="delete-button">Eliminar</button>
                                 </div>
@@ -509,6 +564,18 @@ export const ListCourseEvents = () => {
     };
 
     /**
+     * Maneja el evento clic del botón de detalle (lupa).
+     * 
+     * @param {*} eventId ID del evento a ver detalle
+     */
+    const handleDetailButtonClick = (event) => {
+        const row = event.target.closest('tr');
+        const cells = row.querySelectorAll('td');
+        const eventId = cells[0].textContent;
+        history.push(`/event-detail/${eventId}`);
+    };
+
+    /**
      * Maneja el evento clic en el botón de eliminar.
      * 
      * @param {*} eventId ID del evento a eliminar. 
@@ -534,7 +601,7 @@ export const ListCourseEvents = () => {
                     
                     // Si la respuesta es exitosa, actualiza la lista de eventos.
                     if (data.success) {
-                        setEventsList(eventsList.filter(event => event.eventId !== eventId));
+                        setEventsList(eventsList.filter(event => event.eventId !== Number(eventId)));
                     }
 
                 } else {
