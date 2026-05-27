@@ -530,7 +530,7 @@ export function AttendanceRegistering() {
             // Envía el ID del evento junto a la lista de legajos para ser verificados.
             const studentsCheckedInfo = await axios
                 .post(
-                    `${process.env.REACT_APP_API_SERVER_URL}/api/v1/course/check-dossiers-in-event`,
+                    `${process.env.REACT_APP_API_SERVER_URL}/api/v1/course/check-attendance-dossiers-in-event`,
                     {
                         eventId: eventId,
                         dossiersList: validDossiersArray,

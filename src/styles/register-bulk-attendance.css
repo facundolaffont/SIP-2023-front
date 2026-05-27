@@ -1,0 +1,26 @@
+.bulk-attendance-table {
+    width: 100%;
+    margin: 2rem auto;
+}
+
+.bulk-attendance-table td {
+    text-align: center;
+    font-size: 16px;
+}
+
+form button {
+    display: inline;
+}
+
+.register-button {
+    margin-top: 2rem;
+}
+
+.disabled {
+    cursor: default;
+    opacity: 0.5;
+}
+
+input[type="date"] {
+    display: block;
+}

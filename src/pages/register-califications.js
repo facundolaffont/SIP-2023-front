@@ -33,13 +33,17 @@ export function CalificationRegistering() {
     const [okStudentsList, setOkStudentsList] = useState([]);
     const [notOkStudentsList, setNotOkStudentsList] = useState([]);
     const [invalidRegistersList, setInvalidRegistersList] = useState([]);
+    const [duplicatedStudentsList, setDuplicatedStudentsList] = useState([]);
+    const [allOverwritesChecked, setAllOverwritesChecked] = useState(false);
 
     const [tableManualUpdateTrigger, setTableManualUpdateTrigger] = useState(true);
 
     const [error, setError] = useState(null);
+    // Estado del envío de email: 'idle' | 'sending' | 'sent' | 'error'
+    const [emailSendState, setEmailSendState] = useState('idle');
 
     const { getAccessTokenSilently } = useAuth0();
-    
+
     /** @type {CourseDTO} */ const course = useSelectedCourse(false);
     const history = useHistory();
 
@@ -52,39 +56,22 @@ export function CalificationRegistering() {
 
     }, []);
 
-    // Actualiza el estado del botón de registración.
-    useEffect(() => { 
 
-        // Obtiene el manejador del botón de registración.
-        const registerButton = document.getElementsByClassName("register-button")[0];
 
-        // Habilita el botón de registración.
-        if (registerButtonEnabled) {
-            registerButton.disabled = false;
-            registerButton.classList.remove("disabled");
-        
-        // Inhabilita el botón de registración.
-        } else {
-            registerButton.disabled = true;
-            registerButton.classList.add("disabled");
-        }
-
-    }, [registerButtonEnabled]);
-    
     // Obtiene la lista de eventos de evaluación de la cursada.
     useEffect(() => {
 
         // Evita que el primer render arroje una excepción porque course es null.
         if (!course) return;
-        
+
         const getEventsList = async () => {
 
             // Obtiene el token Auth0.
             const auth0Token = await getAccessTokenSilently()
-            .then(response => response)
-            .catch(error => {
-                throw error;
-            });
+                .then(response => response)
+                .catch(error => {
+                    throw error;
+                });
 
             // Obtiene los eventos de evaluación de la cursada.
             const eventsList = await axios.get(
@@ -100,9 +87,9 @@ export function CalificationRegistering() {
             )
                 .then(okReponse => okReponse)
                 .catch(error => error.response);
-            
+
             if (eventsList.status !== 200) {
-                
+
                 // Guarda el mensaje de error traído del back al usuario, y
                 // en el próximo renderizado se mostrará el mensaje.
                 setError("Hubo un error. Por favor, contactarse con Soporte Técnico.");
@@ -149,7 +136,7 @@ export function CalificationRegistering() {
                                     year: '2-digit',
                                 }
                             ).format(new Date(eventElement.initialDateTime));
-                        const initialTime = 
+                        const initialTime =
                             Intl.DateTimeFormat(
                                 'es-AR',
                                 {
@@ -167,7 +154,7 @@ export function CalificationRegistering() {
                                     year: '2-digit',
                                 }
                             ).format(new Date(eventElement.endDateTime));
-                        const endTime = 
+                        const endTime =
                             Intl.DateTimeFormat(
                                 'es-AR',
                                 {
@@ -177,17 +164,17 @@ export function CalificationRegistering() {
                             ).format(new Date(eventElement.endDateTime));
                         dateTimeString =
                             initialDate.valueOf() === endDate.valueOf()
-                            ? `: ${initialDate} de ${initialTime} a ${endTime}`
-                            : `: ${initialDate} ${initialTime} - ${endDate} ${endTime}`;
+                                ? `: ${initialDate} de ${initialTime} a ${endTime}`
+                                : `: ${initialDate} ${initialTime} - ${endDate} ${endTime}`;
                     }
 
-                    const eventDescription = 
+                    const eventDescription =
                         `${eventElement.type}${nameString}${dateTimeString}`;
 
                     listElement.innerHTML = eventDescription;
                     listElement.value = eventElement.eventId;
                     eventsSelect.appendChild(listElement);
-                    
+
                 });
 
             }
@@ -213,6 +200,8 @@ export function CalificationRegistering() {
             setOkStudentsList([]);
             setNotOkStudentsList([]);
             setInvalidRegistersList([]);
+            setDuplicatedStudentsList([]);
+            setAllOverwritesChecked(false);
 
             // Obtiene el elemento HTML que contendrá el texto del mensaje.
             const errorMsgTextContainer = document.getElementsByClassName("info-msg-description")[0];
@@ -287,7 +276,7 @@ export function CalificationRegistering() {
             "ok-students-table-container"
         )[0];
         if (okStudentsList.length !== 0) {
-            
+
             // Obtiene el manejador de la tabla.
             let okStudentsTable = document.getElementsByClassName(
                 "ok-students-table"
@@ -369,7 +358,7 @@ export function CalificationRegistering() {
      * Carga los nombres de pestaña para que sean seleccionados.
      */
     const loadSheetNames = () => {
-        
+
         // Obtiene la lista de nombres.
         let sheetNamesList = spreadsheetManipulator.getSheetNamesList();
 
@@ -401,12 +390,14 @@ export function CalificationRegistering() {
         const file = event.target.files[0];
         setFileName(file.name);
         setFileHandle(file);
-        
+
         // Limpia la pantalla.
         setError(null);
         setOkStudentsList([]);
         setNotOkStudentsList([]);
         setInvalidRegistersList([]);
+        setDuplicatedStudentsList([]);
+        setAllOverwritesChecked(false);
 
         // Carga el archivo Excel.
         spreadsheetManipulator.loadFile(file, loadSheetNames);
@@ -460,17 +451,17 @@ export function CalificationRegistering() {
 
             setError("Debe seleccionar un nombre de pestaña.");
 
-        // Notifica al usuario si el rango no fue ingresado.
+            // Notifica al usuario si el rango no fue ingresado.
         } else if (cellRangeName === "") {
 
             setError("El campo 'Rango de celdas a cargar' no puede estar vacío.");
 
-        // Notifica al usuario si el rango fue ingresado con un mal formato.
+            // Notifica al usuario si el rango fue ingresado con un mal formato.
         } else if (!cellRangeName.match("[A-Z]+[0-9]+:[A-Z]+[0-9]+")) {
 
             setError("El campo 'Rango de celdas a cargar' no tiene un formato válido; debe ser '&lt;letras&gt;&lt;números&gt;:&lt;letras&gt;&lt;números&gt;'.");
 
-        // Notifica al usuario si no se seleccionó un evento.
+            // Notifica al usuario si no se seleccionó un evento.
         } else if (eventId === 0) {
 
             setError("El campo 'Evento' no contiene un evento seleccionado.");
@@ -546,7 +537,7 @@ export function CalificationRegistering() {
             // Envía el ID del evento junto a la lista de legajos para ser verificados.
             const studentsCheckedInfo = await axios
                 .post(
-                    `${process.env.REACT_APP_API_SERVER_URL}/api/v1/course/check-dossiers-in-event`,
+                    `${process.env.REACT_APP_API_SERVER_URL}/api/v1/course/check-califications-dossiers-in-event`,
                     {
                         eventId: eventId,
                         dossiersList: validDossiersArray,
@@ -561,7 +552,7 @@ export function CalificationRegistering() {
                 .catch(error => error.response);
 
             if (studentsCheckedInfo.status !== 200) {
-                
+
                 // Guarda el mensaje de error traído del back al usuario, y
                 // en el próximo renderizado se mostrará el mensaje.
                 setError("Hubo un error. Por favor, contactarse con Soporte Técnico.");
@@ -599,29 +590,35 @@ export function CalificationRegistering() {
                     )
                 );
 
-                if(studentsCheckedInfo.data.nok !== undefined) {
-                    setNotOkStudentsList(
-                        studentsCheckedInfo.data.nok.map(
-                            dossierInfo => {
+                if (studentsCheckedInfo.data.nok !== undefined) {
+                    let nokList = [];
+                    let duplicatedList = [];
+                    studentsCheckedInfo.data.nok.forEach(dossierInfo => {
+                        // Obtiene el registro de readRange que tiene mismo legajo.
+                        let studentLoadedData = readRange.data.find(
+                            register => register.dossier == dossierInfo.dossier
+                        );
 
-                                // Obtiene el registro de readRange que tiene mismo legajo.
-                                let studentLoadedData = readRange.data.find(
-                                    register => register.dossier == dossierInfo.dossier
-                                );
-
-                                // Indica el objeto que va a formar parte del arreglo. 
-                                return {
-                                    _row: studentLoadedData._row,
-                                    dossier: dossierInfo.dossier,
-                                    errorDescription:
-                                        dossierInfo.errorCode == 3
-                                        ? "La calificación del legajo ya está registrada en el evento."
-                                        : dossierInfo.errorDescription,
-                                };
-
-                            }
-                        )
-                    )
+                        if (dossierInfo.errorCode === 3) {
+                            duplicatedList.push({
+                                _row: studentLoadedData._row,
+                                dossier: dossierInfo.dossier,
+                                oldCalification: dossierInfo.oldCalification,
+                                newCalification: String(studentLoadedData.calification).replace(',', '.'),
+                                overwrite: false,
+                                state: "Pendiente"
+                            });
+                        } else {
+                            nokList.push({
+                                _row: studentLoadedData._row,
+                                dossier: dossierInfo.dossier,
+                                errorDescription: dossierInfo.errorDescription,
+                            });
+                        }
+                    });
+                    setNotOkStudentsList(nokList);
+                    setDuplicatedStudentsList(duplicatedList);
+                    setAllOverwritesChecked(false);
                 }
 
             }
@@ -640,13 +637,15 @@ export function CalificationRegistering() {
         setRegisterButtonEnabled(false);
 
         // Prepara la lista de estudiantes para ser enviada.
-        const calificationRegistrationInfo = okStudentsList
-            .map(studentInfo => {
-                return {
-                    dossier: studentInfo.dossier,
-                    calification: String(studentInfo.calification).replace(',', '.')
-                }
-            });
+        const calificationRegistrationInfo = [
+            ...okStudentsList,
+            ...duplicatedStudentsList.filter(student => student.overwrite)
+        ].map(studentInfo => {
+            return {
+                dossier: studentInfo.dossier,
+                calification: String(studentInfo.calification || studentInfo.newCalification).replace(',', '.')
+            }
+        });
 
         // Obtiene el token Auth0.
         const auth0Token = await getAccessTokenSilently()
@@ -674,30 +673,40 @@ export function CalificationRegistering() {
 
         // Si la respuesta del backend no fue satisfactoria...
         if (response.status !== 200) {
-            
+
             // Guarda el mensaje de error traído del back al usuario y,
             // en el próximo renderizado, se mostrará el mensaje.
             setError("Hubo un error. Por favor, contactarse con Soporte Técnico.");
 
-        // Si la respuesta del backend fue satisfactoria...
+            // Si la respuesta del backend fue satisfactoria...
         } else {
-            
+
             // El front inserta un símbolo en la primera columna de cada registro para indicar
             // que se registró en el sistema. [usar okStudentsList y notOkStudentsList]
 
             // Actualiza la información de los estudiantes que se registraron correctamente.
+            let updatedDuplicated = [...duplicatedStudentsList];
             response.data.ok.forEach(registeredStudentDossier => {
                 let registeredStudent = okStudentsList
                     .find(student => student.dossier === registeredStudentDossier);
-                registeredStudent.state = "Registrado";
+                if (registeredStudent) {
+                    registeredStudent.state = "Registrado";
+                }
+
+                let duplicatedStudent = updatedDuplicated
+                    .find(student => student.dossier === registeredStudentDossier);
+                if (duplicatedStudent && duplicatedStudent.overwrite) {
+                    duplicatedStudent.state = `Sobrescrito (Anterior: ${duplicatedStudent.oldCalification} -> Actual: ${duplicatedStudent.newCalification})`;
+                }
             });
+            setDuplicatedStudentsList(updatedDuplicated);
 
             // Actualiza la información de los estudiantes que no se registraron correctamente.
             if (response.data.nok !== undefined) {
                 response.data.nok.forEach(notRegisteredStudentInfo => {
                     let notRegisteredStudent = okStudentsList
                         .find(student => student.dossier === notRegisteredStudentInfo.dossier);
-                    switch(notRegisteredStudentInfo.errorCode) {
+                    switch (notRegisteredStudentInfo.errorCode) {
                         case 1: notRegisteredStudent.state = "No registrado: el legajo no existe en sistema.";
                             break;
                         case 2: notRegisteredStudent.state = "No registrado: calificación ya registrada.";
@@ -714,12 +723,48 @@ export function CalificationRegistering() {
     }
 
     /**
+     * Envía las calificaciones por email para el evento seleccionado.
+     */
+    const handleSendEmail = async () => {
+        if (!selectedEvent) return;
+        setEmailSendState('sending');
+        try {
+            const auth0Token = await getAccessTokenSilently();
+            await axios.post(
+                `${process.env.REACT_APP_API_SERVER_URL}/api/v1/course/send-grades-email`,
+                null,
+                {
+                    params: { 'event-id': selectedEvent.eventId },
+                    headers: { Authorization: `Bearer ${auth0Token}` },
+                }
+            );
+            setEmailSendState('sent');
+        } catch (err) {
+            setEmailSendState('error');
+        }
+    };
+
+    const handleToggleAllOverwrites = (e) => {
+        const isChecked = e.target.checked;
+        setAllOverwritesChecked(isChecked);
+        setDuplicatedStudentsList(duplicatedStudentsList.map(s => ({ ...s, overwrite: isChecked })));
+    };
+
+    const handleToggleOverwrite = (dossier) => {
+        const newList = duplicatedStudentsList.map(s =>
+            s.dossier === dossier ? { ...s, overwrite: !s.overwrite } : s
+        );
+        setDuplicatedStudentsList(newList);
+        setAllOverwritesChecked(newList.length > 0 && newList.every(s => s.overwrite));
+    };
+
+    /**
      * Manejador del evento de cambio del campo de selección
      * de nombre de pestaña.
      */
     const handleSheetNameValueChange = event => {
 
-        if(event.target.value !== "SELECCIONAR PESTAÑA") 
+        if (event.target.value !== "SELECCIONAR PESTAÑA")
             setSheetNameValue(event.target.value);
         else setSheetNameValue("");
 
@@ -746,12 +791,12 @@ export function CalificationRegistering() {
             sheetContent,
             sheetComments
         );
-        
+
     }
 
     return (
         <PageLayout>
-            <h1 id="page-title" className="content__title">Registrar calificaciones</h1>
+            <h1 id="page-title" className="content__title">Registrar/Sobrescribir calificaciones</h1>
             <h2 className="selected-course-info">
                 {
                     course !== null && `Cursada seleccionada: (${course.getSubjectCode()}) ${course.getSubject()}, comisión ${course.getCommission()}, año ${course.getYear()}`
@@ -829,16 +874,81 @@ export function CalificationRegistering() {
             <div>
                 <table className="not-ok-students-table table-container not-displayed"></table>
             </div>
+            {duplicatedStudentsList.length > 0 && (
+                <div className="duplicated-students-table-container table-container">
+                    <table className="duplicated-students-table">
+                        <thead>
+                            <tr>
+                                <td colSpan="6">Registros duplicados ({duplicatedStudentsList.length})</td>
+                            </tr>
+                            <tr>
+                                <td><input type="checkbox" checked={allOverwritesChecked} onChange={handleToggleAllOverwrites} /> Sobrescribir</td>
+                                <td>Fila</td>
+                                <td>Legajo</td>
+                                <td>Nota anterior</td>
+                                <td>Nota nueva</td>
+                                <td>Estado</td>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {duplicatedStudentsList.map((student, index) => (
+                                <tr key={index} className={index % 2 !== 0 ? "even-row" : ""}>
+                                    <td><input type="checkbox" checked={student.overwrite} onChange={() => handleToggleOverwrite(student.dossier)} /></td>
+                                    <td>{student._row}</td>
+                                    <td>{student.dossier}</td>
+                                    <td>{student.oldCalification}</td>
+                                    <td>{student.newCalification}</td>
+                                    <td>{student.state}</td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+            )}
             <div className="ok-students-table-container table-container not-displayed">
                 <table className="ok-students-table"></table>
+            </div>
+            {(okStudentsList.length > 0 || duplicatedStudentsList.length > 0) && (
                 <button
                     type="button"
-                    className="register-button"
+                    className={"register-button" + (!registerButtonEnabled ? " disabled" : "")}
+                    disabled={!registerButtonEnabled}
                     onClick={handleRegistering}
                 >
-                    Registrar calificaciones
+                    Registrar/Sobrescribir calificaciones
                 </button>
-            </div>
+            )}
+
+            {/* Botón de envío de email: aparece una vez que se registraron las calificaciones */}
+            {!registerButtonEnabled && selectedEvent && (
+                <div style={{ marginTop: '1rem' }}>
+                    {emailSendState === 'idle' && (
+                        <button type="button" onClick={handleSendEmail}>
+                            Enviar calificaciones por email
+                        </button>
+                    )}
+                    {emailSendState === 'sending' && (
+                        <p className="send-email-status send-email-status--sending">
+                            Envío de calificaciones: Enviando correos en segundo plano...
+                        </p>
+                    )}
+                    {emailSendState === 'sent' && (
+                        <p className="send-email-status send-email-status--sent">
+                            Envío de calificaciones: El envío fue iniciado. Los alumnos recibirán su calificación en breve.
+                        </p>
+                    )}
+                    {emailSendState === 'error' && (
+                        <>
+                            <button type="button" onClick={handleSendEmail}>
+                                Reintentar envío
+                            </button>
+                            <p className="send-email-status send-email-status--error">
+                                Envío de calificaciones: Hubo un error. Intentá nuevamente.
+                            </p>
+                        </>
+                    )}
+                </div>
+            )}
 
         </PageLayout>
     );

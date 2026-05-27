@@ -24,3 +24,22 @@ form button {
 input[type="date"] {
     display: block;
 }
+
+/* --- Estado del envío de email post-registro --- */
+.send-email-status {
+    margin: 0;
+    font-size: 15px;
+}
+
+.send-email-status--sending {
+    color: #f57c00;
+}
+
+.send-email-status--sent {
+    color: #2e7d32;
+
+}
+
+.send-email-status--error {
+    color: #c62828;
+}

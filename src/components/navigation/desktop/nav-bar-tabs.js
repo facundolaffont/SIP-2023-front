@@ -93,13 +93,17 @@ export const NavBarTabs = () => {
                                         path="/register-attendance"
                                         label="Registrar asistencias"
                                     />
+                                    <NavBarTab
+                                        path="/register-bulk-attendance"
+                                        label="Registrar asistencias masivamente"
+                                    />
                                     {/*<NavBarTab
                                         path="/register-course-attendance"
                                         label="Registrar asistencias del curso"
                                     />*/}
                                     <NavBarTab
                                         path="/register-califications"
-                                        label="Registrar calificaciones"
+                                        label="Registrar/Sobrescribir calificaciones"
                                     />
                                 </div>
                             )}

@@ -23,6 +23,7 @@ import { DownProfessor } from "./pages/down-professor";
 import { DownUser } from "./pages/down-user";
 import { AssignRole } from "./pages/assign-role";
 import { AttendanceRegistering } from "./pages/register-attendance";
+import { BulkAttendanceRegistering } from "./pages/register-bulk-attendance";
 import { CourseAttendanceRegistering } from "./pages/register-course-attendance";
 import { CalificationRegistering } from "./pages/register-califications";
 import { StudentRegistering } from "./pages/register-students";
@@ -108,6 +109,7 @@ export const App = () => {
                 {/* Rutas para docentes. */}
                 {isProfessor && <ProtectedRoute path="/profile" component={HomePageProfessor} />}
                 {isProfessor && <ProtectedRoute path="/register-attendance" component={AttendanceRegistering} />}
+                {isProfessor && <ProtectedRoute path="/register-bulk-attendance" component={BulkAttendanceRegistering} />}
                 {isProfessor && <ProtectedRoute path="/register-course-attendance" component={CourseAttendanceRegistering} />}
                 {isProfessor && <ProtectedRoute path="/register-califications" component={CalificationRegistering} />}
                 {isProfessor && <ProtectedRoute path="/register-students" component={StudentRegistering} />}
