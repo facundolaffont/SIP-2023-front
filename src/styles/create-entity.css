@@ -1,0 +1,6 @@
+.validation-error-text {
+    color: #dc3545;
+    display: block;
+    margin-bottom: 15px;
+    font-weight: 500;
+}

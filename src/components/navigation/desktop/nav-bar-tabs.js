@@ -13,6 +13,8 @@ export const NavBarTabs = () => {
     const [showTeachersManagementDropdown, setShowTeachersManagementDropdown] = useState(false);
     const [showCalificationCriterionsDropdown, setShowCalificationCriterionsDropdown] = useState(false);
     const [showCourseManagementDropdown, setShowCourseManagementDropdown] = useState(false);
+    const [showComissionManagementDropdown, setShowComissionManagementDropdown] = useState(false);
+    const [showSubjectManagementDropdown, setShowSubjectManagementDropdown] = useState(false);
     const [dropdownTopStyle, setDropdownTopStyle] = useState(0);
 
     // Determina el rol del usuario.
@@ -188,9 +190,10 @@ export const NavBarTabs = () => {
                             <span>Gestión de docentes</span>
                             {showTeachersManagementDropdown && (
                                 <div className="dropdown" style={{ top: dropdownTopStyle }}>
-                                    <NavBarTab path="/search-professor" label="Buscar docente" />
+                                    {/*<NavBarTab path="/search-professor" label="Buscar docente" />*/}
                                     <NavBarTab path="/create-professor" label="Alta de docente" />
-                                    <NavBarTab path="/down-professor" label="Baja de docente" />
+                                    <NavBarTab path="/list-professors" label="Listar docentes" />
+                                    {/*<NavBarTab path="/down-professor" label="Baja de docente" />*/}
                                 </div>
                             )}
                         </div>
@@ -227,6 +230,38 @@ export const NavBarTabs = () => {
                                 <div className="dropdown" style={{ top: dropdownTopStyle }}>
                                     <NavBarTab path="/create-course" label="Alta de cursada" />
                                     <NavBarTab path="/list-courses" label="Listar cursadas" />
+                                </div>
+                            )}
+                        </div>
+                    )}
+
+                    {(isSuperAdmin || isAdmin) && (
+                        <div
+                            className="nav-bar__tab"
+                            onMouseEnter={(event) => handleMouseEnter(event, setShowComissionManagementDropdown)}
+                            onMouseLeave={(event) => handleMouseLeave(event, setShowComissionManagementDropdown)}
+                        >
+                            <span>Gestión de comisiones</span>
+                            {showComissionManagementDropdown && (
+                                <div className="dropdown" style={{ top: dropdownTopStyle }}>
+                                    <NavBarTab path="/create-commission" label="Alta de comisión" />
+                                    <NavBarTab path="/list-commissions" label="Listar comisiones" />
+                                </div>
+                            )}
+                        </div>
+                    )}
+
+                    {(isSuperAdmin || isAdmin) && (
+                        <div
+                            className="nav-bar__tab"
+                            onMouseEnter={(event) => handleMouseEnter(event, setShowSubjectManagementDropdown)}
+                            onMouseLeave={(event) => handleMouseLeave(event, setShowSubjectManagementDropdown)}
+                        >
+                            <span>Gestión de asignaturas</span>
+                            {showSubjectManagementDropdown && (
+                                <div className="dropdown" style={{ top: dropdownTopStyle }}>
+                                    <NavBarTab path="/create-subject" label="Alta de asignatura" />
+                                    <NavBarTab path="/list-subjects" label="Listar asignaturas" />
                                 </div>
                             )}
                         </div>

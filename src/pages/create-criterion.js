@@ -108,6 +108,12 @@ export function CreateCriterion() {
     
       <form onSubmit={handleSubmit}>
 
+      <div className="correlatives-info-box">
+        <p>
+          ℹ️ <strong>Importante:</strong> La verificación de materias <strong>correlativas</strong> se realiza automáticamente por el sistema, no es necesario crear un criterio.
+        </p>
+      </div>
+
       <label htmlFor="criterio">
         <p>Criterio de Evaluacion</p>
       </label>
@@ -122,7 +128,6 @@ export function CreateCriterion() {
           <option value="7">Autoevaluaciones recuperadas</option>
           <option value="1">Asistencias</option>
           <option value="5">Promedio de parciales</option>
-          <option value="9">Correlativas</option>
           <option value="10">Integrador</option>
         </select>
 

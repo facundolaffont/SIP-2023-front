@@ -38,6 +38,12 @@ import { ListCourseStudents } from "./pages/list-course-students";
 import { ListCourseEvents } from "./pages/list-course-events";
 import { ShowEventsSummary } from "./pages/show-events-summary";
 import { ShowAllEventsRegisters } from "./pages/show-all-events-registers";
+import { CreateCommission } from "./pages/create-commission";
+import { ListCommissions } from "./pages/list-commissions";
+import { CreateSubject } from "./pages/create-subject";
+import { ListSubjects } from "./pages/list-subjects";
+import { ListProfessors } from "./pages/list-professors";
+import { SendCalifications } from "./pages/send-califications";
 
 export const App = () => {
     const { isLoading, isAuthenticated, getIdTokenClaims } = useAuth0();
@@ -118,8 +124,9 @@ export const App = () => {
                 {/* Rutas para administradores. */}
                 {isAdmin && <ProtectedRoute path="/profile" component={HomePageAdmin} />}
                 {isAdmin && <ProtectedRoute path="/create-professor" component={CreateProfessor} />}
-                {isAdmin && <ProtectedRoute path="/search-professor" component={SearchProfessor} />}
-                {isAdmin && <ProtectedRoute path="/down-professor" component={DownProfessor} />}
+                {isAdmin && <ProtectedRoute path="/list-professors" component={ListProfessors} />}
+                {/*isAdmin && <ProtectedRoute path="/search-professor" component={SearchProfessor} />*/}
+                {/*isAdmin && <ProtectedRoute path="/down-professor" component={DownProfessor} />*/}
 
                 {/* Rutas para súper administradores. */}
                 {isSuperAdmin && <ProtectedRoute path="/profile" component={HomePageSuperAdmin} />}
@@ -132,6 +139,10 @@ export const App = () => {
                 {(isSuperAdmin || isAdmin) && <ProtectedRoute path="/create-course" component={CreateCourse} />}
                 {(isSuperAdmin || isAdmin) && <ProtectedRoute path="/list-courses" component={ListCourses} />}
                 {(isSuperAdmin || isAdmin) && <ProtectedRoute path="/modificate-course/:id" component={ModificateCourse} />}
+                {(isSuperAdmin || isAdmin) && <ProtectedRoute path="/create-commission" component={CreateCommission} />}
+                {(isSuperAdmin || isAdmin) && <ProtectedRoute path="/list-commissions" component={ListCommissions} />}
+                {(isSuperAdmin || isAdmin) && <ProtectedRoute path="/create-subject" component={CreateSubject} />}
+                {(isSuperAdmin || isAdmin) && <ProtectedRoute path="/list-subjects" component={ListSubjects} />}
 
                 {/* Dirección para el resto de las rutas. */}
                 <Route path="*" component={NotFoundPage} />

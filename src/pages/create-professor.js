@@ -1,306 +1,216 @@
 import { useState } from "react";
+import { useAuth0 } from "@auth0/auth0-react";
 import axios from "axios";
 import { PageLayout } from "../components/page-layout";
 
+// Mensajes por si se corta la red o el back está apagado.
+const FALLBACK_ERRORS = {
+  "NETWORK_ERROR": "No se pudo conectar con el servidor. Verifique su conexión a internet.",
+  "DEFAULT": "Hubo un problema inesperado."
+};
+
 export function CreateProfessor() {
+  // ESTADOS: Auth0
+  const { getAccessTokenSilently } = useAuth0();
+
+  // ESTADOS: Formulario
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [role, setRole] = useState("");
   const [nombre, setNombre] = useState("");
   const [apellido, setApellido] = useState("");
   const [legajo, setLegajo] = useState("");
+
+  // ESTADOS: UI
   const [error, setError] = useState(null);
   const [result, setResult] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  /*const getAccessToken = async () => {
-    const client_id = process.env.REACT_APP_AUTH0_CLIENT_ID;
-    const client_secret = process.env.REACT_APP_AUTH0_CLIENT_SECRET;
-    const audience = `https://${process.env.REACT_APP_AUTH0_DOMAIN}/api/v2/`;
+  // VALIDACIÓN DECLARATIVA DE CONTRASEÑA (React-way)
+  const isPasswordLongEnough = password.length >= 8;
+  const hasUppercase = /[A-Z]/.test(password);
+  const hasLowercase = /[a-z]/.test(password);
+  const hasDigit = /\d/.test(password);
+  const isPasswordValid = isPasswordLongEnough && hasUppercase && hasLowercase && hasDigit;
 
+  // HANDLER: Enviar formulario
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    setError(null);
+    setResult("");
+
+    // Validamos antes de enviar
+    if (!isPasswordValid) {
+      setError({ message: "La contraseña no cumple con los requisitos mínimos." });
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    // Armamos el payload (asegurando que legajo sea numérico como indica la BD)
     const data = {
-      client_id: client_id,
-      client_secret: client_secret,
-      audience: audience,
-      grant_type: "client_credentials",
+      email: email,
+      password: password,
+      rol: "docente",
+      nombre: nombre,
+      apellido: apellido,
+      legajo: Number(legajo),
     };
 
     try {
+      // Obtener token Auth0
+      const auth0Token = await getAccessTokenSilently();
+
+      // Ejecutar POST
       const response = await axios.post(
-        `https://${process.env.REACT_APP_AUTH0_DOMAIN}/oauth/token`,
+        `${process.env.REACT_APP_API_SERVER_URL}/api/v1/users/add-professor`,
         data,
         {
           headers: {
-            "content-type": "application/json",
-          },
+            "Host": "back-service.default.svc.cluster.local",
+            Authorization: `Bearer ${auth0Token}`,
+          }
         }
       );
 
-      const token = response.data.access_token;
-      return token;
+      // Si se llega acá, fue exitosa el alta
+      setResult("Docente " + response.data.nombre + " " + response.data.apellido + " creado exitosamente.");
+
+      // Limpiar formulario tras el éxito
+      setEmail("");
+      setPassword("");
+      setNombre("");
+      setApellido("");
+      setLegajo("");
+
     } catch (error) {
-      console.Error("Error al obtener el token", error);
-      throw error;
-    }
-  };
+      console.error(error);
+      setResult("");
 
-  /*async function createUser() {
-    // Obtengo Token de Acceso
-    const token = await getAccessToken();
-
-    // Construye el cuerpo del POST.
-    const user = {
-      email: email,
-      password: password,
-      connection: "Username-Password-Authentication",
-    };
-
-    // Guarda el método, los headers y el cuerpo.
-    const options = {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify(user),
-    };
-
-    // Registra la URL del endpoint.
-    let url = `https://${process.env.REACT_APP_AUTH0_DOMAIN}/api/v2/users`;
-
-    //  Envía la petición y espera hasta obtener la respuesta.
-    const response = await fetch(url, options);
-    const data = await response.json();
-
-    if (data.error) setError(data);
-    else {
-      setResult("Usuario creado exitosamente.");
-    }
-
-    // Obtengo el user_id del usuario creado
-    const USER_ID = data.user_id;
-
-    // Obtengo el id del rol
-    const urlRol = `https://${process.env.REACT_APP_AUTH0_DOMAIN}/api/v2/roles`;
-    const roleName = role;
-    const optionsRol = {
-      method: "GET",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    };
-    fetch(urlRol, optionsRol)
-      .then((response) => {
-        if (response.ok) return response.json();
-        else throw new Error("Error al obtener la lista de roles");
-      })
-      .then((data) => {
-        const rol = data.find((rol) => rol.name === roleName);
-        if (rol) console.log(`El ID del rol ${roleName} es: ${rol.id}`);
-        else console.log(`El rol ${roleName} no existe en tu tenant de Auth0`);
-
-        // Asigno rol al usuario
-        const url = `https://${process.env.REACT_APP_AUTH0_DOMAIN}/api/v2/roles/${rol.id}/users`;
-
-        const idUsuario = {
-          users: [USER_ID],
-        };
-
-        const options = {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify(idUsuario),
-        };
-
-        fetch(url, options)
-          .then((data) => {
-            console.log("Roles agregados al usuario:", data);
-          })
-          .catch((error) => {
-            console.error("Error:", error);
-          });
-      })
-      .catch((error) => {
-        console.error("Error:", error);
-      });
-  }*/
-
-  const handleSubmit = async (event) => {
-    event.preventDefault();
-    //createUser();
-    //const token = await getAccessToken();
-    const data = {
-      email: email,
-      password: password,
-      rol: "Docente",
-      nombre: nombre,
-      apellido: apellido,
-      legajo: legajo,
-    };
-    fetch(`${process.env.REACT_APP_API_SERVER_URL}/api/v1/users/add`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Host": "back-service.default.svc.cluster.local"
-        //Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify(data),
-    })
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error('Failed to create user');
+      // Manejo de errores específico de Axios
+      if (error.response) {
+        if (error.response.data && error.response.data.message) {
+          setError(error.response.data.message);
+        } else if (error.response.status === 400) {
+          setError("Los datos enviados son inválidos. Por favor, verifique el formulario.");
+        } else {
+          setError(FALLBACK_ERRORS["DEFAULT"]);
         }
-        return response.json();
-      })
-      .then((data) => {
-        setResult('Usuario creado exitosamente');
-        setError(null);
-        console.log(data);
-      })
-      .catch((error) => {
-        setError(error);
-        setResult('');
-        console.error(error);
-      });
+      } else if (error.request) {
+        setError(FALLBACK_ERRORS["NETWORK_ERROR"]);
+      } else {
+        setError(FALLBACK_ERRORS["DEFAULT"]);
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
-  function getError(error) {
-    switch (error.message) {
-      case "PasswordStrengthError: Password is too weak":
-        return `La contraseña es muy debil. Recuerde que debe tener por lo menos 8 caracteres. Ademas, no se olvide que tiene que contar por lo menos con una mayúscula, una minuscula, un numero y un caracter especial.`;
-      default:
-        return error.message;
-    }
-  }
-
-  function validatePassword() {
-    const passwordInput = document.getElementById("password");
-    const passwordLengthRequirement =
-      document.getElementById("password-length");
-    const passwordUppercaseRequirement =
-      document.getElementById("password-uppercase");
-    const passwordLowercaseRequirement =
-      document.getElementById("password-lowercase");
-    const passwordDigitRequirement = document.getElementById("password-digit");
-
-    // Validar longitud
-    passwordLengthRequirement.style.color =
-      passwordInput.value.length >= 8 ? "green" : "red";
-
-    // Validar mayúsculas
-    passwordUppercaseRequirement.style.color = passwordInput.value.match(
-      /[A-Z]/
-    )
-      ? "green"
-      : "red";
-
-    // Validar mayúsculas
-    passwordLowercaseRequirement.style.color = passwordInput.value.match(
-      /[a-z]/
-    )
-      ? "green"
-      : "red";
-
-    // Validar números
-    passwordDigitRequirement.style.color = passwordInput.value.match(/\d/)
-      ? "green"
-      : "red";
-  }
+  // Función auxiliar para renderizar el color de los requisitos
+  const getRequirementStyle = (isValid) => ({
+    color: password.length === 0 ? "gray" : isValid ? "green" : "red",
+    transition: "color 0.3s ease"
+  });
 
   return (
     <PageLayout>
       <h1 id="page-title" className="content__title">
-        Alta de docente{" "}
+        Alta de Docente
       </h1>
       <form onSubmit={handleSubmit}>
-        <label htmlFor="email">
-          <p>Correo electrónico</p>
-        </label>
-        <input
-          type="email"
-          id="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-        />
 
-        <label htmlFor="password">
-          <p>Contraseña</p>
-        </label>
-        <input
-          id="password"
-          type="password"
-          value={password}
-          onInput={validatePassword}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-        />
-        <div id="password-requirements">
-          <p>Requisitos de contraseña:</p>
-          <p id="password-length">Debe tener al menos 8 caracteres</p>
-          <p id="password-uppercase">
-            Debe contener al menos una letra mayúscula
-          </p>
-          <p id="password-lowercase">
-            Debe contener al menos una letra minúscula
-          </p>
-          <p id="password-digit">Debe contener al menos un número</p>
+        {/* Email */}
+        <div className="form-group-full">
+          <label htmlFor="email"><p>Correo electrónico</p></label>
+          <input
+            type="email"
+            id="email"
+            value={email}
+            onChange={(e) => { setEmail(e.target.value); setError(null); setResult(""); }}
+            required
+            disabled={isSubmitting}
+          />
         </div>
 
-        {/*
-        <label htmlFor="role">
-          <p>Rol</p>
-        </label>
-        <select value={role} onChange={(e) => setRole(e.target.value)} required>
-          <option value="">Seleccione un rol</option>
-          <option value="Administrador">Administrador</option>
-          <option value="Docente">Docente</option>
-        </select>
-        */}
+        {/* Password */}
+        <div className="form-group-full">
+          <label htmlFor="password"><p>Contraseña</p></label>
+          <input
+            id="password"
+            type="password"
+            value={password}
+            onChange={(e) => { setPassword(e.target.value); setError(null); setResult(""); }}
+            required
+            disabled={isSubmitting}
+          />
 
-        <label htmlFor="nombre">
-          <p>Nombre</p>
-        </label>
-        <input
-          type="text"
-          id="nombre"
-          value={nombre}
-          onChange={(e) => setNombre(e.target.value)}
-          required
-        />
-
-        <label htmlFor="apellido">
-          <p>Apellido</p>
-        </label>
-        <input
-          type="text"
-          id="apellido"
-          value={apellido}
-          onChange={(e) => setApellido(e.target.value)}
-          required
-        />
-
-        <label htmlFor="legajo">
-          <p>Legajo</p>
-        </label>
-        <input
-          type="text"
-          id="legajo"
-          value={legajo}
-          onChange={(e) => setLegajo(e.target.value)}
-          required
-        />
-
-        <button type="submit">Registrar</button>
-        {error && (
-          <div>
-            <p>Error al crear usuario:</p>
-            <p>{getError(error)}</p>
+          {/* Requisitos de contraseña reactivos */}
+          <div id="password-requirements" style={{ marginTop: '10px', fontSize: '0.9em' }}>
+            <p><strong>Requisitos de contraseña:</strong></p>
+            <p style={getRequirementStyle(isPasswordLongEnough)}>
+              • Debe tener al menos 8 caracteres
+            </p>
+            <p style={getRequirementStyle(hasUppercase)}>
+              • Debe contener al menos una letra mayúscula
+            </p>
+            <p style={getRequirementStyle(hasLowercase)}>
+              • Debe contener al menos una letra minúscula
+            </p>
+            <p style={getRequirementStyle(hasDigit)}>
+              • Debe contener al menos un número
+            </p>
           </div>
-        )}
-        <p>{result}</p>
+        </div>
+
+        {/* Nombre */}
+        <div className="form-group-full">
+          <label htmlFor="nombre"><p>Nombre</p></label>
+          <input
+            type="text"
+            id="nombre"
+            value={nombre}
+            onChange={(e) => { setNombre(e.target.value); setError(null); setResult(""); }}
+            required
+            disabled={isSubmitting}
+          />
+        </div>
+
+        {/* Apellido */}
+        <div className="form-group-full">
+          <label htmlFor="apellido"><p>Apellido</p></label>
+          <input
+            type="text"
+            id="apellido"
+            value={apellido}
+            onChange={(e) => { setApellido(e.target.value); setError(null); setResult(""); }}
+            required
+            disabled={isSubmitting}
+          />
+        </div>
+
+        {/* Legajo */}
+        <div className="form-group-full">
+          <label htmlFor="legajo"><p>Legajo</p></label>
+          <input
+            type="number"
+            id="legajo"
+            value={legajo}
+            onChange={(e) => { setLegajo(e.target.value); setError(null); setResult(""); }}
+            required
+            disabled={isSubmitting}
+          />
+        </div>
+
+        <button
+          type="submit"
+          disabled={isSubmitting || !email || !password || !nombre || !apellido || !legajo || !isPasswordValid}
+        >
+          {isSubmitting ? "Registrando..." : "Registrar Docente"}
+        </button>
+
+        {/* Mensajes de feedback unificados */}
+        {error && <p className="msg-error">Error: {error.message}</p>}
+        {result && <p className="msg-success">{result}</p>}
+
       </form>
     </PageLayout>
   );
