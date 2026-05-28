@@ -81,7 +81,7 @@ export const NavBarTabs = () => {
                                     */}
                                     <NavBarTab
                                         path="/register-students"
-                                        label="Registrar estudiantes"
+                                        label="Registrar/Sobreescribir estudiantes"
                                     />
                                     {/*
                                     <NavBarTab
@@ -103,7 +103,7 @@ export const NavBarTabs = () => {
                                     />*/}
                                     <NavBarTab
                                         path="/register-califications"
-                                        label="Registrar/Sobrescribir calificaciones"
+                                        label="Registrar/Sobreescribir calificaciones"
                                     />
                                 </div>
                             )}
