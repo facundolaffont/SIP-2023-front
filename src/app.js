@@ -46,6 +46,8 @@ import { CreateSubject } from "./pages/create-subject";
 import { ListSubjects } from "./pages/list-subjects";
 import { ListProfessors } from "./pages/list-professors";
 import { SendCalifications } from "./pages/send-califications";
+import { CalificationsMassiveElimination } from "./pages/massive-eliminate-califications";
+import { AttendanceMassiveElimination } from "./pages/massive-eliminate-attendance";
 
 export const App = () => {
     const { isLoading, isAuthenticated, getIdTokenClaims } = useAuth0();
@@ -125,6 +127,8 @@ export const App = () => {
                 {isProfessor && <ProtectedRoute path="/show-events-summary" component={ShowEventsSummary} />}
                 {isProfessor && <ProtectedRoute path="/event-detail/:eventId" component={EventDetail} />}
                 {isProfessor && <ProtectedRoute path="/send-califications" component={SendCalifications} />}
+                {isProfessor && <ProtectedRoute path="/eliminate-califications" component={CalificationsMassiveElimination} />}
+                {isProfessor && <ProtectedRoute path="/eliminate-attendance" component={AttendanceMassiveElimination} />}
 
                 {/* Rutas para administradores. */}
                 {isAdmin && <ProtectedRoute path="/profile" component={HomePageAdmin} />}

@@ -11,6 +11,7 @@ export const NavBarTabs = () => {
     const [showListingsDropdown, setShowListingsDropdown] = useState(false);
     const [showUsersManagementDropdown, setShowUsersManagementDropdown] = useState(false);
     const [showTeachersManagementDropdown, setShowTeachersManagementDropdown] = useState(false);
+    const [showEliminationsDropdown, setShowEliminationsDropdown] = useState(false);
     const [showCalificationCriterionsDropdown, setShowCalificationCriterionsDropdown] = useState(false);
     const [showCourseManagementDropdown, setShowCourseManagementDropdown] = useState(false);
     const [showComissionManagementDropdown, setShowComissionManagementDropdown] = useState(false);
@@ -105,6 +106,28 @@ export const NavBarTabs = () => {
                                         path="/register-califications"
                                         label="Registrar/Sobreescribir calificaciones"
                                     />
+                                </div>
+                            )}
+                        </div>
+                    )}
+                    {isProfessor && (
+                        <div
+                            className="nav-bar__tab"
+                            onMouseEnter={(event) => handleMouseEnter(event, setShowEliminationsDropdown)}
+                            onMouseLeave={(event) => handleMouseLeave(event, setShowEliminationsDropdown)}
+                        >
+                            <span>Eliminaciones</span>
+                            {showEliminationsDropdown && (
+                                <div className="dropdown" style={{ top: dropdownTopStyle }}>
+                                    
+                                    <NavBarTab
+                                        path="/eliminate-califications"
+                                        label="Eliminar/Transferir calificaciones"
+                                    />
+                                    {<NavBarTab
+                                        path="/eliminate-attendance"
+                                        label="Eliminar/Transferir asistencias"
+                                    />}
                                 </div>
                             )}
                         </div>
