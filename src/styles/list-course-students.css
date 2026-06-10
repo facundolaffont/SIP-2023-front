@@ -1,0 +1,76 @@
+/* ==========================================================================
+   ESTILOS PARA MODO EDICIÓN EN LÍNEA (TABLA COMPACTA)
+   ========================================================================== */
+
+/* 1. Botones compactos (Iconos de acciones) */
+.compact-actions {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    align-items: center;
+}
+
+.btn-icon {
+    all: unset; /* TRUCO CLAVE: Ignora cualquier botón global heredado */
+    cursor: pointer;
+    font-size: 14px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    transition: transform 0.1s, background-color 0.2s;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-icon:hover {
+    transform: scale(1.1);
+    background-color: #f0f0f0;
+}
+
+.btn-icon.disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* 2. Inputs de texto, email y número que no rompen el alto de la fila */
+.compact-input {
+    box-sizing: border-box;
+    width: 100%;
+    margin: 0;
+    padding: 0px 4px; /* Sin padding vertical para no estirar la celda */
+    
+    /* Heredan la tipografía de la tabla */
+    font-family: inherit;
+    font-size: inherit;
+    line-height: inherit;
+    height: 1.5em; 
+    
+    border: 1px solid #ccc;
+    border-radius: 2px;
+    background-color: #fff;
+}
+
+.compact-input:focus {
+    outline: none;
+    border-color: #007bff; 
+    box-shadow: 0 0 0 1px #007bff; 
+}
+
+/* 3. Ocultar flechitas nativas del input number (para el DNI) */
+.compact-input[type="number"]::-webkit-inner-spin-button,
+.compact-input[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+.compact-input[type="number"] {
+    -moz-appearance: textfield;
+}
+
+/* 4. Ajuste fino para los checkboxes */
+.events-table input[type="checkbox"] {
+    margin: 0;
+    padding: 0;
+    cursor: pointer;
+    vertical-align: middle;
+}
