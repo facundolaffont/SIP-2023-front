@@ -3,6 +3,8 @@ import { useAuth0 } from "@auth0/auth0-react";
 import axios from "axios";
 import { PageLayout } from "../components/page-layout";
 import { Table } from "../components/Table"; 
+import toast from "react-hot-toast";
+import { ConfirmModal } from "../components/ConfirmModal";
 
 import '../styles/list-course-events.css'; 
 
@@ -25,6 +27,16 @@ export function ListCommissions() {
     // ESTADOS: UI
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+
+    // Estado para controlar el modal de forma centralizada
+    const [modalState, setModalState] = useState({
+        isOpen: false,
+        title: "",
+        message: "",
+        confirmType: "danger",
+        onConfirm: () => {}
+    });
+    const closeModal = () => setModalState(prev => ({ ...prev, isOpen: false }));
 
     // EFECTO: Cargar las comisiones y asignaturas al iniciar
     useEffect(() => {
@@ -87,82 +99,94 @@ export function ListCommissions() {
     };
 
     // HANDLER: Guardar cambios de edición
-    const handleSaveEdit = async (id) => {
-        if (!window.confirm(`¿Estás seguro de que deseas guardar los cambios en la comisión ID: ${id}?`)) return;
-        setError(null); 
+    const handleSaveEdit = async (id) => {     
+        setModalState({
+            isOpen: true,
+            title: "Guardar Cambios",
+            message: `¿Estás seguro de que deseas guardar los cambios en la comisión con ID ${id}?`,
+            confirmType: "primary", 
+            onConfirm: async () => {
+                closeModal();
+                try {
+                    const token = await getAccessTokenSilently();
+                    
+                    const payload = {
+                        id: Number(id),
+                        subjectId: Number(editFormData.subjectId),
+                        commissionNumber: Number(editFormData.commissionNumber)
+                    };
 
-        try {
-            const token = await getAccessTokenSilently();
-            
-            const payload = {
-                id: Number(id),
-                subjectId: Number(editFormData.subjectId),
-                commissionNumber: Number(editFormData.commissionNumber)
-            };
+                    await axios.put(
+                        `${process.env.REACT_APP_API_SERVER_URL}/api/v1/commission/update`,
+                        payload, 
+                        { headers: { Authorization: `Bearer ${token}` } }
+                    );
 
-            await axios.put(
-                `${process.env.REACT_APP_API_SERVER_URL}/api/v1/commission/update`,
-                payload, 
-                { headers: { Authorization: `Bearer ${token}` } }
-            );
+                    const selectedSubject = subjects.find(s => String(s.id) === String(editFormData.subjectId));
 
-            const selectedSubject = subjects.find(s => String(s.id) === String(editFormData.subjectId));
-
-            setCommissions(prev => prev.map(comm => 
-                comm.id === id ? { 
-                    ...comm, 
-                    numero: payload.commissionNumber,
-                    idAsignatura: selectedSubject.id,
-                    nombreAsignatura: selectedSubject.nombre,
-                    codigoAsignatura: selectedSubject.codigo,
-                    idCarrera: selectedSubject.idCarrera|| null,
-                    nombreCarrera: selectedSubject.nombreCarrera || "Sin Carrera"
-                } : comm
-            ));
-            
-            setEditingId(null);
-            alert("Comisión actualizada con éxito.");
-        } catch (err) {
-            console.error("Error al guardar:", err);
-            setError("Error al actualizar la comisión.");
-        }
+                    setCommissions(prev => prev.map(comm => 
+                        comm.id === id ? { 
+                            ...comm, 
+                            numero: payload.commissionNumber,
+                            idAsignatura: selectedSubject.id,
+                            nombreAsignatura: selectedSubject.nombre,
+                            codigoAsignatura: selectedSubject.codigo,
+                            idCarrera: selectedSubject.idCarrera|| null,
+                            nombreCarrera: selectedSubject.nombreCarrera || "Sin Carrera"
+                        } : comm
+                    ));
+                
+                    setEditingId(null);
+                    toast.success("Comisión actualizada con éxito");
+                } catch (err) {
+                    console.error("Error al guardar:", err);
+                    toast.error("Error al actualizar la comisión")
+                }
+            }
+        });
     };
 
     // HANDLER: Eliminar comisión
     const handleDelete = async (id) => {
-        if (!window.confirm(`¿Estás seguro de que deseas eliminar la comisión ID: ${id}?`)) return;
-        setError(null); 
-        try {
-            const token = await getAccessTokenSilently();
-            
-            await axios.delete(`${process.env.REACT_APP_API_SERVER_URL}/api/v1/commission/delete`, {
-                headers: { Authorization: `Bearer ${token}` },
-                params: { id: id } 
-            });
-            
-            setCommissions(prev => prev.filter(c => c.id !== id));
-            alert("Comisión eliminada correctamente.");
-        } catch (err) {
-            console.error("Error eliminando:", err);
-            if (err.response?.data?.errorCode) {
-                const errorCode = err.response.data.errorCode;
-                switch (errorCode) {
-                    case "HAS_DEPENDENCIES":
-                        setError("No se puede eliminar: Esta comisión tiene cursadas asociadas.");
-                        break;
-                    case "NOT_FOUND":
-                        setError("La comisión que intentás borrar no existe.");
-                        break;
-                    case "INTERNAL_ERROR":
-                        setError("Ocurrió un error en el servidor al procesar la solicitud.");
-                        break;
-                    default:
-                        setError("Ocurrió un error inesperado al eliminar la comisión.");
+        setModalState({
+            isOpen: true,
+            title: "Eliminar Comisión",
+            message: `¿Estás seguro de que deseas eliminar la comisión con ID ${id}? Esta acción no se puede deshacer.`,
+            confirmType: "danger", 
+            onConfirm: async () => {
+                closeModal();
+                setError(null); 
+                try {
+                    const token = await getAccessTokenSilently();
+                    await axios.delete(`${process.env.REACT_APP_API_SERVER_URL}/api/v1/commission/delete`, {
+                        headers: { Authorization: `Bearer ${token}` },
+                        params: { id: id } 
+                    });
+                    setCommissions(prev => prev.filter(c => c.id !== id));
+                    toast.success("Comisión eliminada correctamente");
+                } catch (err) {
+                    console.error("Error eliminando:", err);
+                    if (err.response?.data?.errorCode) {
+                        const errorCode = err.response.data.errorCode;
+                        switch (errorCode) {
+                            case "HAS_DEPENDENCIES":
+                                toast.error("No se puede eliminar la comisión: Tiene cursadas asociadas");
+                                break;
+                            case "NOT_FOUND":
+                                toast.error("La comisión que intentás eliminar no existe");
+                                break;
+                            case "INTERNAL_ERROR":
+                                toast.error("Error en el servidor al procesar la eliminación");
+                                break;
+                            default:
+                                toast.error("Ocurrió un error inesperado al eliminar la comisión");
+                        }
+                    } else {
+                        toast.error("Hubo un problema de conexión al intentar eliminar la comisión");
+                    }            
                 }
-            } else {
-                setError("Hubo un problema de conexión al intentar eliminar la comisión.");
-            }            
-        }
+            }
+        });
     };
 
     // CONFIGURACIÓN DE COLUMNAS (Para componente Table)
@@ -254,6 +278,15 @@ export function ListCommissions() {
     return (
         <PageLayout>
             <h1 id="page-title" className="content__title">Listar Comisiones</h1>
+
+            <ConfirmModal 
+                isOpen={modalState.isOpen}
+                title={modalState.title}
+                message={modalState.message}
+                confirmType={modalState.confirmType}
+                onConfirm={modalState.onConfirm}
+                onCancel={closeModal}
+            />
 
             {error && (
                 <div className="msg-error" style={{textAlign: 'center', marginTop: '20px', fontSize: '20px'}}>

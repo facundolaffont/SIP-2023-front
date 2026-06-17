@@ -157,10 +157,10 @@ export const NavBarTabs = () => {
                                         path="/search-student"
                                         label="Consultar eventos por alumno"
                                     />
-                                    <NavBarTab
+                                    {/*<NavBarTab
                                         path="/search-event"
                                         label="Consultar evento"
-                                    />
+                                    />*/}
                                     {/*<NavBarTab
                                         path="/show-criteria-summary"
                                         label="Mostrar resumen por criterio"

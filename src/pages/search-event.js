@@ -3,15 +3,22 @@ import { useEffect, useState, useRef } from "react";
 import { useHistory } from "react-router-dom";
 import axios from "axios";
 import { useAuth0 } from '@auth0/auth0-react';
+import toast from 'react-hot-toast';
 
 // Componentes internos.
 import { PageLayout } from "../components/page-layout";
 import DynamicTable from "../components/dynamic-table";
 import { useSelectedCourse } from "../contexts/course/course-provider.js";
 import SpreadsheetManipulator from "../services/spreadsheet-manipulator.service";
+import { ConfirmModal } from "../components/ConfirmModal.js";
 
 // Estilos.
 import '../styles/search-event.css';
+
+const ERROR_MESSAGES = {
+    "NETWORK_ERROR": "No se pudo conectar con el servidor. Verifique su conexión a internet.",
+    "DEFAULT": "Hubo un problema inesperado al cargar la información del evento."
+};
 
 export const SearchEvent = () => {
 
@@ -31,6 +38,13 @@ export const SearchEvent = () => {
     const [eventTitle, setEventTitle] = useState("");
     const [tableColumns, setTableColumns] = useState([]);
     const [tableData, setTableData] = useState([]);
+
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
+    const [modalState, setModalState] = useState({
+        isOpen: false, title: "", message: "", confirmType: "danger", confirmText: "Aceptar", onConfirm: () => {}
+    });
+    const closeModal = () => setModalState(prev => ({ ...prev, isOpen: false }));
 
     /** @type {CourseDTO} */ const course = useSelectedCourse(false);
     const history = useHistory();
@@ -396,103 +410,49 @@ export const SearchEvent = () => {
      * @returns {void}
      * @throws {Error} Si ocurre un error al obtener la información del evento.
      */
-    const handleSearch = (event) => { 
-
-        // Evita que se recargue la página.
-        event.preventDefault();
-
-        // #region ==== Realiza la solicitud de obtención
-        // de información del evento al backend. ====
+    const handleSearch = async (event) => { 
+        if (event) event.preventDefault();
         
-        const getEventInfo = async () => {
+        if (!eventId.trim()) {
+            toast.error("Por favor, ingrese el ID del evento");
+            return;
+        }
 
-            // Obtiene el token Auth0.
-            const auth0Token = await getAccessTokenSilently()
-            .catch(error => {
-                throw error;
-            });
+        setLoading(true);
+        setError(null);
+        setEventInfo(null);
 
-            // Realiza la petición al backend.
+        try {
+            const auth0Token = await getAccessTokenSilently();
             const eventInfoResponse = await axios.get(
                 `${process.env.REACT_APP_API_SERVER_URL}/api/v1/events/get-event-info?event-id=${eventId}`, 
-                {
-                    headers: {
-                        Authorization: `Bearer ${auth0Token}`,
-                    },
-                }
-            )
-            .catch(error => { 
-                
-                // Obtiene el código y el mensaje de error que se va a mostrar.
-                let errorCode;
-                let errorDescription;
-                if(error.response.data.errorCode === 1) {
-                    errorCode = error.response.data.errorCode;
-                    errorDescription = error.response.data.errorDescription;
-                } else {
-                    errorCode = error.code;
-                    errorDescription = error.message;
-                }
+                { headers: { Authorization: `Bearer ${auth0Token}` } }
+            );
+            const data = eventInfoResponse.data;
 
-                // Notifica al usuario.
-                alert(
-                    `Código de error ${errorCode}
-                    \nMensaje de error: ${errorDescription}`
-                );
-
-                // Registra el error en el log.
-                console.error(
-                    `Código de error ${errorCode}
-                    \nMensaje de error: ${errorDescription}`
-                );
-
-                return null;
-
-            });
-
-            // Si hubo un error de red o si el código HTTP de la respuesta no es 2XX, termina
-            // la ejecución de la función.
-            if (eventInfoResponse === null) return;
-
-            // #region ==== Adecúa los valores de asistencia y nota, de forma tal que:
-            // - Si el evento es una clase, la asistencia será "Sí" o "No".
-            // - Si el evento es una nota y la asistencia es false, la nota será "AUSENTE". ====
-            
-            // Por cada registro de evento...
-            eventInfoResponse.data.eventRegistersList.forEach((eventRegister) => {
-
-                // Si el evento es una clase, la asistencia será "Sí" o "No", y
-                // se eliminará el campo de nota.
-                if (eventInfoResponse.data.eventInfo.eventTypeId === 1) {
-                    eventRegister.attendance =
-                        eventRegister.attendance
-                        ? "Sí"
-                        : "No";
+            data.eventRegistersList.forEach((eventRegister) => {
+                if (data.eventInfo.eventTypeId === 1) {
+                    eventRegister.attendance = eventRegister.attendance ? "Sí" : "No";
                     delete eventRegister.note;
-                }
-                
-                // Si el evento es una nota y el alumno estuvo ausente, la asistencia será "AUSENTE";
-                // si no, se dejará el valor de la nota. De todas formas, se eliminará el campo
-                // de asistencia.
-                else {
+                } else {
                     if (!eventRegister.attendance) eventRegister.note = "AUSENTE";
                     delete eventRegister.attendance;
                 }
-
             });
-            
-            // #endregion ==== Adecúa los valores de asistencia y nota, de forma tal que:
-            // - Si el evento es una clase, la asistencia será "Sí" o "No".
-            // - Si el evento es una nota y la asistencia es false, la nota será "AUSENTE". ====
-
-            setEventInfo(eventInfoResponse.data);
-
+            setEventInfo(data);
+        } catch (err) {
+            console.error("Error buscando evento:", err);
+            const errorCode = err.response?.data?.errorCode;
+            if (errorCode === 1) {
+                setError(`Error ${errorCode}: ${err.response.data.errorDescription}`);
+            } else if (err.request) {
+                setError(ERROR_MESSAGES["NETWORK_ERROR"]);
+            } else {
+                setError(ERROR_MESSAGES["DEFAULT"]);
+            }
+        } finally {
+            setLoading(false);
         }
-        getEventInfo();
-        
-        // #endregion ==== Realiza la solicitud de obtención
-        // de información del evento al backend. ====
-
     }
 
     /**
@@ -516,7 +476,7 @@ export const SearchEvent = () => {
             // Verifica condición final
             const response = await checkIfEventRegisterDossierHasFinalCondition(modifiedRow.id);
             if (response.data === true) {
-                alert('El legajo tiene registrada la condición final. No se puede modificar el registro de evento.');
+                toast.error('El legajo tiene registrada la condición final. No se puede modificar el registro de evento.');
                 return false;
             }
 
@@ -557,11 +517,11 @@ export const SearchEvent = () => {
                 )
             });
 
-            alert("El registro de evento se ha actualizado exitosamente.");
+            toast.success("El registro de evento se ha actualizado exitosamente");
             return true;
 
         } catch (error) {
-            alert(`Código de error ${error.response?.data?.errorCode || error.code}\n${error.response?.data?.errorDescription || error.message}`);
+            toast.error(error.response?.data?.errorDescription || "Error al actualizar el registro");
             console.error(error);
             return false;
         }
@@ -572,38 +532,56 @@ export const SearchEvent = () => {
         try {
             const response = await checkIfEventRegisterDossierHasFinalCondition(rowData.id);
             if (response.data === true) {
-                alert('El legajo tiene registrada la condición final. No se puede eliminar el registro de evento.');
+                toast.error('El legajo tiene registrada la condición final. No se puede eliminar el registro de evento');
                 return false;
             }
 
-            if (!window.confirm("¿Estás seguro de eliminar este registro de evento?")) {
-                return false;
-            }
-
-            await deleteEventRegister(rowData.id);
-            
-            setEventInfo({
-                ...eventInfo,
-                eventRegistersList: eventInfo.eventRegistersList.filter(
-                    register => register.eventRegisterId !== rowData.id
-                )
+            setModalState({
+                isOpen: true,
+                title: "Eliminar registro",
+                message: "¿Estás seguro de que deseas eliminar este registro de evento?",
+                confirmType: "danger",
+                confirmText: "Eliminar",
+                onConfirm: async () => {
+                    closeModal();
+                    try {
+                        await deleteEventRegister(rowData.id);
+                        setEventInfo(prev => ({
+                            ...prev,
+                            eventRegistersList: prev.eventRegistersList.filter(
+                                register => register.eventRegisterId !== rowData.id
+                            )
+                        }));
+                        toast.success("El registro de evento fue eliminado exitosamente");
+                    } catch (error) {
+                        toast.error(error.response?.data?.errorDescription || "Error al eliminar el registro");
+                        console.error(error);
+                    }
+                }
             });
 
-            alert("El registro de evento fue eliminado exitosamente.");
-
         } catch (error) {
-            alert(`Código de error ${error.response.data.errorCode}\n${error.response.data.errorDescription}`);
+            toast.error("Error validando el registro");
             console.error(error);
         }
     };
-
-    // #endregion ==== Definición de funciones. ====
 
     return (
         <PageLayout>
             <h1 id="page-title" className="content__title">
                 Consultar evento
             </h1>
+
+            <ConfirmModal 
+                isOpen={modalState.isOpen}
+                title={modalState.title}
+                message={modalState.message}
+                confirmType={modalState.confirmType}
+                confirmText={modalState.confirmText}
+                onConfirm={modalState.onConfirm}
+                onCancel={closeModal}
+            />
+
             <div>
                 <input
                     id="event-id-input"
@@ -619,15 +597,29 @@ export const SearchEvent = () => {
                 />
                 <button className="event-search-button" onClick={handleSearch}>Buscar</button>
             </div>
-            {eventInfo && eventInfo.eventRegistersList.length > 0 && (
-                <DynamicTable
-                    tableTitle={eventTitle}
-                    columnHeaders={tableColumns}
-                    tableData={tableData}
-                    handleEditCallback={handleRowEdit}
-                    handleDeleteCallback={handleDelete}
-                    handleExportCallback={handleExport}
-                />
+            
+            {error && (
+                <div className="msg-error" style={{textAlign: 'center', margin: '20px 0', fontSize: '20px'}}>
+                    {error}
+                </div>
+            )}
+
+            {loading ? (
+                <div className="modal-loading" style={{marginTop: '20px'}}>
+                    <div className="spinner"></div>
+                    <p style={{fontSize: '20px'}}>Buscando información del evento...</p>
+                </div>
+            ) : (
+                eventInfo && eventInfo.eventRegistersList.length > 0 && (
+                    <DynamicTable
+                        tableTitle={eventTitle}
+                        columnHeaders={tableColumns}
+                        tableData={tableData}
+                        handleEditCallback={handleRowEdit}
+                        handleDeleteCallback={handleDelete}
+                        handleExportCallback={handleExport}
+                    />
+                )
             )}
         </PageLayout>
     );

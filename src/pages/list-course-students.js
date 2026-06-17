@@ -3,15 +3,22 @@ import axios from "axios";
 import React, { useState, useEffect } from "react";
 import { useHistory } from 'react-router-dom';
 import { useAuth0 } from "@auth0/auth0-react";
+import toast from "react-hot-toast";
 
 // Componentes internos.
 import { PageLayout } from "../components/page-layout";
 import { Table } from "../components/Table"; // Asegurate de que la ruta sea correcta
 import { useSelectedCourse } from "../contexts/course/course-provider.js";
 import SpreadsheetManipulator from "../services/spreadsheet-manipulator.service";
+import { ConfirmModal } from "../components/ConfirmModal";
 
 // Estilos.
 import '../styles/list-course-students.css';
+
+const ERROR_MESSAGES = { 
+    "NETWORK_ERROR": "No se pudo conectar con el servidor. Verifique su conexión a internet.", 
+    "DEFAULT": "Hubo un problema inesperado." 
+};
 
 export const ListCourseStudents = () => {
     // ESTADOS: Auth0 y Navegación
@@ -26,6 +33,18 @@ export const ListCourseStudents = () => {
     // ESTADOS: Edición
     const [editingId, setEditingId] = useState(null);
     const [editFormData, setEditFormData] = useState({});
+    
+    // ESTADOS: Errores y Modal
+    const [error, setError] = useState(null);
+    const [modalState, setModalState] = useState({ 
+        isOpen: false, 
+        title: "", 
+        message: "", 
+        confirmType: "danger", 
+        confirmText: "Aceptar", 
+        onConfirm: () => {} 
+    });
+    const closeModal = () => setModalState(prev => ({ ...prev, isOpen: false }));
 
     // SERVICIOS
     const [spreadsheetManipulator] = useState(() => new SpreadsheetManipulator());
@@ -40,6 +59,7 @@ export const ListCourseStudents = () => {
         const getCourseStudents = async () => {
             if (!course) return;
             setLoading(true);
+            setError(null);
             try {
                 const token = await getAccessTokenSilently();
                 const response = await axios.get(
@@ -61,6 +81,11 @@ export const ListCourseStudents = () => {
                 setStudentsList(mappedStudents);
             } catch (error) {
                 console.error("Error al obtener la lista de estudiantes:", error);
+                if (!error.response) {
+                    setError(ERROR_MESSAGES.NETWORK_ERROR);
+                } else {
+                    setError(ERROR_MESSAGES.DEFAULT);
+                }
             } finally {
                 setLoading(false);
             }
@@ -90,7 +115,7 @@ export const ListCourseStudents = () => {
         let changedToRegular = false;
         let blockedPromoted = false;
 
-        // REGLA 1: Si desmarca correlativas y era Promocionado (P)
+        // REGLA 1: Si desmarca correlativas y era Promovido (P)
         if (name === 'allPreviousSubjectsApproved' && !newValue && editFormData.finalCondition === 'P') {
             changedToRegular = true;
         }
@@ -100,13 +125,13 @@ export const ListCourseStudents = () => {
             blockedPromoted = true;
         }
 
-        // 2. Ejecutar Side Effects (Alerts) FUERA de la actualización de estado
+        // 2. Ejecutar Side Effects FUERA de la actualización de estado
         if (changedToRegular) {
-            alert("Al desmarcar las correlativas, la condición bajó automáticamente a Regular (R).");
+            toast("Al desmarcar las correlativas, la condición bajó automáticamente a Regular (R)");
         }
 
         if (blockedPromoted) {
-            alert("No podés poner Promocionado (P) si el alumno no tiene las correlativas aprobadas.");
+            toast.error("No podés poner Promovido (P) si el alumno no tiene las correlativas aprobadas");
             return; // Cortamos acá la ejecución, no actualizamos el estado con un valor inválido
         }
 
@@ -119,66 +144,76 @@ export const ListCourseStudents = () => {
         }));
     };
 
-    const handleSaveEdit = async (id) => {
+    const handleSaveEdit = (id) => {
         const dniValue = editFormData.id;
         const nameValue = editFormData.name;
-        const emailValue = editFormData.email;
 
         // Validar DNI (Numerico, mayor a 0 y no vacío)
         if (!dniValue || isNaN(dniValue) || Number(dniValue) <= 0) {
-            alert("El DNI debe ser un número válido mayor a 0.");
+            toast.error("El DNI debe ser un número válido mayor a 0");
             return;
         }
 
         // Validar Nombre (No vacío y solo letras/espacios, incluyendo tildes)
         const nameRegex = /^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+$/;
         if (!nameValue || nameValue.trim() === "" || !nameRegex.test(nameValue)) {
-            alert("El nombre es obligatorio y solo puede contener letras y espacios.");
+            toast.error("El nombre es obligatorio y solo puede contener letras y espacios");
             return;
         }
 
-        if (!window.confirm("¿Estás seguro de que deseas guardar los cambios?")) return;
-        
-        try {
-            const token = await getAccessTokenSilently();
-            
-            const payload = {
-                courseId: course.getId(), 
-                dossier: editFormData.dossier, 
-                id: Number(editFormData.id),
-                name: editFormData.name.trim(),
-                email: editFormData.email.trim(),
-                alreadyStudied: editFormData.alreadyStudied,
-                allPreviousSubjectsApproved: editFormData.allPreviousSubjectsApproved,
-                finalCondition: editFormData.finalCondition 
-            };
+        setModalState({
+            isOpen: true,
+            title: "Guardar cambios",
+            message: "¿Estás seguro de que deseas guardar los cambios para este estudiante?",
+            confirmType: "primary", // Usamos primary porque es una acción de guardado, no borrado
+            confirmText: "Guardar",
+            onConfirm: async () => {
+                closeModal();
+                try {
+                    const token = await getAccessTokenSilently();
+                    
+                    const payload = {
+                        courseId: course.getId(), 
+                        dossier: editFormData.dossier, 
+                        id: Number(editFormData.id),
+                        name: editFormData.name.trim(),
+                        email: editFormData.email.trim(),
+                        alreadyStudied: editFormData.alreadyStudied,
+                        allPreviousSubjectsApproved: editFormData.allPreviousSubjectsApproved,
+                        finalCondition: editFormData.finalCondition 
+                    };
 
-            await axios.put(
-                `${process.env.REACT_APP_API_SERVER_URL}/api/v1/course/update-student`,
-                payload,
-                { headers: { Authorization: `Bearer ${token}` } }
-            );
-            
-            // Actualización optimista del estado en el Front
-            setStudentsList(prev => prev.map(student => 
-                student.id === id ? { ...student, ...editFormData } : student
-            ));
-            
-            setEditingId(null);
-            alert("Alumno actualizado con éxito.");
-        } catch (error) {
-            console.error("Error al guardar:", error);
-            if (error.response && error.response.status === 400) {
-                const validacionErrores = error.response.data; 
-                if (typeof validacionErrores === 'string') {
-                    alert("Revisá los datos: " + validacionErrores);
-                } else {
-                    alert("Revisá los datos. " + Object.values(validacionErrores).join(" "));
+                    await axios.put(
+                        `${process.env.REACT_APP_API_SERVER_URL}/api/v1/course/update-student`,
+                        payload,
+                        { headers: { Authorization: `Bearer ${token}` } }
+                    );
+                    
+                    setStudentsList(prev => prev.map(student => 
+                        student.id === id ? { ...student, ...editFormData } : student
+                    ));
+                    
+                    setEditingId(null);
+                    toast.success("Alumno actualizado con éxito");
+                } catch (error) {
+                    console.error("Error al guardar:", error);
+                    if (error.response && error.response.status === 400) {
+                        const validacionErrores = error.response.data; 
+                        if (typeof validacionErrores === 'string') {
+                            toast.error("Revisá los datos: " + validacionErrores);
+                        } else {
+                            toast.error("Revisá los datos. " + Object.values(validacionErrores).join(" "));
+                        }
+                    } else {
+                        if (!error.response) {
+                            toast.error(ERROR_MESSAGES.NETWORK_ERROR);
+                        } else {
+                            toast.error(ERROR_MESSAGES.DEFAULT);
+                        }
+                    }
                 }
-            } else {
-                alert("Hubo un error en el servidor al actualizar el alumno.");
             }
-        }
+        });
     };
 
     // HANDLER: Exportar a Excel
@@ -289,9 +324,24 @@ export const ListCourseStudents = () => {
                     : 'Sin cursada seleccionada'}
             </h2>
             
-            {loading ? (
-                <div style={{ textAlign: 'center', marginTop: '20px' }}>
-                    <p style={{ fontSize: '20px' }}>Cargando estudiantes...</p>
+            <ConfirmModal 
+                isOpen={modalState.isOpen}
+                title={modalState.title}
+                message={modalState.message}
+                confirmType={modalState.confirmType}
+                confirmText={modalState.confirmText}
+                onConfirm={modalState.onConfirm}
+                onCancel={closeModal}
+            />
+
+            {error ? (
+                <div className="msg-error" style={{textAlign: 'center', marginTop: '20px', fontSize: '20px'}}>
+                    {error}
+                </div>
+            ) : loading ? (
+                <div className="modal-loading">
+                    <div className="spinner"></div>
+                    <p style={{fontSize: '20px'}}>Cargando estudiantes, por favor espere...</p>
                 </div>
             ) : (
                 <div id="students-table-export">

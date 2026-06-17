@@ -5,6 +5,7 @@ import React, { useEffect, useState } from "react";
 import { useHistory } from 'react-router-dom';
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPencilAlt } from "@fortawesome/free-solid-svg-icons";
+import toast from "react-hot-toast";
 
 // Imports internos.
 import { PageLayout } from "../components/page-layout";
@@ -207,12 +208,11 @@ export const FinalCondition = () => {
             if (!response.ok) {
                 throw new Error("Error al guardar el orden");
             }
-            
-            alert("¡Orden de criterios guardado con éxito!");
+            toast.success("Orden de criterios guardado con éxito");
 
         } catch (error) {
             console.error("Error al guardar orden:", error);
-            alert("Hubo un error al guardar el orden.");
+            toast.error("Error al guardar el orden de criterios");
         }
     };
 

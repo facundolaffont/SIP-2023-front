@@ -4,6 +4,7 @@ import axios from "axios";
 import { useAuth0 } from "@auth0/auth0-react";
 import { useHistory } from 'react-router-dom';
 import ReactDOMServer from 'react-dom/server';
+import toast from "react-hot-toast";
 
 // Componentes internos.
 import { PageLayout } from "../components/page-layout.js";
@@ -11,6 +12,7 @@ import HTMLTableManipulator from "../services/html-table-manipulator";
 import SpreadsheetManipulator from "../services/spreadsheet-manipulator.service";
 import { useSelectedCourse } from "../contexts/course/course-provider.js";
 import CourseDTO from "../contexts/course/course-d-t-o";
+import { ConfirmModal } from "../components/ConfirmModal.js";
 
 // Estilos.
 import '../styles/list-course-events.css';
@@ -28,6 +30,16 @@ export const ListCourseEvents = () => {
     /** @type {CourseDTO} */ const course = useSelectedCourse(false);
     const history = useHistory();
     
+    // Estado para controlar el modal de forma centralizada
+    const [modalState, setModalState] = useState({
+        isOpen: false,
+        title: "",
+        message: "",
+        confirmType: "danger",
+        onConfirm: () => {}
+    });
+    const closeModal = () => setModalState(prev => ({ ...prev, isOpen: false }));
+
     // #endregion ==== Definición de estados. ====
 
     // #region ==== Definición de useEffect. ====
@@ -214,86 +226,80 @@ export const ListCourseEvents = () => {
                             newEndDatetimeContent !== null &&
                             new Date(newInitialDatetimeContent) > new Date(newEndDatetimeContent)
                         ) {
-                            alert("La fecha de inicio no puede ser mayor que la fecha de fin.");
+                            toast.error("La fecha de inicio del evento no puede ser mayor que la fecha de fin.");
                             return;
                         }
                     }
-                    
-                    // #endregion ==== Si hubo cambio en las fechas y la fecha mínima es mayor que la fecha
-                    // máxima, se muestra un mensaje de error al usuario. ====
 
-                    // #region ==== Si no hubo cambio en las fechas o si hubo, pero la fecha mínima es menor o igual
-                    // que la fecha máxima, o alguna de las fechas es nula, se modifica el evento. ====
+                    // Modal para que el usuario confirme la modificación
+                    setModalState({
+                        isOpen: true,
+                        title: "Modificar evento",
+                        message: `¿Está seguro de que desea modificar el evento con ID ${eventId}?`,
+                        confirmType: "primary",
+                        onConfirm: () => {
+                            closeModal();
 
-                    // Se deshabilita la edición de las celdas.
-                    eventNameTdElement.contentEditable = false;
-                    mandatoryTdElement.contentEditable = false;
+                            // Se deshabilita la edición de las celdas.
+                            eventNameTdElement.contentEditable = false;
+                            mandatoryTdElement.contentEditable = false;
 
-                    // Establece, en las celdas de fecha, el valor equivalente en texto de la nueva fecha seleccionada.
-                    initialDatetimeTdElement.textContent = 
-                        newInitialDatetimeContent !== null
-                        ? getHumanFormattedDateAndTime(newInitialDatetimeContent)
-                        : '-';
-                    endDatetimeTdElement.textContent = 
-                        newEndDatetimeContent !== null
-                        ? getHumanFormattedDateAndTime(newEndDatetimeContent)
-                        : '-';
-                    
-                    // Llama al método que actualiza el evento.
-                    updateEvent(
-                        eventId,
-                        newEventNameContent,
-                        newInitialDatetimeContent,
-                        newEndDatetimeContent,
-                        newMandatoryContent === 'x' ? true : false,
-                    );
+                            // Establece, en las celdas de fecha, el valor equivalente en texto de la nueva fecha seleccionada.
+                            initialDatetimeTdElement.textContent = 
+                            newInitialDatetimeContent !== null
+                            ? getHumanFormattedDateAndTime(newInitialDatetimeContent)
+                            : '-';
+                            endDatetimeTdElement.textContent = 
+                            newEndDatetimeContent !== null
+                            ? getHumanFormattedDateAndTime(newEndDatetimeContent)
+                            : '-';
 
-                    // #region ==== Quita los botones de confirmación y cancelación y vuelve a crear
-                    // los botones de modificación y eliminación. ====
+                            // Llama al método que actualiza el evento.
+                            updateEvent(
+                                eventId,
+                                newEventNameContent,
+                                newInitialDatetimeContent,
+                                newEndDatetimeContent,
+                                newMandatoryContent === 'x' ? true : false,
+                            );
+
+                            // Obtiene el elemento HTML que debe contener los botones de modificación
+                            // y eliminación de eventos.
+                            const actionsCell = row.querySelector('.actions-container');
+                            actionsCell.textContent = '';
+
+                            // Habilita los botones del resto de las filas.
+                            const buttons = document.querySelectorAll('.actions-container button');
+                            buttons.forEach(button => {
+                                button.classList.remove('disabled');
+                                button.disabled = false;
+                            });
                 
-                    // Obtiene el elemento HTML que debe contener los botones de modificación
-                    // y eliminación de eventos.
-                    const actionsCell = row.querySelector('.actions-container');
-                    actionsCell.textContent = '';
+                            // Crea y configura el botón de detalle.
+                            const detailButton = document.createElement('button');
+                            detailButton.textContent = '🔍';
+                            detailButton.className = 'detail-button';
+                            detailButton.addEventListener('click', handleDetailButtonClick);
 
-                    // Habilita los botones del resto de las filas.
-                    const buttons = document.querySelectorAll('.actions-container button');
-                    buttons.forEach(button => {
-                        button.classList.remove('disabled');
-                        button.disabled = false;
+                            // Crea y configura el botón de modificación.
+                            const modifyButton = document.createElement('button');
+                            modifyButton.textContent = 'Modificar';
+                            modifyButton.className = 'edit-button';
+                            modifyButton.addEventListener('click', handleEditButtonClick);
+                
+                            // Crea y configura el botón de eliminación.
+                            const deleteButton = document.createElement('button');
+                            deleteButton.textContent = 'Eliminar';
+                            deleteButton.className = 'delete-button';
+                            deleteButton.addEventListener('click', handleDeleteButtonClick);
+
+                            // Agrega los botones.
+                            actionsCell.appendChild(detailButton);
+                            actionsCell.appendChild(modifyButton);
+                            actionsCell.appendChild(deleteButton);
+                        }
                     });
-        
-                    // Crea y configura el botón de detalle.
-                    const detailButton = document.createElement('button');
-                    detailButton.textContent = '🔍';
-                    detailButton.className = 'detail-button';
-                    detailButton.addEventListener('click', handleDetailButtonClick);
-
-                    // Crea y configura el botón de modificación.
-                    const modifyButton = document.createElement('button');
-                    modifyButton.textContent = 'Modificar';
-                    modifyButton.className = 'edit-button';
-                    modifyButton.addEventListener('click', handleEditButtonClick);
-        
-                    // Crea y configura el botón de eliminación.
-                    const deleteButton = document.createElement('button');
-                    deleteButton.textContent = 'Eliminar';
-                    deleteButton.className = 'delete-button';
-                    deleteButton.addEventListener('click', handleDeleteButtonClick);
-
-                    // Agrega los botones.
-                    actionsCell.appendChild(detailButton);
-                    actionsCell.appendChild(modifyButton);
-                    actionsCell.appendChild(deleteButton);
-                    
-                    // #endregion ==== Quita los botones de confirmación y cancelación y vuelve a crear
-                    // los botones de modificación y eliminación. ====
-                
-                    // #endregion ==== Si no hubo cambio en las fechas o si hubo, pero la fecha mínima es menor o igual
-                    // que la fecha máxima, se modifica el evento. ====
-
                 }
-
             });
             
             // #endregion ==== Crea y configura el botón de confirmación. ====
@@ -544,7 +550,7 @@ export const ListCourseEvents = () => {
             if (response.ok) {
 
                 // Si la respuesta es exitosa, muestra un mensaje.
-                alert("¡El evento se ha actualizado exitosamente!");
+                toast.success("El evento se ha actualizado exitosamente");
                 
                 // // Elimina los botones de modificar y cancelar.
                 // const row = document.querySelector(`tr[data-event-id="${eventId}"]`);
@@ -554,7 +560,7 @@ export const ListCourseEvents = () => {
             } else {
 
                 // Si la respuesta no es exitosa, notifica al usuario que hubo un error.
-                alert("Hubo un error al actualizar el evento.");
+                toast.error("Hubo un error al actualizar el evento");
                 console.error(response);
 
             }
@@ -581,40 +587,34 @@ export const ListCourseEvents = () => {
      * @param {*} eventId ID del evento a eliminar. 
      */
     const handleDeleteButtonClick = (eventId) => {
-        
-        if (window.confirm("¿Estás seguro de que deseas eliminar este evento?")) {
-            
-            // Envìa el ID del evento para que el backend lo intente eliminar.
-            fetch(`${process.env.REACT_APP_API_SERVER_URL}/api/v1/events/delete-event`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({ eventId: eventId }),
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.message) {
-                    
-                    // Si hay un mensaje en la respuesta, lo muestra al usuario.
-                    alert(data.message);
-                    
-                    // Si la respuesta es exitosa, actualiza la lista de eventos.
+        setModalState({
+            isOpen: true,
+            title: "Eliminar evento",
+            message: "¿Está seguro de que desea eliminar este evento? Esta acción no se puede deshacer",
+            confirmType: "danger",
+            onConfirm: async () => {
+                closeModal();
+                try {
+                    const response = await fetch(`${process.env.REACT_APP_API_SERVER_URL}/api/v1/events/delete-event`, {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify({ eventId: eventId }),
+                    })
+                    const data = await response.json();
                     if (data.success) {
                         setEventsList(eventsList.filter(event => event.eventId !== Number(eventId)));
+                        toast.success("El evento se ha eliminado correctamente");
+                    } else {
+                        toast.error(data.message);
                     }
-
-                } else {
-                    
-                    // Si no hay un mensaje en la respuesta, notifica al usuario que hubo un error.
-                    alert("Hubo un error al eliminar el evento.");
-                    console.error(data);
-
+                } catch (error) {
+                    console.error("Error en la petición de borrado:", error);
+                    toast.error("Error al intentar borrar el evento")
                 }
-            })
-            .catch(error => console.error(error));
-        }
-
+            }
+        });
     };
 
     /**
@@ -677,6 +677,14 @@ export const ListCourseEvents = () => {
                     course === null && 'Sin cursada seleccionada'
                 }
             </h2>
+            <ConfirmModal 
+                isOpen={modalState.isOpen}
+                title={modalState.title}
+                message={modalState.message}
+                confirmType={modalState.confirmType}
+                onConfirm={modalState.onConfirm}
+                onCancel={closeModal}
+            />
             {eventsList && (
                 <div>
                     <table id="events-table" className="events-table table-container not-displayed"></table>

@@ -4,6 +4,8 @@ import { useHistory } from "react-router-dom";
 import axios from 'axios';
 import { PageLayout } from "../components/page-layout"; 
 import { Table } from "../components/Table"; 
+import toast from "react-hot-toast";
+import { ConfirmModal } from "../components/ConfirmModal";
 
 import '../styles/list-course-events.css'; 
 
@@ -31,6 +33,16 @@ export function ListCourses() {
     // ESTADOS: UI
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+
+    // Estado para controlar el modal de forma centralizada
+    const [modalState, setModalState] = useState({
+        isOpen: false,
+        title: "",
+        message: "",
+        confirmType: "danger",
+        onConfirm: () => {}
+    });
+    const closeModal = () => setModalState(prev => ({ ...prev, isOpen: false }));
 
     // EFECTO: Cargar las cursadas al iniciar
     useEffect(() => {
@@ -62,7 +74,6 @@ export function ListCourses() {
                 setCoursesList(formattedCourses);
             } catch (error) {
                 console.error("Error cargando cursadas:", error);
-
                 const errorCode = error.response?.data?.errorCode;
                 if (errorCode) {
                     setError(ERROR_MESSAGES[errorCode] || ERROR_MESSAGES["DEFAULT"]);
@@ -85,29 +96,34 @@ export function ListCourses() {
 
     // HANDLER: Eliminar cursada
     const handleDelete = async (id) => {
-        if (!window.confirm(`¿Estás seguro de que deseas eliminar la cursada ID: ${id}?`)) {
-            return;
-        }
-        try {
-            const auth0Token = await getAccessTokenSilently();
-            await axios.delete(
-                `${process.env.REACT_APP_API_SERVER_URL}/api/v1/course/delete`, 
-                {
-                    headers: { Authorization: `Bearer ${auth0Token}` },
-                    params: { id }
+        setModalState({
+            isOpen: true,
+            title: "Eliminar Cursada",
+            message: `¿Estás seguro de que deseas eliminar la cursada con ID ${id}?`,
+            confirmType: "danger", 
+            onConfirm: async () => {
+                closeModal();
+                try {
+                    const auth0Token = await getAccessTokenSilently();
+                    await axios.delete(
+                        `${process.env.REACT_APP_API_SERVER_URL}/api/v1/course/delete`, 
+                        {
+                            headers: { Authorization: `Bearer ${auth0Token}` },
+                            params: { id }
+                        }
+                    );
+                    // Actualizamos el estado removiendo la cursada eliminada
+                    setCoursesList(prev => prev.filter(c => c.id !== id));
+                    toast.success("Cursada eliminada correctamente");
+                } catch (error) {
+                    console.error("Error eliminando cursada:", error);
+                    toast.error("Hubo un problema al eliminar la cursada. " + (error.response?.data || ""));
                 }
-            );
-            // Actualizamos el estado removiendo la cursada eliminada
-            setCoursesList(prev => prev.filter(c => c.id !== id));
-            alert("Cursada eliminada correctamente.");
-        } catch (error) {
-            console.error("Error eliminando cursada:", error);
-            setError("Hubo un problema al eliminar la cursada. " + (error.response?.data || ""));
-        }
+            }
+        });        
     };
 
     // CONFIGURACIÓN DE COLUMNAS (Para componente Table)
-    // Donde le decimos a la tabla cómo debe estructurarse y renderizar celdas especiales
     const tableColumns = [
         { header: "ID", accessor: "id" },
         { header: "Carrera", accessor: "carrera" },
@@ -138,6 +154,15 @@ export function ListCourses() {
             <h1 id="page-title" className="content__title">
                 Listar cursadas
             </h1>
+
+            <ConfirmModal 
+                isOpen={modalState.isOpen}
+                title={modalState.title}
+                message={modalState.message}
+                confirmType={modalState.confirmType}
+                onConfirm={modalState.onConfirm}
+                onCancel={closeModal}
+            />
 
             {error && (
                 <div className="msg-error" style={{textAlign: 'center', marginTop: '20px', fontSize: '20px'}}>

@@ -3,15 +3,22 @@ import { useEffect, useState, useRef } from "react";
 import { useHistory, useParams } from "react-router-dom";
 import axios from "axios";
 import { useAuth0 } from '@auth0/auth0-react';
+import toast from "react-hot-toast";
 
 // Componentes internos.
 import { PageLayout } from "../components/page-layout";
 import DynamicTable from "../components/dynamic-table";
 import { useSelectedCourse } from "../contexts/course/course-provider.js";
 import SpreadsheetManipulator from "../services/spreadsheet-manipulator.service";
+import { ConfirmModal } from "../components/ConfirmModal.js";
 
 // Estilos.
 import '../styles/search-event.css';
+
+const ERROR_MESSAGES = {
+    "NETWORK_ERROR": "No se pudo conectar con el servidor. Verifique su conexión a internet.",
+    "DEFAULT": "Hubo un problema inesperado al cargar la información del evento."
+};  
 
 export const EventDetail = () => {
 
@@ -31,6 +38,14 @@ export const EventDetail = () => {
     const [tableColumns, setTableColumns] = useState([]);
     const [tableData, setTableData] = useState([]);
 
+    // 
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+    const [modalState, setModalState] = useState({
+        isOpen: false, title: "", message: "", confirmType: "danger", confirmText: "Aceptar", onConfirm: () => {}
+    });
+    const closeModal = () => setModalState(prev => ({ ...prev, isOpen: false }));
+
     /** @type {CourseDTO} */ const course = useSelectedCourse(false);
     const history = useHistory();
     const { eventId } = useParams();
@@ -48,103 +63,53 @@ export const EventDetail = () => {
 
     }, []);
 
-    // Al montar el componente, dispara la búsqueda automáticamente con el
-    // eventId obtenido de la URL.
+    // Búsqueda automáticamente con el eventId obtenido de la URL.
     useEffect(() => {
-
         if (!course) return;
-
         const getEventInfo = async () => {
-
-            // Obtiene el token Auth0.
-            const auth0Token = await getAccessTokenSilently()
-            .catch(error => {
-                throw error;
-            });
-
-            // Realiza la petición al backend.
-            const eventInfoResponse = await axios.get(
+            setLoading(true);
+            setError(null);
+            try {
+                const auth0Token = await getAccessTokenSilently();
+                const eventInfoResponse = await axios.get(
                 `${process.env.REACT_APP_API_SERVER_URL}/api/v1/events/get-event-info?event-id=${eventId}`, 
                 {
                     headers: {
                         Authorization: `Bearer ${auth0Token}`,
                     },
-                }
-            )
-            .catch(error => { 
-                
-                // Obtiene el código y el mensaje de error que se va a mostrar.
-                let errorCode;
-                let errorDescription;
-                if(error.response.data.errorCode === 1) {
-                    errorCode = error.response.data.errorCode;
-                    errorDescription = error.response.data.errorDescription;
+                });
+                const data = eventInfoResponse.data;
+                // Adecúa los valores de asistencia y nota 
+                data.eventRegistersList.forEach((eventRegister) => {
+                    if (data.eventInfo.eventTypeId === 1) {
+                        eventRegister.attendance = eventRegister.attendance ? "Sí" : "No";
+                        delete eventRegister.note;
+                    } else {
+                        if (!eventRegister.attendance) eventRegister.note = "AUSENTE";
+                        delete eventRegister.attendance;
+                    }
+                });
+                setEventInfo(data);
+            } catch (err) {
+                console.error("Error cargando evento:", err);
+                const errorCode = err.response?.data?.errorCode;
+                if (errorCode === 1) {
+                    setError(`Error ${errorCode}: ${err.response.data.errorDescription}`);
+                } else if (err.request) {
+                    setError(ERROR_MESSAGES["NETWORK_ERROR"]);
                 } else {
-                    errorCode = error.code;
-                    errorDescription = error.message;
+                    setError(ERROR_MESSAGES["DEFAULT"]);
                 }
-
-                // Notifica al usuario.
-                alert(
-                    `Código de error ${errorCode}
-                    \nMensaje de error: ${errorDescription}`
-                );
-
-                // Registra el error en el log.
-                console.error(
-                    `Código de error ${errorCode}
-                    \nMensaje de error: ${errorDescription}`
-                );
-
-                return null;
-
-            });
-
-            // Si hubo un error de red o si el código HTTP de la respuesta no es 2XX, termina
-            // la ejecución de la función.
-            if (eventInfoResponse === null) return;
-
-            // #region ==== Adecúa los valores de asistencia y nota, de forma tal que:
-            // - Si el evento es una clase, la asistencia será "Sí" o "No".
-            // - Si el evento es una nota y la asistencia es false, la nota será "AUSENTE". ====
-            
-            // Por cada registro de evento...
-            eventInfoResponse.data.eventRegistersList.forEach((eventRegister) => {
-
-                // Si el evento es una clase, la asistencia será "Sí" o "No", y
-                // se eliminará el campo de nota.
-                if (eventInfoResponse.data.eventInfo.eventTypeId === 1) {
-                    eventRegister.attendance =
-                        eventRegister.attendance
-                        ? "Sí"
-                        : "No";
-                    delete eventRegister.note;
-                }
-                
-                // Si el evento es una nota y el alumno estuvo ausente, la asistencia será "AUSENTE";
-                // si no, se dejará el valor de la nota. De todas formas, se eliminará el campo
-                // de asistencia.
-                else {
-                    if (!eventRegister.attendance) eventRegister.note = "AUSENTE";
-                    delete eventRegister.attendance;
-                }
-
-            });
-            
-            // #endregion ==== Adecúa los valores de asistencia y nota, de forma tal que:
-            // - Si el evento es una clase, la asistencia será "Sí" o "No".
-            // - Si el evento es una nota y la asistencia es false, la nota será "AUSENTE". ====
-
-            setEventInfo(eventInfoResponse.data);
-
+            } finally {
+                setLoading(false);
+            }
         }
         getEventInfo();
+    }, [course, eventId, getAccessTokenSilently]);
 
-    }, [course]);
 
     useEffect(() => { // Genera los datos para la tabla.
         if (eventInfo) {
-
             // Genera el título de la tabla.
             generateEventTitle(
                 eventInfo.eventInfo.eventId,
@@ -154,7 +119,6 @@ export const EventDetail = () => {
                 eventInfo.eventInfo.eventTypeName,
                 eventInfo.eventInfo.obligatory,
             );
-            
             // Genera los nombres de las columnas para la tabla dinámica.
             setTableColumns([
                 { name: 'eventRegisterId', label: 'ID', align: "center", editable: false },
@@ -499,14 +463,12 @@ export const EventDetail = () => {
     // Manejador para la edición de filas.
     const handleRowEdit = async (modifiedRow) => {
         try {
-            
             // Verifica condición final
             const response = await checkIfEventRegisterDossierHasFinalCondition(modifiedRow.id);
             if (response.data === true) {
-                alert('El legajo tiene registrada la condición final. No se puede modificar el registro de evento.');
+                toast.error('El legajo tiene registrada la condición final. No se puede modificar el registro de evento');
                 return false;
             }
-
             if (eventInfo.eventInfo.eventTypeId === 1) {
                 await updateEventRegisterAttendance(
                     modifiedRow.id,
@@ -539,11 +501,11 @@ export const EventDetail = () => {
                 )
             });
 
-            alert("El registro de evento se ha actualizado exitosamente.");
+            toast.success("El registro de evento se ha actualizado exitosamente");
             return true;
 
         } catch (error) {
-            alert(`Código de error ${error.response?.data?.errorCode || error.code}\n${error.response?.data?.errorDescription || error.message}`);
+            toast.error(error.response?.data?.errorDescription || "Error al actualizar el registro");
             console.error(error);
             return false;
         }
@@ -554,27 +516,36 @@ export const EventDetail = () => {
         try {
             const response = await checkIfEventRegisterDossierHasFinalCondition(rowData.id);
             if (response.data === true) {
-                alert('El legajo tiene registrada la condición final. No se puede eliminar el registro de evento.');
+                toast.error('El legajo tiene registrada la condición final. No se puede eliminar el registro de evento');
                 return false;
             }
+            setModalState({
+                isOpen: true,
+                title: "Eliminar registro",
+                message: "¿Estás seguro de que deseas eliminar este registro de evento?",
+                confirmType: "danger",
+                confirmText: "Eliminar",
+                onConfirm: async () => {
+                    closeModal();
+                    try {
+                        await deleteEventRegister(rowData.id);
+                        
+                        setEventInfo(prev => ({
+                            ...prev,
+                            eventRegistersList: prev.eventRegistersList.filter(
+                                register => register.eventRegisterId !== rowData.id
+                            )
+                        }));
 
-            if (!window.confirm("¿Estás seguro de eliminar este registro de evento?")) {
-                return false;
-            }
-
-            await deleteEventRegister(rowData.id);
-            
-            setEventInfo({
-                ...eventInfo,
-                eventRegistersList: eventInfo.eventRegistersList.filter(
-                    register => register.eventRegisterId !== rowData.id
-                )
+                        toast.success("El registro fue eliminado exitosamente");
+                    } catch (error) {
+                        toast.error(error.response?.data?.errorDescription || "Error al eliminar el registro");
+                        console.error(error);
+                    }
+                }
             });
-
-            alert("El registro de evento fue eliminado exitosamente.");
-
         } catch (error) {
-            alert(`Código de error ${error.response.data.errorCode}\n${error.response.data.errorDescription}`);
+            toast.error("Error validando el registro");
             console.error(error);
         }
     };
@@ -586,15 +557,39 @@ export const EventDetail = () => {
             <h1 id="page-title" className="content__title">
                 Detalle de evento
             </h1>
-            {eventInfo && eventInfo.eventRegistersList.length > 0 && (
-                <DynamicTable
-                    tableTitle={eventTitle}
-                    columnHeaders={tableColumns}
-                    tableData={tableData}
-                    handleEditCallback={handleRowEdit}
-                    handleDeleteCallback={handleDelete}
-                    handleExportCallback={handleExport}
-                />
+
+            <ConfirmModal 
+                isOpen={modalState.isOpen}
+                title={modalState.title}
+                message={modalState.message}
+                confirmType={modalState.confirmType}
+                confirmText={modalState.confirmText}
+                onConfirm={modalState.onConfirm}
+                onCancel={closeModal}
+            />
+
+            {error && (
+                <div className="msg-error" style={{textAlign: 'center', margin: '20px 0', fontSize: '20px'}}>
+                    {error}
+                </div>
+            )}
+
+            {loading ? (
+                <div className="modal-loading">
+                    <div className="spinner"></div>
+                    <p style={{fontSize: '20px'}}>Cargando detalle del evento...</p>
+                </div>
+            ) : (
+                eventInfo && eventInfo.eventRegistersList.length > 0 && (
+                    <DynamicTable
+                        tableTitle={eventTitle}
+                        columnHeaders={tableColumns}
+                        tableData={tableData}
+                        handleEditCallback={handleRowEdit}
+                        handleDeleteCallback={handleDelete}
+                        handleExportCallback={handleExport}
+                    />
+                )
             )}
         </PageLayout>
     );

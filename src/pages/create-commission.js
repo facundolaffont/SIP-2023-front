@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useAuth0 } from "@auth0/auth0-react";
 import axios from 'axios';
 import { PageLayout } from "../components/page-layout";
+import toast from "react-hot-toast";
 
 import "../styles/create-entity.css";
 
@@ -25,7 +26,7 @@ export function CreateCommission() {
 
   // ESTADOS: UI
   const [error, setError] = useState(null);
-  const [result, setResult] = useState("");
+  //const [result, setResult] = useState("");
   const [loading, setLoading] = useState(true);
 
 
@@ -104,11 +105,11 @@ export function CreateCommission() {
   // HANDLER: Enviar formulario
   const handleSubmit = async (event) => {
     event.preventDefault();
-    setError(null);
-    setResult("");
+    //setError(null);
+    //setResult("");
 
     if (!isFormValid()) {
-      setError("Por favor, complete todos los campos correctamente");
+      toast.error("Por favor, complete todos los campos correctamente");
       return;
     }
 
@@ -134,7 +135,7 @@ export function CreateCommission() {
       const createdCommission = response.data;
       console.log("Comisión creada exitosamente: ", createdCommission);
       // Si se llego acá, fue exitosa el alta
-      setResult(`Comisión ${createdCommission.numero} creada exitosamente para la asignatura ${createdCommission.nombreAsignatura} (${createdCommission.codigoAsignatura}) de la carrera ${createdCommission.nombreCarrera}`);
+      toast.success(`Comisión ${createdCommission.numero} creada exitosamente para la asignatura ${createdCommission.nombreAsignatura} (${createdCommission.codigoAsignatura}) de la carrera ${createdCommission.nombreCarrera}`);
 
       // Actualizo estado local, agregando la nueva comisión a la lista 
       setCommissionsList(prevCommissions => [
@@ -148,19 +149,22 @@ export function CreateCommission() {
 
     } catch (error) {
       console.error(error);
-      setResult('');
+      //setResult('');
       if (error.response) {
         if (error.response.data && error.response.data.message) {
-          setError(error.response.data.message);
+          //setError(error.response.data.message);
+          toast.error(error.response.data.message);
         } else if (error.response.status === 400) {
-          setError("Los datos enviados son inválidos. Por favor, verifique el formulario.");
+          //setError("Los datos enviados son inválidos. Por favor, verifique el formulario.");
+          toast.error("Los datos enviados son inválidos. Por favor, verifique el formulario.");
         } else {
-          setError(FALLBACK_ERRORS["DEFAULT"]);
+          //setError(FALLBACK_ERRORS["DEFAULT"]);
+          toast.error(FALLBACK_ERRORS["DEFAULT"]);
         }
       } else if (error.request) {
-        setError(FALLBACK_ERRORS["NETWORK_ERROR"]);
+        toast.error(FALLBACK_ERRORS["NETWORK_ERROR"]);
       } else {
-        setError(FALLBACK_ERRORS["DEFAULT"]);
+        toast.error(FALLBACK_ERRORS["DEFAULT"]);
       }
     }
   };
@@ -221,7 +225,7 @@ export function CreateCommission() {
             value={comissionNumber}
             onChange={(e) => {
               setComissionNumber(e.target.value);
-              setResult(""); // Borra el mensaje de éxito
+              //setResult(""); // Borra el mensaje de éxito
               setError(null); // Limpiamos el error visual si el usuario empieza a tipear de nuevo
             }}
             required
@@ -238,7 +242,7 @@ export function CreateCommission() {
         </button>
 
         {error && <p className="msg-error">{error}</p>}
-        {result && <p className="msg-success">{result}</p>}
+        {/* {result && <p className="msg-success">{result}</p>} */}
       </form>
     </PageLayout>
   );

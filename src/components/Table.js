@@ -22,7 +22,7 @@ export const Table = ({
 
     return (
         <div className="table-container">
-            <table className="events-table">
+            <table className="react-data-table">
                 <thead>
                     {/* (A) Título de la tabla si fue especificado */}
                     {title && (

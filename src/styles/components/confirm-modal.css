@@ -1,0 +1,81 @@
+/*ESTILOS PARA EL MODAL NATIVO <dialog>*/
+
+.custom-dialog {
+    padding: 0;
+    border: 1px solid var(--aluminium);
+    border-radius: 8px;
+    background-color: var(--dark-aluminium);
+    color: var(--white);
+    font-family: var(--font-primary);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
+    max-width: 450px;
+    width: 90%; 
+}
+
+.custom-dialog::backdrop {
+    background-color: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px); 
+}
+
+.dialog-content {
+    padding: 24px;
+}
+
+.dialog-title {
+    margin-top: 0;
+    margin-bottom: 16px;
+    color: var(--white);
+}
+
+.dialog-message {
+    color: var(--light-aluminium);
+    font-size: 16px;
+    line-height: 1.5;
+}
+
+.dialog-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 32px;
+}
+
+.btn-modal {
+    padding: 10px 20px;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-cancel {
+    background-color: transparent;
+    border: 1px solid var(--aluminium);
+    color: var(--white);
+}
+
+.btn-cancel:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.btn-danger {
+    background-color: var(--orange);
+    border: 1px solid var(--orange);
+    color: var(--white);
+}
+
+.btn-danger:hover {
+    background-color: transparent;
+    color: var(--orange);
+}
+
+.btn-primary {
+    background-color: var(--emerald);
+    border: 1px solid var(--emerald);
+    color: var(--white);
+}
+
+.btn-primary:hover {
+    background-color: transparent;
+    color: var(--emerald);
+}

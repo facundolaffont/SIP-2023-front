@@ -5,6 +5,8 @@ import { useHistory } from 'react-router-dom';
 import { PageLayout } from "../components/page-layout";
 import { useSelectedCourse } from "../contexts/course/course-provider.js";
 import CourseDTO from "../contexts/course/course-d-t-o";
+import toast from "react-hot-toast";
+import { ConfirmModal } from "../components/ConfirmModal";
 
 // Diccionario de errores siguiendo tu estándar
 const ERROR_MESSAGES = {
@@ -24,8 +26,17 @@ export function AttendanceMassiveElimination() {
     const [loadingEvents, setLoadingEvents] = useState(true);
     const [isLoadingCount, setIsLoadingCount] = useState(false);
     const [error, setError] = useState(null);
-    const [showOverwriteModal, setShowOverwriteModal] = useState(false);
     const { getAccessTokenSilently } = useAuth0();
+
+    // Estado para controlar el modal de forma centralizada
+    const [modalState, setModalState] = useState({
+        isOpen: false,
+        title: "",
+        message: "",
+        confirmType: "danger",
+        onConfirm: () => {}
+    });
+    const closeModal = () => setModalState(prev => ({ ...prev, isOpen: false }));
 
     /** @type {CourseDTO} */ const course = useSelectedCourse(false);
     const history = useHistory();
@@ -74,8 +85,6 @@ export function AttendanceMassiveElimination() {
 
     // EFECTO: Buscar la cantidad de registros cuando cambia el evento seleccionado
     useEffect(() => {
-        setError(null);
-
         if (!sourceEventId) {
             setRegistersCount(null);
             return;
@@ -98,7 +107,7 @@ export function AttendanceMassiveElimination() {
                 }
             } catch (err) {
                 console.error("Error cargando cantidad de registros:", err);
-                setError("No se pudo obtener la información del evento seleccionado.");
+                toast.error("No se pudo obtener la cantidad de asistencias de la clase");
                 setRegistersCount(null);
             } finally {
                 setIsLoadingCount(false);
@@ -117,37 +126,58 @@ export function AttendanceMassiveElimination() {
 
     // HANDLER: Eliminar masivamente
     const handleDeleteAll = async () => {
-        if (!window.confirm(`ATENCIÓN: ¿Está seguro que desea eliminar TODAS las asistencias de esta clase/evento? Esta acción es irreversible.`)) return;
         
-        setError(null);
-
-        try {
-            const auth0Token = await getAccessTokenSilently();
-            await axios.delete(`${process.env.REACT_APP_API_SERVER_URL}/api/v1/events/delete-all-registers`, {
-                params: { 'event-id': sourceEventId },
-                headers: { Authorization: `Bearer ${auth0Token}` }
-            });
+        setModalState({
+            isOpen: true,
+            title: "Eliminar asistencias masivamente",
+            message: `¿Está seguro de que desea eliminar las asistencias (${registersCount}) de esta clase? Esta acción no se puede deshacer`,
+            confirmType: "danger",
+            confirmText: "Sí, Eliminar",
+            onConfirm: async () => {
+                closeModal();
+                
+                try {
+                    const auth0Token = await getAccessTokenSilently();
+                    await axios.delete(`${process.env.REACT_APP_API_SERVER_URL}/api/v1/events/delete-all-registers`, {
+                        params: { 'event-id': sourceEventId },
+                        headers: { Authorization: `Bearer ${auth0Token}` }
+                    });
+                    setRegistersCount(0);
+                    toast.success("Asistencias eliminadas correctamente");
+                } catch (err) {
+                    console.error("Error eliminando asistencias:", err);
             
-            setRegistersCount(0);
-            alert("Asistencias eliminadas correctamente.");
-            
-        } catch (err) {
-            console.error("Error eliminando asistencias:", err);
-            
-            if (err.response && err.response.data && err.response.data.message) {
-                setError(err.response.data.message);
-            } else if (err.request) {
-                setError(ERROR_MESSAGES["NETWORK_ERROR"]);
-            } else {
-                setError(ERROR_MESSAGES["DEFAULT"]);
+                    if (err.response && err.response.data && err.response.data.message) {
+                        toast.error(err.response.data.message);
+                    } else if (err.request) {
+                        toast.error(ERROR_MESSAGES["NETWORK_ERROR"]);
+                    } else {
+                        toast.error(ERROR_MESSAGES["DEFAULT"]);
+                    }
+                }
             }
-        }
+        })
     };
 
-    // HANDLER: Transferir masivamente
-    const handleTransfer = async (forceOverwrite = false) => {
-        setError(null);
+    // Manejador de click en Transferir
+    const handleTransferClick = () => {
+        const targetEvent = events.find(ev => String(ev.eventId) === String(targetEventId));
+        const targetLabel = targetEvent ? buildEventLabel(targetEvent) : `ID ${targetEventId}`;
+        setModalState({
+            isOpen: true,
+            title: "Tansferencia de asistencias",
+            message: `Vas a transferir las ${registersCount} asistencias de la clase origen hacia la clase destino: "${targetLabel}". ¿Desea continuar?`,
+            confirmType: "primary",
+            confirmText: "Transferir",
+            onConfirm: () => {
+                closeModal();
+                executeTransfer(false); 
+            }
+        });
+    };
 
+    // Ejecutor asíncrono: Habla con el backend y maneja el conflicto si hay registros en el evento destino
+    const executeTransfer = async (forceOverwrite = false) => {
         try {
             const auth0Token = await getAccessTokenSilently();
             await axios.post(`${process.env.REACT_APP_API_SERVER_URL}/api/v1/events/transfer-all-registers`, 
@@ -158,9 +188,9 @@ export function AttendanceMassiveElimination() {
                 },
                 { headers: { Authorization: `Bearer ${auth0Token}` } }
             );
+            toast.success("Las asistencias se transfirieron correctamente");
             
-            alert("Las asistencias se transfirieron correctamente.");
-            setShowOverwriteModal(false);
+            // Limpiamos el formulario tras el éxito
             setSourceEventId("");
             setTargetEventId("");
             setRegistersCount(null);
@@ -168,20 +198,31 @@ export function AttendanceMassiveElimination() {
         } catch (err) {
             console.error("Error transfiriendo asistencias:", err);
 
-            if (err.response?.status === 409 && err.response?.data?.errorCode === 3) {
-                setShowOverwriteModal(true);
+            // ⚠️ SI HAY CONFLICTO (Código 409 y errorCode 3):
+            if (!forceOverwrite && err.response?.status === 409 && err.response?.data?.errorCode === 3) {
+                setModalState({
+                    isOpen: true,
+                    title: "⚠️ Conflicto de Transferencia",
+                    message: "La clase destino ya contiene asistencias registradas. Si continuás, los registros actuales del destino se borrarán permanentemente y serán reemplazados por los de origen. ¿Querés forzar la sobrescritura?",
+                    confirmType: "danger",
+                    confirmText: "Sí, Sobrescribir",
+                    onConfirm: () => {
+                        closeModal();
+                        executeTransfer(true); // Se vuelve a llamar a sí misma pero ahora para sobreescribir
+                    }
+                });
             } else if (err.response && err.response.data && err.response.data.message) {
-                setError(err.response.data.message);
+                toast.error(err.response.data.message);
             } else if (err.request) {
-                setError(ERROR_MESSAGES["NETWORK_ERROR"]);
+                toast.error(ERROR_MESSAGES["NETWORK_ERROR"]);
             } else {
-                setError(ERROR_MESSAGES["DEFAULT"]);
+                toast.error(ERROR_MESSAGES["DEFAULT"]);
             }
         }
-    };
+    }
 
     // Variable derivada para bloquear los botones si está cargando o no hay registros
-    const isActionsDisabled = registersCount === 0 || isLoadingCount;
+    const isActionsDisabled = registersCount === null || registersCount === 0 || isLoadingCount;
 
     return (
         <PageLayout>
@@ -189,6 +230,16 @@ export function AttendanceMassiveElimination() {
             <h2 className="selected-course-info">
                 {course && `Cursada seleccionada: (${course.getSubjectCode()}) ${course.getSubject()}, comisión ${course.getCommission()}`}
             </h2>
+
+            <ConfirmModal 
+                isOpen={modalState.isOpen}
+                title={modalState.title}
+                message={modalState.message}
+                confirmType={modalState.confirmType}
+                confirmText={modalState.confirmText}
+                onConfirm={modalState.onConfirm}
+                onCancel={closeModal}
+            />
 
             {error && (
                 <div className="msg-error" style={{textAlign: 'center', margin: '20px 0', fontSize: '20px'}}>
@@ -225,7 +276,7 @@ export function AttendanceMassiveElimination() {
                                     <p>Calculando registros...</p>
                                 </div>
                             ) : (
-                                <p>Esta clase contiene <strong>{registersCount} asistencias</strong> registradas.</p>
+                                <p>Asistencias registradas: <strong>{registersCount !== null ? registersCount : "Desconocido"}</strong></p>
                             )}
                             
                             <button 
@@ -265,36 +316,10 @@ export function AttendanceMassiveElimination() {
                                 type="button" 
                                 className={`transfer-button ${(!targetEventId || isActionsDisabled) ? "disabled" : ""}`} 
                                 disabled={!targetEventId || isActionsDisabled} 
-                                onClick={() => handleTransfer(false)}
+                                onClick={handleTransferClick}
                             >
                                 Transferir Asistencias
                             </button>
-
-                            {showOverwriteModal && (
-                                <div style={{ marginTop: '20px', paddingTop: '20px', borderTop: '1px solid #ccc' }}>
-                                    <h3 style={{ color: '#856404', marginBottom: '10px' }}>⚠️ Conflicto de Transferencia</h3>
-                                    <p>La clase destino ya contiene asistencias registradas.</p>
-                                    <p>¿Desea <strong>eliminar</strong> los registros actuales del destino y <strong>sobrescribirlos</strong> con las asistencias de la clase origen?</p>
-                                    
-                                    <div className="modal-actions" style={{ marginTop: '15px' }}>
-                                        <button 
-                                            type="button" 
-                                            className="confirm-button" 
-                                            onClick={() => handleTransfer(true)}
-                                            style={{ backgroundColor: '#dc3545', color: 'white', marginRight: '10px', border: 'none', padding: '10px 15px', borderRadius: '4px', cursor: 'pointer' }}
-                                        >
-                                            Sí, Sobrescribir
-                                        </button>
-                                        <button 
-                                            type="button" 
-                                            className="cancel-button" 
-                                            onClick={() => setShowOverwriteModal(false)}
-                                        >
-                                            Cancelar
-                                        </button>
-                                    </div>
-                                </div>
-                            )}
 
                         </div>
                     )}

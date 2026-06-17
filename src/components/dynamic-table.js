@@ -1,6 +1,7 @@
 // Imports externos.
 import PropTypes from 'prop-types';
 import { useState, useRef, useEffect } from 'react';
+import toast from "react-hot-toast"
 
 // Estilos.
 import '../styles/dynamic-table.css';
@@ -208,7 +209,7 @@ const DynamicTable = ({
             cell.value === originalRow.values.find(
                 value => value.columnName === cell.columnName
             ).value)) {
-                alert('No hubo cambios en la fila.');
+                toast('No hubo cambios en la fila');
                 return;
         }
 

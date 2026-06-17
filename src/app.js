@@ -3,6 +3,7 @@ import { useAuth0 } from "@auth0/auth0-react";
 import { useState, useEffect } from "react";
 import { Route, Switch } from "react-router-dom";
 import { Helmet } from 'react-helmet';
+import { Toaster, ToastBar, toast } from 'react-hot-toast';
 
 // Componentes internos.
 import { PageLoader } from "./components/page-loader";
@@ -101,6 +102,74 @@ export const App = () => {
                 <meta property="og:description" content="Sistema para la Gestión de Asignaturas." />
                 <meta property="og:url" content="https://spgda.fl.com.ar/" />
             </Helmet>
+            
+            <Toaster 
+                position="bottom-center"
+                toastOptions={{
+                    duration: 4000,
+                    style: {
+                        fontFamily: 'var(--font-primary)',
+                        fontSize: '18px',     
+                        padding: '16px 24px', 
+                        maxWidth: '600px', 
+                        borderRadius: '8px',
+                        boxShadow: '0 8px 24px rgba(0, 0, 0, 0.5)',
+                    },
+                    // Toast de Éxito
+                    success: {
+                        style: {
+                            color: '#155724',
+                            background: '#d4edda',
+                            border: '1px solid #c3e6cb',
+                        },
+                        iconTheme: {
+                            primary: '#155724',
+                            secondary: '#d4edda',
+                        },
+                    },
+                    // Toast de Error
+                    error: {
+                        style: {
+                            color: '#dc3545',
+                            background: '#f8d7da',
+                            border: '1px solid #f5c6cb',
+                        },
+                        iconTheme: {
+                            primary: '#dc3545',
+                            secondary: '#f8d7da',
+                        },
+                    },
+                    blank: {
+                        icon: 'ℹ️',
+                        style: {
+                            color: '#004085',
+                            background: '#cce5ff',
+                            border: '1px solid #b8daff',
+                        },
+                    }
+                }}
+            >
+                {(t) => (
+                    <ToastBar toast={t}>
+                        {({ icon, message }) => (
+                            <>
+                                {icon}
+                                {message}
+                                {t.type !== 'loading' && (
+                                    <button 
+                                        className="toast-close-btn" 
+                                        onClick={() => toast.dismiss(t.id)}
+                                        title="Cerrar"
+                                    >
+                                        ✕
+                                    </button>
+                                )}
+                            </>
+                        )}
+                    </ToastBar>
+                )}
+            </Toaster>
+
             <Switch>
                 
                 {/* Rutas públicas. */}
@@ -119,7 +188,7 @@ export const App = () => {
                 {isProfessor && <ProtectedRoute path="/final-condition" component={FinalCondition} />}
                 {isProfessor && <ProtectedRoute path="/modificate-criterion" component={ModificateCriterion} />}
                 {isProfessor && <ProtectedRoute path="/search-student" component={SearchStudent} />}
-                {isProfessor && <ProtectedRoute path="/search-event" component={SearchEvent} />}
+                {/*isProfessor && <ProtectedRoute path="/search-event" component={SearchEvent} />*/}
                 {isProfessor && <ProtectedRoute path="/show-all-events-registers" component={ShowAllEventsRegisters} />}
                 {isProfessor && <ProtectedRoute path="/create-criterion" component={CreateCriterion} />}
                 {isProfessor && <ProtectedRoute path="/list-course-students" component={ListCourseStudents} />}

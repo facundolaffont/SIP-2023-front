@@ -135,3 +135,31 @@ button {
     line-height: 1.6rem;
   }
 }
+
+
+
+/*ESTILOS PARA EL BOTÓN DE CERRAR DEL TOAST*/
+.toast-close-btn {
+    all: unset;
+    cursor: pointer;
+    margin-left: 12px;
+    font-size: 18px; 
+    
+    
+    color: rgba(0, 0, 0, 0.4); 
+    
+    width: 24px;
+    height: 24px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px; 
+    background-color: transparent !important; 
+    transition: color 0.2s ease, transform 0.1s ease;
+}
+
+.toast-close-btn:hover {
+    color: rgba(0, 0, 0, 0.8);
+    transform: scale(1.1);
+    background-color: transparent !important; 
+}

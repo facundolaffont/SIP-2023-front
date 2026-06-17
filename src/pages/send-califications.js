@@ -3,14 +3,21 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useAuth0 } from '@auth0/auth0-react';
 import { useHistory } from 'react-router-dom';
+import toast from "react-hot-toast";
 
 // Imports de componentes internos.
 import { PageLayout } from "../components/page-layout";
 import { useSelectedCourse } from "../contexts/course/course-provider.js";
 import CourseDTO from "../contexts/course/course-d-t-o";
+import { ConfirmModal } from "../components/ConfirmModal";
 
 // Imports de estilos.
 import '../styles/send-califications.css';
+
+const ERROR_MESSAGES = { 
+    "NETWORK_ERROR": "No se pudo conectar con el servidor. Verifique su conexión a internet.", 
+    "DEFAULT": "Hubo un problema inesperado." 
+};
 
 export function SendCalifications() {
 
@@ -25,6 +32,16 @@ export function SendCalifications() {
     // Estado de envío por evento: { [eventId]: 'idle' | 'sending' | 'sent' | 'error' }
     const [sendingState, setSendingState] = useState({});
 
+    const [modalState, setModalState] = useState({ 
+        isOpen: false, 
+        title: "", 
+        message: "", 
+        confirmType: "danger", 
+        confirmText: "Aceptar", 
+        onConfirm: () => {} 
+    });
+    const closeModal = () => setModalState(prev => ({ ...prev, isOpen: false }));
+
     // Redirige si no hay cursada seleccionada.
     useEffect(() => {
         if (!course) history.push('/profile?course-missing');
@@ -35,6 +52,8 @@ export function SendCalifications() {
         if (!course) return;
 
         const fetchSummary = async () => {
+            setLoading(true);
+            setError(null);
             try {
                 setLoading(true);
                 const auth0Token = await getAccessTokenSilently();
@@ -49,7 +68,11 @@ export function SendCalifications() {
 
                 setSummary(response.data);
             } catch (err) {
-                setError("Hubo un error al cargar la información. Por favor, contactarse con Soporte Técnico.");
+                if (!err.response) {
+                    setError(ERROR_MESSAGES.NETWORK_ERROR);
+                } else {
+                    setError(ERROR_MESSAGES.DEFAULT);
+                }
             } finally {
                 setLoading(false);
             }
@@ -62,24 +85,38 @@ export function SendCalifications() {
      * Envía las calificaciones por email para un evento específico,
      * previa confirmación del usuario.
      */
-    const handleSendEmails = async (eventId, eventName) => {
-        if (!window.confirm(`¿Estás seguro de que deseas enviar las calificaciones por email a los alumnos del evento "${eventName}"?`)) return;
-
-        setSendingState(prev => ({ ...prev, [eventId]: 'sending' }));
-        try {
-            const auth0Token = await getAccessTokenSilently();
-            await axios.post(
-                `${process.env.REACT_APP_API_SERVER_URL}/api/v1/course/send-grades-email`,
-                null,
-                {
-                    params: { 'event-id': eventId },
-                    headers: { Authorization: `Bearer ${auth0Token}` },
+    const handleSendEmails = (eventId, eventName) => {
+        setModalState({
+            isOpen: true,
+            title: "Enviar calificaciones",
+            message: `¿Estás seguro de que deseas enviar las calificaciones por email a los alumnos del evento "${eventName}"?`,
+            confirmType: "primary",
+            confirmText: "Enviar",
+            onConfirm: async () => {
+                closeModal();
+                setSendingState(prev => ({ ...prev, [eventId]: 'sending' }));
+                try {
+                    const auth0Token = await getAccessTokenSilently();
+                    await axios.post(
+                        `${process.env.REACT_APP_API_SERVER_URL}/api/v1/course/send-grades-email`,
+                        null,
+                        {
+                            params: { 'event-id': eventId },
+                            headers: { Authorization: `Bearer ${auth0Token}` },
+                        }
+                    );
+                    setSendingState(prev => ({ ...prev, [eventId]: 'sent' }));
+                    toast.success("El envío de calificaciones fue iniciado correctamente. Los alumnos con email registrado recibirán su calificación en breve.");
+                } catch (err) {
+                    setSendingState(prev => ({ ...prev, [eventId]: 'error' }));
+                    if (!err.response) {
+                        toast.error(ERROR_MESSAGES.NETWORK_ERROR);
+                    } else {
+                        toast.error(ERROR_MESSAGES.DEFAULT);
+                    }
                 }
-            );
-            setSendingState(prev => ({ ...prev, [eventId]: 'sent' }));
-        } catch (err) {
-            setSendingState(prev => ({ ...prev, [eventId]: 'error' }));
-        }
+            }
+        });
     };
 
     const formatDate = (dateStr) => {
@@ -100,11 +137,19 @@ export function SendCalifications() {
                 {course === null && 'Sin cursada seleccionada'}
             </h2>
 
+            <ConfirmModal 
+                isOpen={modalState.isOpen}
+                title={modalState.title}
+                message={modalState.message}
+                confirmType={modalState.confirmType}
+                confirmText={modalState.confirmText}
+                onConfirm={modalState.onConfirm}
+                onCancel={closeModal}
+            />
+
             {error && (
-                <div className="info-msg-container">
-                    <div className="info-msg-desc-container">
-                        <p className="info-msg-description">{error}</p>
-                    </div>
+                <div className="msg-error" style={{textAlign: 'center', marginTop: '20px', fontSize: '20px'}}>
+                    {error}
                 </div>
             )}
 
