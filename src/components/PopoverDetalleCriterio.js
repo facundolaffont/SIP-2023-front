@@ -28,38 +28,71 @@ export const PopoverDetalleCriterio = ({ detalle }) => {
       {open && (
         <div className="popover-box">
           {detalle.Criterio && ( <h4 className="popover-title">Criterio: {detalle.Criterio}</h4>)}
-          {detalle.PresenciasAlumno !== undefined && <p><strong>Presencias:</strong> {detalle.PresenciasAlumno}</p>}
-          {detalle.CantidadEventos !== undefined && <p><strong>Eventos:</strong> {detalle.CantidadEventos}</p>}
-          {detalle.PorcentajeAsistencias !== undefined && <p><strong>Porcentaje:</strong> {detalle.PorcentajeAsistencias}%</p>}
 
-          {detalle.CantidadTPsAprobados !== undefined && <p><strong>TPs aprobados:</strong> {detalle.CantidadTPsAprobados}</p>}
-          {detalle.CantidadTPs !== undefined && <p><strong>Cantidad de TPs:</strong> {detalle.CantidadTPs}</p>}
-          {detalle.PorcentajeTPsAprobados !== undefined && <p><strong>Porcentaje:</strong> {detalle.PorcentajeTPsAprobados}%</p>}
+          {detalle.Criterio === "Asistencias" && (
+            <>
+              <p><strong>Presencias:</strong> {detalle.PresenciasAlumno}</p>
+              <p><strong>Cantidad de clases:</strong> {detalle.CantidadEventos}</p>
+              <p><strong>Porcentaje:</strong>{detalle.PorcentajeAsistencias}%</p>
+            </>
+          )}
 
-          {detalle.CantidadTPsRecuperadosAlumno !== undefined && <p><strong>TPs recuperados:</strong> {detalle.CantidadTPsRecuperadosAlumno}</p>}
-          {detalle.CantidadTPsRecuperados !== undefined && <p><strong>Cantidad de recuperatorios de TPs:</strong> {detalle.CantidadTPsRecuperados}</p>}
-          {detalle.PorcentajeTPsRecuperados !== undefined && <p><strong>Porcentaje:</strong> {detalle.PorcentajeTPsRecuperados}%</p>}
+          {detalle.Criterio === "Trabajos prácticos aprobados" && (
+            <>
+              <p><strong>TPs aprobados (contando recuperatorios):</strong> {detalle.CantidadTPsAprobados}</p>
+              <p><strong>Cantidad de TPs:</strong> {detalle.CantidadTPs}</p>
+              <p><strong>Porcentaje:</strong> {detalle.PorcentajeTPsAprobados}%</p>
+            </>
+          )}
 
-          {detalle.CantidadParcialesRecuperadosAlumno !== undefined && <p><strong>Parciales recuperados:</strong> {detalle.CantidadParcialesRecuperadosAlumno}</p>}
-          {detalle.CantidadParcialesRecuperados !== undefined && <p><strong>Cantidad de recuperatorios de parciales:</strong> {detalle.CantidadParcialesRecuperados}</p>}
-          {detalle.PorcentajeParcialesRecuperados !== undefined && <p><strong>Porcentaje:</strong> {detalle.PorcentajeParcialesRecuperados}%</p>}
+          {detalle.Criterio === "Trabajos prácticos recuperados" && (
+            <>
+              <p><strong>TPs recuperados:</strong> {detalle.CantidadTPsRecuperadosAlumno}</p>
+              <p><strong>Cantidad de TPs:</strong> {detalle.CantidadTPs}</p>
+              <p><strong>Porcentaje:</strong> {detalle.PorcentajeTPsRecuperados}%</p>
+            </>
+          )}
 
-          {detalle.CantidadParcialesAprobadosAlumno !== undefined && <p><strong>Parciales aprobados:</strong> {detalle.CantidadParcialesAprobadosAlumno}</p>}
-          {detalle.CantidadParciales !== undefined && <p><strong>Cantidad de parciales:</strong> {detalle.CantidadParciales}</p>}
-          {detalle.PorcentajeParcialesAprobados !== undefined && <p><strong>Porcentaje:</strong> {detalle.PorcentajeParcialesAprobados}%</p>}
+          {detalle.Criterio === "Parciales aprobados" && (
+            <>
+              <p><strong>Parciales aprobados (contando recuperatorios):</strong> {detalle.CantidadParcialesAprobadosAlumno}</p>
+              <p><strong>Cantidad de parciales:</strong> {detalle.CantidadParciales}</p>
+              <p><strong>Porcentaje:</strong> {detalle.PorcentajeParcialesAprobados}%</p>
+            </>
+          )}
 
-          {detalle.PromedioParciales !== undefined && <p><strong>Promedio de parciales:</strong> {detalle.PromedioParciales}</p>}
+          {detalle.Criterio === "Parciales recuperados" && (
+            <>
+              <p><strong>Parciales recuperados:</strong> {detalle.CantidadParcialesRecuperadosAlumno}</p>
+              <p><strong>Cantidad de parciales:</strong> {detalle.CantidadParciales}</p>
+              <p><strong>Porcentaje:</strong> {detalle.PorcentajeParcialesRecuperados}%</p>
+            </>
+          )}
 
-          {detalle.CantidadAEAprobadasAlumno !== undefined && <p><strong>Autoevaluaciones aprobados:</strong> {detalle.CantidadAEAprobadasAlumno}</p>}
-          {detalle.CantidadAEs !== undefined && <p><strong>Cantidad de Autoevaluaciones:</strong> {detalle.CantidadAEs}</p>}
-          {detalle.PorcentajeAEAprobadas !== undefined && <p><strong>Porcentaje:</strong> {detalle.PorcentajeAEAprobadas}%</p>}
+          {detalle.Criterio === "Autoevaluaciones aprobadas" && (
+            <>
+              <p><strong>Autoevaluaciones aprobadas (contando recuperatorios):</strong> {detalle.CantidadAEAprobadasAlumno}</p>
+              <p><strong>Cantidad de Autoevaluaciones:</strong> {detalle.CantidadAEs}</p>
+              <p><strong>Porcentaje:</strong> {detalle.PorcentajeAEAprobadas}%</p>
+            </>
+          )}
 
-          {detalle.CantidadAERecuperadasAlumno !== undefined && <p><strong>Autoevaluaciones recuperadas:</strong> {detalle.CantidadAERecuperadasAlumno}</p>}
-          {detalle.CantidadAEs !== undefined && <p><strong>Cantidad de Autoevaluaciones:</strong> {detalle.CantidadAEs}</p>}
-          {detalle.PorcentajeAERecuperadas !== undefined && <p><strong>Porcentaje:</strong> {detalle.PorcentajeAERecuperadas}%</p>}
+          
+          {detalle.Criterio === "Autoevaluaciones recuperadas" && (
+            <>
+              <p><strong>Autoevaluaciones recuperadas:</strong> {detalle.CantidadAERecuperadasAlumno}</p>
+              <p><strong>Cantidad de Autoevaluaciones:</strong> {detalle.CantidadAEs}</p>
+              <p><strong>Porcentaje:</strong> {detalle.PorcentajeAERecuperadas}%</p>
+            </>
+          )}
 
-          {detalle.NotaIntegrador !== undefined && <p><strong>Nota:</strong> {detalle.NotaIntegrador}</p>}
+          {detalle.Criterio === "Promedio de parciales" && (
+            <p><strong>Promedio de parciales (contando recuperatorios aprobados):</strong> {detalle.PromedioParciales}</p>
+          )}
 
+          {detalle.Criterio === "Integrador aprobado" && (
+            <p><strong>Nota:</strong> {detalle.NotaIntegrador}</p>
+          )}
         </div>
       )}
     </div>

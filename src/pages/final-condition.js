@@ -514,6 +514,11 @@ export const FinalCondition = () => {
                                         else if (condition === "P") cellClassName = "green-cell";   // Si el contenido es P, aplicamos la clase "green-cell"
                                         else if (condition === "N/A") cellClassName = "common-cell";
 
+                                        let tooltipInfo = "";
+                                        if (condition === "N/A" && criteria.criteria.name === "Promedio de parciales") {
+                                            tooltipInfo = "Promedio anulado por contener calificaciones no numéricas (Ej: A, A-, D)";
+                                        }
+
                                         let textoMostrar = condition;
 
                                         if (detalleObj) {
@@ -543,7 +548,7 @@ export const FinalCondition = () => {
                                                 ))}
 
                                                 {/* B. Celda de CONDICIÓN (Con Popover) */}
-                                                <td className={cellClassName}>
+                                                <td className={cellClassName} title={tooltipInfo}>
                                                     {textoMostrar}
                                                     <PopoverDetalleCriterio detalle={detalleObj} />
                                                 </td>
