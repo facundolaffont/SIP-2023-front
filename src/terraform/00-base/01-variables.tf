@@ -10,7 +10,7 @@ variable "zone" {
 
 variable "project_id" {
   type    = string
-  default = "project-1468504d-445e-406d-838"
+  default = "project-dd228640-36e2-42f9-b2c"
 }
 
 variable "credentials_file_path" {
