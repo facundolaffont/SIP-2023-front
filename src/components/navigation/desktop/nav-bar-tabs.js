@@ -16,6 +16,7 @@ export const NavBarTabs = () => {
     const [showCourseManagementDropdown, setShowCourseManagementDropdown] = useState(false);
     const [showComissionManagementDropdown, setShowComissionManagementDropdown] = useState(false);
     const [showSubjectManagementDropdown, setShowSubjectManagementDropdown] = useState(false);
+    const [showGroupsManagementDropdown, setShowGroupsManagementDropdown] = useState(false);
     const [dropdownTopStyle, setDropdownTopStyle] = useState(0);
 
     // Determina el rol del usuario.
@@ -104,7 +105,15 @@ export const NavBarTabs = () => {
                                     />*/}
                                     <NavBarTab
                                         path="/register-califications"
-                                        label="Registrar/Sobreescribir calificaciones"
+                                        label="Registrar/sobrescribir calificaciones individuales"
+                                    />
+                                    <NavBarTab
+                                        path="/register-group-califications"
+                                        label="Registrar/sobrescribir calificaciones por grupos"
+                                    />
+                                    <NavBarTab
+                                        path="/register-groups"
+                                        label="Registrar/Sobreescribir grupos de estudiantes"
                                     />
                                 </div>
                             )}
@@ -172,6 +181,10 @@ export const NavBarTabs = () => {
                                     <NavBarTab
                                         path="/send-califications"
                                         label="Envío de calificaciones"
+                                    />
+                                    <NavBarTab
+                                        path="/list-student-groups"
+                                        label="Grupos de estudiantes"
                                     />
                                     {/*<NavBarTab
                                         path="/list-events-attendance"

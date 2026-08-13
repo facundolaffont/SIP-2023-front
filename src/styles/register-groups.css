@@ -1,0 +1,42 @@
+/* ============================================================
+   ESTILOS PARA PÁGINA DE REGISTRO DE GRUPOS DE ESTUDIANTES
+   ============================================================ */
+
+.without-group-warning {
+    background-color: #fff3cd;
+    border: 1px solid #ffc107;
+    border-radius: 4px;
+    padding: 10px 16px;
+    margin: 12px 0;
+}
+
+.warning-text {
+    margin: 0;
+    color: #856404;
+    font-size: 14px;
+}
+
+.duplicated-students-table-container {
+    margin: 12px 0;
+}
+
+.duplicated-students-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.duplicated-students-table thead td {
+    background-color: #f0f0f0;
+    font-weight: bold;
+    padding: 6px 10px;
+    border: 1px solid #ddd;
+}
+
+.duplicated-students-table tbody td {
+    padding: 4px 10px;
+    border: 1px solid #ddd;
+}
+
+.duplicated-students-table .even-row {
+    background-color: #f9f9f9;
+}

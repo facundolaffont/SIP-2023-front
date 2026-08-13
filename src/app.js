@@ -49,7 +49,10 @@ import { ListProfessors } from "./pages/list-professors";
 import { SendCalifications } from "./pages/send-califications";
 import { CalificationsMassiveElimination } from "./pages/massive-eliminate-califications";
 import { AttendanceMassiveElimination } from "./pages/massive-eliminate-attendance";
-
+import { GroupRegistering } from "./pages/register-groups";
+import { GroupCalificationRegistering } from "./pages/register-group-califications";
+import { ListStudentGroups } from "./pages/list-student-groups";
+import { ModificateGroup } from "./pages/modificate-group";
 export const App = () => {
     const { isLoading, isAuthenticated, getIdTokenClaims } = useAuth0();
     const [isSuperAdmin, setIsSuperAdmin] = useState(false);
@@ -183,8 +186,12 @@ export const App = () => {
                 {isProfessor && <ProtectedRoute path="/register-bulk-attendance" component={BulkAttendanceRegistering} />}
                 {isProfessor && <ProtectedRoute path="/register-course-attendance" component={CourseAttendanceRegistering} />}
                 {isProfessor && <ProtectedRoute path="/register-califications" component={CalificationRegistering} />}
+                {isProfessor && <ProtectedRoute path="/register-group-califications" component={GroupCalificationRegistering} />}
                 {isProfessor && <ProtectedRoute path="/register-students" component={StudentRegistering} />}
                 {isProfessor && <ProtectedRoute path="/register-events-bulk" component={EventsBulkRegistering} />}
+                {isProfessor && <ProtectedRoute path="/register-groups" component={GroupRegistering} />}
+                {isProfessor && <ProtectedRoute path="/list-student-groups" component={ListStudentGroups} />}
+                {isProfessor && <ProtectedRoute path="/modificate-group/:groupId" component={ModificateGroup} />}
                 {isProfessor && <ProtectedRoute path="/final-condition" component={FinalCondition} />}
                 {isProfessor && <ProtectedRoute path="/modificate-criterion" component={ModificateCriterion} />}
                 {isProfessor && <ProtectedRoute path="/search-student" component={SearchStudent} />}
