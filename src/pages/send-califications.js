@@ -10,6 +10,7 @@ import { PageLayout } from "../components/page-layout";
 import { useSelectedCourse } from "../contexts/course/course-provider.js";
 import CourseDTO from "../contexts/course/course-d-t-o";
 import { ConfirmModal } from "../components/ConfirmModal";
+import { EmptyState } from "../components/EmptyState";
 
 // Imports de estilos.
 import '../styles/send-califications.css';
@@ -171,7 +172,7 @@ export function SendCalifications() {
 
                     {/* Listado de eventos */}
                     {summary.events.length === 0 ? (
-                        <p className="send-cal__no-events">No hay eventos de evaluación registrados para esta cursada.</p>
+                        <EmptyState message="No hay eventos de evaluación registrados para esta cursada." />
                     ) : (
                         <div className="send-cal__events-grid">
                             {summary.events.map(event => {

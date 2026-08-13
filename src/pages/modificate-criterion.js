@@ -7,6 +7,7 @@ import { useHistory } from 'react-router-dom';
 // Imports internos.
 import { PageLayout } from "../components/page-layout";
 import { useSelectedCourse } from "../contexts/course/course-provider.js";
+import { EmptyState } from "../components/EmptyState";
 
 export const ModificateCriterion = () => {
     
@@ -16,6 +17,7 @@ export const ModificateCriterion = () => {
 
     const [criterias, setCriterias] = useState([]);
     const [editedCriterias, setEditedCriterias] = useState([]);
+    const [loading, setLoading] = useState(true);
 
     /** @type {CourseDTO} */ const course = useSelectedCourse(false);
     const history = useHistory();
@@ -38,27 +40,26 @@ export const ModificateCriterion = () => {
             // Evita que el primer render arroje una excepción porque course es null.
             if (!course) return;
 
-            // Obtiene el token Auth0.
-            const auth0Token = await getAccessTokenSilently()
-                .then(response => response)
-                .catch(error => {
-                    throw error;
-                });
-    
-            await axios
-                .get(
-                    `${process.env.REACT_APP_API_SERVER_URL}/api/v1/criterion-course/evaluationCriterias?courseId=${course.getId()}`,
-                    {
-                        headers: {
-                            Authorization: `Bearer ${auth0Token}`,
-                        },
-                    }
-                )
-                .then(criteria => {
-                    setCriterias(criteria.data);
-                })
-                .catch(error => error.response);
+            setLoading(true);
 
+            try {
+                // Obtiene el token Auth0.
+                const auth0Token = await getAccessTokenSilently();
+        
+                const criteria = await axios.get(
+                        `${process.env.REACT_APP_API_SERVER_URL}/api/v1/criterion-course/evaluationCriterias?courseId=${course.getId()}`,
+                        {
+                            headers: {
+                                Authorization: `Bearer ${auth0Token}`,
+                            },
+                        }
+                    );
+                setCriterias(criteria.data);
+            } catch (error) {
+                console.error(error.response);
+            } finally {
+                setLoading(false);
+            }
         }
         getEvaluationCriteria();
 
@@ -132,8 +133,16 @@ export const ModificateCriterion = () => {
     return (
         <PageLayout>
             <h1 id="page-title" className="content__title">Modificar criterios de evaluación</h1>
-            <form>
-                <table className="criteria-table">
+            {loading ? (
+                <div className="modal-loading" style={{marginTop: '20px'}}>
+                    <div className="spinner"></div>
+                    <p style={{fontSize: '20px'}}>Cargando criterios de evaluación...</p>
+                </div>
+            ) : criterias.length === 0 ? (
+                <EmptyState message="No hay criterios de evaluación creados para esta cursada." />
+            ) : (
+                <form>
+                    <table className="criteria-table">
                     <thead>
                         <tr>
                             <th>Criterio</th>
@@ -226,7 +235,7 @@ export const ModificateCriterion = () => {
                     } </tbody>
                 </table>
             </form>
-
+            )}
         </PageLayout>
     );
 }

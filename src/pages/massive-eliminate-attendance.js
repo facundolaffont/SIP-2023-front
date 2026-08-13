@@ -7,6 +7,7 @@ import { useSelectedCourse } from "../contexts/course/course-provider.js";
 import CourseDTO from "../contexts/course/course-d-t-o";
 import toast from "react-hot-toast";
 import { ConfirmModal } from "../components/ConfirmModal";
+import { EmptyState } from "../components/EmptyState";
 
 // Diccionario de errores siguiendo tu estándar
 const ERROR_MESSAGES = {
@@ -252,6 +253,8 @@ export function AttendanceMassiveElimination() {
                     <div className="spinner"></div>
                     <p style={{fontSize: '20px'}}>Cargando clases/eventos...</p>
                 </div>
+            ) : events.length === 0 ? (
+                <EmptyState message="No hay clases registradas para esta cursada." />
             ) : (
                 <form>
                     <p>Seleccionar Clase Origen</p>
