@@ -214,6 +214,27 @@ export const ListCourseEvents = () => {
                     oldMandatoryContent !== newMandatoryContent
                 ) {
 
+                    // #region ==== Validación de campos en blanco y consistencia ====
+
+                    if (!newEventNameContent || newEventNameContent.trim() === '') {
+                        toast.error("El nombre del evento es obligatorio.");
+                        return;
+                    }
+                    if (newInitialDatetimeContent === null) {
+                        toast.error("La fecha y hora de inicio es obligatoria.");
+                        return;
+                    }
+                    if (newEndDatetimeContent === null) {
+                        toast.error("La fecha y hora de fin es obligatoria.");
+                        return;
+                    }
+                    if (newMandatoryContent.trim() !== '' && newMandatoryContent.trim().toLowerCase() !== 'x') {
+                        toast.error("El campo 'Obligatorio' debe contener una 'x' o estar vacío.");
+                        return;
+                    }
+
+                    // #endregion
+                    
                     // #region ==== Si hubo cambio en las fechas y la fecha mínima es mayor que la fecha
                     // máxima, se muestra un mensaje de error al usuario. ====
                     
@@ -221,11 +242,7 @@ export const ListCourseEvents = () => {
                         oldInitialDatetimeContent !== newInitialDatetimeContent ||
                         oldEndDatetimeContent !== newEndDatetimeContent
                     ) {
-                        if (
-                            newInitialDatetimeContent !== null &&
-                            newEndDatetimeContent !== null &&
-                            new Date(newInitialDatetimeContent) > new Date(newEndDatetimeContent)
-                        ) {
+                        if (new Date(newInitialDatetimeContent) > new Date(newEndDatetimeContent)) {
                             toast.error("La fecha de inicio del evento no puede ser mayor que la fecha de fin.");
                             return;
                         }
@@ -652,14 +669,31 @@ export const ListCourseEvents = () => {
      * Maneja el evento clic en el botón de exportar.
      */
     const handleExport = () => {
+        if (eventsList.length === 0) {
+            toast.error("No hay datos para exportar.");
+            return;
+        }
 
-        // Exporta el libro de hojas de cálculo.
-        spreadsheetManipulator.export(
-            document.getElementById("events-table"),
-            "Eventos de cursada",
-            "eventos-cursada"
+        const headers = ["ID", "Tipo de evento", "Nombre de evento", "Fecha-Hora Inicio", "Fecha-Hora Fin", "Obligatorio"];
+        const rows = eventsList.map(event => [
+            event.eventId,
+            event.type,
+            event.name,
+            event.initialDateTime,
+            event.endDateTime,
+            event.mandatory ? 'x' : ''
+        ]);
+        const sheetContent = [headers, ...rows];
+
+        const subjectCode = course.getSubjectCode();
+        const commission = course.getCommission();
+        const year = course.getYear();
+
+        spreadsheetManipulator.create(
+            `Eventos - ${subjectCode} C${commission} ${year}`,
+            `eventos-cursada`,
+            sheetContent
         );
-
     }
     
     // #endregion ==== Definición de funciones. ====

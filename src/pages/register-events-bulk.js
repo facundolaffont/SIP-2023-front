@@ -266,7 +266,7 @@ export function EventsBulkRegistering() {
 
                 // Verifica si el formato del tipo de clase es correcto.
                 if (
-                    typeof row.eventTypeId !== 'number'
+                    isNaN(row.eventTypeId)
                     ||
                     row.eventTypeId <= 0
                 ) {
@@ -274,12 +274,18 @@ export function EventsBulkRegistering() {
                     invalidFormat = true;
                 }
 
-                // Verifica, si se ingresaron los valores de fecha y hora, si el formato es correcto.
-                else if (String(row.initialDatetime).trim() !== "" && !dateRegex.test(String(row.initialDatetime).trim())) {
-                    row.formatInfo = "El campo de fecha y hora inicial debe ser de tipo texto y tener el formato DD/MM/AAAA HH:MM.";
+                // Verifica si el nombre del evento es correcto.
+                else if (typeof row.eventName !== 'string' || row.eventName.trim() === "") {
+                    row.formatInfo = "El nombre del evento es obligatorio y debe ser de tipo texto.";
                     invalidFormat = true;
-                } else if (String(row.endDatetime).trim() !== "" && !dateRegex.test(String(row.endDatetime).trim())) {
-                    row.formatInfo = "El campo de fecha y hora final debe ser de tipo texto y tener el formato DD/MM/AAAA HH:MM.";
+                }
+
+                // Verifica si las fechas de inicio y fin son obligatorias y correctas.
+                else if (String(row.initialDatetime).trim() === "" || !dateRegex.test(String(row.initialDatetime).trim())) {
+                    row.formatInfo = "El campo de fecha y hora inicial es obligatorio y debe tener el formato DD/MM/AAAA HH:MM.";
+                    invalidFormat = true;
+                } else if (String(row.endDatetime).trim() === "" || !dateRegex.test(String(row.endDatetime).trim())) {
+                    row.formatInfo = "El campo de fecha y hora final es obligatorio y debe tener el formato DD/MM/AAAA HH:MM.";
                     invalidFormat = true;
                 }
                 
@@ -320,7 +326,7 @@ export function EventsBulkRegistering() {
                     return {
                         eventTempId: element._row,
                         eventTypeId: element.eventTypeId,
-                        eventTypeName: String(element.eventName).trim(),
+                        eventName: String(element.eventName).trim(),
 
                         // Si la fecha inicial no fue ingresada, deja el campo vacío;
                         // si fue ingresada, formatea el campo para el envío al back.
@@ -422,6 +428,25 @@ export function EventsBulkRegistering() {
                             }
                         )
                     );
+
+                    // Agrega a la tabla de registros inválidos aquellos que no superaron
+                    // las validaciones del backend (ej. nombres duplicados).
+                    if (checkedInfo.data.nok && checkedInfo.data.nok.length > 0) {
+                        let backendNokRegisters = checkedInfo.data.nok.map(notOkInfo => {
+                            let eventLoadedData = readRange.data.find(
+                                readRegister => readRegister._row == notOkInfo.eventTempId
+                            );
+                            
+                            if (notOkInfo.errorCode === 1) {
+                                eventLoadedData.formatInfo = "El nombre del evento ya se encuentra registrado en la cursada.";
+                            } else if (notOkInfo.errorCode === 2) {
+                                eventLoadedData.formatInfo = "El nombre del evento se encuentra duplicado en este mismo archivo.";
+                            }
+                            
+                            return eventLoadedData;
+                        });
+                        setInvalidRegistersList([...invalidFormatRange, ...backendNokRegisters]);
+                    }
 
                 }
 
@@ -610,7 +635,7 @@ export function EventsBulkRegistering() {
 
         // Define el contenido de la plantilla.
         let sheetContent = [
-            ["Código del tipo de evento", "Nombre del evento [opcional]", "Fecha y hora de inicio", "Fecha y hora de fin", "Obligatorio"],
+            ["Código del tipo de evento", "Nombre del evento", "Fecha y hora de inicio", "Fecha y hora de fin", "Obligatorio"],
             [1, "Introducción", "18/08/2022 10:00", "18/08/2022 12:00", "x"],
         ];
 
