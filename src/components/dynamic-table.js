@@ -246,6 +246,20 @@ const DynamicTable = ({
         if (tableRef.current !== undefined && tableRef.current !== null) {
             const tableClone = tableRef.current.cloneNode(true);
             tableClone.querySelectorAll('.actions').forEach(cell => cell.remove());
+            tableClone.querySelectorAll('.actions-header').forEach(cell => cell.remove());
+            const filtersRow = tableClone.querySelector('.table-filters-row');
+            if (filtersRow) filtersRow.remove();
+
+            // Replace any cell currently being edited with its original value
+            tableClone.querySelectorAll('td[data-original-value]').forEach(td => {
+                if (td.querySelector('select') || td.querySelector('input')) {
+                    td.textContent = td.getAttribute('data-original-value');
+                }
+            });
+
+            tableClone.querySelectorAll('th').forEach(th => {
+                if (th.textContent) th.textContent = th.textContent.replace(' ▲', '').replace(' ▼', '');
+            });
             handleExportCallback(event, tableClone);
         }
     };
@@ -266,29 +280,38 @@ const DynamicTable = ({
             <h2 className="event-title">{tableTitle}</h2>
             {columnHeaders.length > 0 && (
                 <div className="table-container">
-                    {/* Agregar los filtros */}
-                    <div className="filters-row">
-                        {columnHeaders.map(col => (
-                            <div key={`filter-${col.name}`} className="filter-container">
-                                <input
-                                    type="text"
-                                    placeholder={`Filtrar ${col.label}`}
-                                    value={filters[col.name] || ''}
-                                    onChange={(e) => handleFilterChange(col.name, e.target.value)}
-                                />
-                                {filters[col.name] && (
-                                    <button
-                                        className="clear-filter"
-                                        onClick={() => handleFilterChange(col.name, '')}
-                                    >
-                                        ✕
-                                    </button>
-                                )}
-                            </div>
-                        ))}
-                    </div>
-                    <table ref={tableRef}>
+                    <table ref={tableRef} style={{ width: '100%' }}>
                         <thead>
+                            {/* Fila de filtros */}
+                            <tr className="table-filters-row">
+                                {columnHeaders.map(col => (
+                                    <th key={`filter-${col.name}`} className="filter-container" style={{ padding: '4px' }}>
+                                        <div style={{ display: 'flex', alignItems: 'center' }}>
+                                            <input
+                                                type="text"
+                                                placeholder={`Filtrar ${col.label}`}
+                                                value={filters[col.name] || ''}
+                                                onChange={(e) => handleFilterChange(col.name, e.target.value)}
+                                                style={{ width: '100%', boxSizing: 'border-box', fontWeight: 'normal', padding: '4px 8px', fontSize: '13px' }}
+                                            />
+                                            {filters[col.name] && (
+                                                <button
+                                                    className="clear-filter"
+                                                    onClick={() => handleFilterChange(col.name, '')}
+                                                    style={{ marginLeft: '4px', background: 'none', border: 'none', cursor: 'pointer', color: '#666', fontSize: '12px' }}
+                                                    title="Limpiar filtro"
+                                                >
+                                                    ✕
+                                                </button>
+                                            )}
+                                        </div>
+                                    </th>
+                                ))}
+                                {(handleEditCallback && handleDeleteCallback) &&
+                                    <th className="actions-header"></th>
+                                }
+                            </tr>
+                            {/* Fila de encabezados de columna */}
                             <tr>
 
                                 {/* Genera una celda por cada nombre de columna */}
@@ -299,6 +322,7 @@ const DynamicTable = ({
                                             key: columnHeader.name,
                                             direction: (sortConfig.key === columnHeader.name && sortConfig.direction === 'ascending' ? 'descending' : 'ascending')
                                         })}
+                                        style={{ cursor: 'pointer', userSelect: 'none' }}
                                     >
                                         {
                                             `${columnHeader.label}
@@ -310,6 +334,11 @@ const DynamicTable = ({
                                         }
                                     </th>
                                 ))}
+                                
+                                {/* Genera la cabecera de las acciones si existen los callbacks */}
+                                {(handleEditCallback && handleDeleteCallback) &&
+                                    <th className="actions-header" style={{ textAlign: 'center' }}>Acciones</th>
+                                }
 
                             </tr>
                         </thead>
@@ -325,7 +354,7 @@ const DynamicTable = ({
                                         
                                             <td 
                                                 key={row.id+'-'+item.columnName}
-                                                
+                                                data-original-value={item.value}
                                                 className={
 
                                                     // Agrega la clase de alineación, si existe.

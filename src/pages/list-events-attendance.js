@@ -162,7 +162,9 @@ export const ListAttendance = () => {
         spreadsheetManipulator.export(
             document.getElementById("events-table"),
             "Asistencia",
-            "asistencia"
+            "asistencia",
+            [],
+            [1]
         );
     }
 

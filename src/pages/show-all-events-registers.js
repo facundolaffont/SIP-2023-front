@@ -184,7 +184,9 @@ export const ShowAllEventsRegisters = () => {
         spreadsheetManipulator.export(
             document.getElementById("table"),
             "Detalle de todos los eventos",
-            "detalle-eventos-cursada"
+            "detalle-eventos-cursada",
+            [],
+            [1, 4, 5]
         );
     }
 

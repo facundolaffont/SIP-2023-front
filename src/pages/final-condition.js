@@ -4,7 +4,7 @@ import { useAuth0 } from "@auth0/auth0-react";
 import React, { useEffect, useState } from "react";
 import { useHistory } from 'react-router-dom';
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faPencilAlt } from "@fortawesome/free-solid-svg-icons";
+import { faPencilAlt, faCheck, faTimes } from "@fortawesome/free-solid-svg-icons";
 import toast from "react-hot-toast";
 
 // Imports internos.
@@ -360,14 +360,38 @@ export const FinalCondition = () => {
         });
     }
 
+    // Obtener las claves de notas (columnas extra) para cada criterio, evaluando todos los alumnos
+    const criteriosKeysMap = {};
+    if (sortedConditions.length > 0) {
+        criteriosFiltrados.forEach(criteria => {
+            const keysSet = new Set();
+            sortedConditions.forEach(student => {
+                const detalle = student.Detalle?.find(d => d.Criterio === criteria.criteria.name);
+                if (detalle && detalle.DetalleNotas) {
+                    Object.keys(detalle.DetalleNotas).forEach(k => keysSet.add(k));
+                }
+            });
+            criteriosKeysMap[criteria.criteria.name] = Array.from(keysSet);
+        });
+    }
+
     /**
      * Maneja el evento clic en el botón de exportar.
      */
     const handleExport = () => {
+        const tableClone = document.getElementById("final-condition-table").cloneNode(true);
+        tableClone.querySelectorAll('th').forEach(th => {
+            if (th.textContent) th.textContent = th.textContent.replace('▲', '').replace('▼', '').trim();
+        });
+        tableClone.querySelectorAll('td[data-original-value]').forEach(td => {
+            td.textContent = td.getAttribute('data-original-value');
+        });
         spreadsheetManipulator.export(
-            document.getElementById("final-condition-table"),
+            tableClone,
             "Condición de los estudiantes",
-            "condición-estudiantes"
+            "condición-estudiantes",
+            [],
+            [2]
         );
     }
 
@@ -451,6 +475,12 @@ export const FinalCondition = () => {
                         : "Resultado: Condición de cursada de los alumnos"
                     }
                     </h2>
+                    <div className="condition-references" style={{ marginBottom: "15px", padding: "10px", backgroundColor: "#f9f9f9", border: "1px solid #ddd", borderRadius: "4px", display: "inline-block" }}>
+                        <strong style={{ marginRight: "15px", color: "black" }}>Referencias:</strong>
+                        <span style={{ marginRight: "15px", color: "black", backgroundColor: "#e8f5e9", padding: "4px 8px", borderRadius: "4px" }}><FontAwesomeIcon icon={faCheck} style={{ color: "black" }} /><FontAwesomeIcon icon={faCheck} style={{ color: "black", marginLeft: "2px" }} /> P (Promueve)</span>
+                        <span style={{ marginRight: "15px", color: "black", backgroundColor: "#fff8e1", padding: "4px 8px", borderRadius: "4px" }}><FontAwesomeIcon icon={faCheck} style={{ color: "black" }} /> R (Regular)</span>
+                        <span style={{ color: "black", backgroundColor: "#ffebee", padding: "4px 8px", borderRadius: "4px" }}><FontAwesomeIcon icon={faTimes} style={{ color: "black" }} /> L (Libre)</span>
+                    </div>
                     <table id="final-condition-table" className="final-condition-table">
                         <thead>
                             <tr>
@@ -465,12 +495,8 @@ export const FinalCondition = () => {
                                 <th>Correlativas</th>
 
                                 {criteriosFiltrados.map((criteria, index) => {
-                                    // Usamos el primer alumno para ver qué columnas hay que agregar para este criterio
-                                    const primerAlumno = sortedConditions[0];
-                                    const detalle = primerAlumno?.Detalle.find(d => d.Criterio === criteria.criteria.name);
-                                    
-                                    // Obtenemos las claves (ej: "Nota TP1 - FODA") si existen
-                                    const notasKeys = detalle?.DetalleNotas ? Object.keys(detalle.DetalleNotas) : [];
+                                    // Usamos el mapa de claves calculado para este criterio evaluando a todos los alumnos
+                                    const notasKeys = criteriosKeysMap[criteria.criteria.name] || [];
                                     
                                     return (
                                         <React.Fragment key={index}>
@@ -503,38 +529,59 @@ export const FinalCondition = () => {
                                         // 1. Buscamos el detalle del alumno actual
                                         const detalleObj = student.Detalle.find(d => d.Criterio === criteria.criteria.name);
                                         
-                                        // 2. Obtenemos las mismas claves de notas (para mantener el orden con el thead)
-                                        const notasKeys = detalleObj?.DetalleNotas ? Object.keys(detalleObj.DetalleNotas) : [];
+                                        // 2. Obtenemos las mismas claves de notas (calculadas previamente para toda la columna)
+                                        const notasKeys = criteriosKeysMap[criteria.criteria.name] || [];
 
                                         // 3. Estilo de la condición
                                         const condition = detalleObj ? detalleObj.Condición : "N/A";
                                         let cellClassName = "normal-cell";  // Clase por defecto
-                                        if (condition === "L") cellClassName = "red-cell"; // Si el contenido es L, aplicamos la clase "red-cell"
-                                        else if (condition === "R") cellClassName = "yellow-cell"; // Si el contenido es R, aplicamos la clase "yellow-cell"
-                                        else if (condition === "P") cellClassName = "green-cell";   // Si el contenido es P, aplicamos la clase "green-cell"
-                                        else if (condition === "N/A") cellClassName = "common-cell";
+                                        if (condition === "N/A") cellClassName = "common-cell";
+
+                                        let bgColor = "transparent";
+                                        if (condition === "P") bgColor = "#e8f5e9";
+                                        else if (condition === "R") bgColor = "#fff8e1";
+                                        else if (condition === "L") bgColor = "#ffebee";
 
                                         let tooltipInfo = "";
                                         if (condition === "N/A" && criteria.criteria.name === "Promedio de parciales") {
                                             tooltipInfo = "Promedio anulado por contener calificaciones no numéricas (Ej: A, A-, D)";
                                         }
 
-                                        let textoMostrar = condition;
+                                        let extraInfo = "";
 
                                         if (detalleObj) {
                                             // Caso ASISTENCIAS:
-                                            if (detalleObj.PresenciasAlumno !== undefined && detalleObj !== undefined) {
-                                                textoMostrar = `${condition} (${detalleObj.PresenciasAlumno}/${detalleObj.CantidadEventos})`;
+                                            if (detalleObj.PresenciasAlumno !== undefined) {
+                                                extraInfo = ` (${detalleObj.PresenciasAlumno}/${detalleObj.CantidadEventos})`;
                                             }
                                             // Caso PROMEDIO PARCIALES:
                                             else if (detalleObj.PromedioParciales !== undefined) {
-                                                textoMostrar = `${condition} (${detalleObj.PromedioParciales})`;
+                                                extraInfo = ` (${detalleObj.PromedioParciales})`;
                                             }
                                             // Caso INTEGRADOR
                                             else if (detalleObj.NotaIntegrador !== undefined) {
-                                                textoMostrar = `${condition} (${detalleObj.NotaIntegrador})`;
+                                                extraInfo = ` (${detalleObj.NotaIntegrador})`;
                                             }
                                         }
+
+                                        const getConditionIcon = (cond) => {
+                                            switch (cond) {
+                                                case "P": return <span title="Promovido"><FontAwesomeIcon icon={faCheck} style={{ color: "black" }} /><FontAwesomeIcon icon={faCheck} style={{ color: "black", marginLeft: "2px" }} /></span>;
+                                                case "R": return <FontAwesomeIcon icon={faCheck} style={{ color: "black" }} title="Regular" />;
+                                                case "L": return <FontAwesomeIcon icon={faTimes} style={{ color: "black" }} title="Libre" />;
+                                                default: return cond;
+                                            }
+                                        };
+
+                                        const isIconCondition = ["P", "R", "L"].includes(condition);
+                                        const displayNode = isIconCondition ? (
+                                            <>
+                                                {getConditionIcon(condition)}
+                                                <span style={{ color: "black", marginLeft: "4px" }}>{extraInfo}</span>
+                                            </>
+                                        ) : (
+                                            <span style={{ color: condition === "N/A" ? "inherit" : "black" }}>{condition + extraInfo}</span>
+                                        );
 
                                         return (
                                             <React.Fragment key={criteriaIndex}>
@@ -542,14 +589,16 @@ export const FinalCondition = () => {
                                                 {/* A. Celdas de NOTAS INDIVIDUALES */}
                                                 {notasKeys.map((keyNota) => (
                                                     <td key={keyNota}>
-                                                        {/* Accedemos al valor de la nota en el mapa */}
-                                                        {detalleObj.DetalleNotas[keyNota]}
+                                                        {/* Accedemos al valor de la nota en el mapa o mostramos vacío/guión si no tiene esa nota */}
+                                                        {detalleObj && detalleObj.DetalleNotas && detalleObj.DetalleNotas[keyNota] !== undefined
+                                                            ? detalleObj.DetalleNotas[keyNota]
+                                                            : "--"}
                                                     </td>
                                                 ))}
 
                                                 {/* B. Celda de CONDICIÓN (Con Popover) */}
-                                                <td className={cellClassName} title={tooltipInfo}>
-                                                    {textoMostrar}
+                                                <td className={cellClassName} title={tooltipInfo} style={{ backgroundColor: bgColor }} data-original-value={condition + extraInfo}>
+                                                    {displayNode}
                                                     <PopoverDetalleCriterio detalle={detalleObj} />
                                                 </td>
 
@@ -557,19 +606,30 @@ export const FinalCondition = () => {
                                         );
                                     })}
 
-                                    <td
-                                    className={`final-condition-table-condition-cell ${
-                                        editedConditions[student.Legajo] !== undefined &&
-                                        editedConditions[student.Legajo] !== student.Condición
-                                        ? "edited-cell"
-                                        : ""
-                                    }`}
-                                    >
-                                    
-                                    {esCondicionFinal ? (
-                                        <>
-                                        {editingConditionLegajo === student.Legajo ? (
-                                            <input
+                                    {(() => {
+                                        const finalCond = editedConditions[student.Legajo] || student.Condición;
+                                        let finalBgColor = "rgb(197, 255, 197)"; // fallback original
+                                        if (finalCond === "P") finalBgColor = "#81c784"; // Verde más fuerte
+                                        else if (finalCond === "R") finalBgColor = "#ffd54f"; // Amarillo/ámbar fuerte
+                                        else if (finalCond === "L") finalBgColor = "#e57373"; // Rojo fuerte
+                                        else if (finalCond === "A") finalBgColor = "#e0e0e0"; // Gris
+
+                                        return (
+                                            <td
+                                            className={`final-condition-table-condition-cell ${
+                                                editedConditions[student.Legajo] !== undefined &&
+                                                editedConditions[student.Legajo] !== student.Condición
+                                                ? "edited-cell"
+                                                : ""
+                                            }`}
+                                            data-original-value={getCondicionFinalTexto(finalCond)}
+                                            style={{ backgroundColor: finalBgColor, color: "black" }}
+                                            >
+                                            
+                                            {esCondicionFinal ? (
+                                                <>
+                                                {editingConditionLegajo === student.Legajo ? (
+                                                    <input
                                                 type="text"
                                                 value={editedConditions[student.Legajo] || ""}
                                                 onChange={(e) => {
@@ -601,11 +661,15 @@ export const FinalCondition = () => {
                                     </>
                                     ) : (
                                     // Si no es condición final, solo mostramos el texto sin permitir edición
-                                    <span>{getCondicionFinalTexto(editedConditions[student.Legajo] || student.Condición)}</span>
+                                    <span style={{ color: "black", fontWeight: "bold" }}>{getCondicionFinalTexto(editedConditions[student.Legajo] || student.Condición)}</span>
                                     )}
-                                    </td>
+                                            </td>
+                                        );
+                                    })()}
                                     {esCondicionFinal && (
-                                        <td className="final-condition-table-observation-cell">
+                                        <td className="final-condition-table-observation-cell"
+                                            data-original-value={editedObservations[student.Legajo] || ""}
+                                        >
                                             {editingObservationLegajo === student.Legajo ? (
                                                 <input
                                                     type="text"

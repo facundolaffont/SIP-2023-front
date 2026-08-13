@@ -456,7 +456,9 @@ export const EventDetail = () => {
         spreadsheetManipulator.current.export(
             htmlTable,
             "Detalle de evento",
-            "detalle-evento"
+            "detalle-evento",
+            [],
+            [1, 2, 3]
         );
     }
 
