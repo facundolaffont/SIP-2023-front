@@ -179,7 +179,7 @@ export function StudentRegistering() {
             setError(null);
 
             spreadsheetManipulator.loadRange(sheetNameValue, cellRangeName, [
-                "dossier", "id", "name", "email", "allPreviousSubjectsApproved", "alreadyStudied",
+                "dossier", "id", "name", "email", "allPreviousSubjectsApproved",
             ]);
 
             let readRange = spreadsheetManipulator.getLastReadRange();
@@ -192,16 +192,14 @@ export function StudentRegistering() {
                 let properNameRegEx = /[a-zA-Z ]+/;
                 let invalidFormat = false;
                 
-                if (typeof row.dossier !== 'number' || row.dossier <= 0) {
+                if (isNaN(row.dossier) || row.dossier <= 0) {
                     row.formatInfo = "El legajo no es un entero positivo."; invalidFormat = true;
-                } else if (typeof row.id !== 'number' || row.id <= 0) {
+                } else if (isNaN(row.id) || row.id <= 0) {
                     row.formatInfo = "El dni no es un entero positivo."; invalidFormat = true;
                 } else if (typeof row.name !== 'string' || !properNameRegEx.exec(row.name)) {
                     row.formatInfo = "El nombre no es alfabético."; invalidFormat = true;
                 } else if (typeof row.email !== 'string' || !emailRegEx.exec(row.email.trim())) {
                     row.formatInfo = "El mail no tiene el formato adecuado."; invalidFormat = true;
-                } else if (!(row.alreadyStudied.trim() === '' || row.alreadyStudied.trim().toLowerCase() === 'x')) {
-                    row.formatInfo = "El campo de recursante debe estar vacío o debe contener el valor 'x'."; invalidFormat = true;
                 } else {
                     let duplicateMask = 0;
                     for (const element of readRange.data) {
@@ -251,7 +249,8 @@ export function StudentRegistering() {
                 let okListData = [];
                 okListData = [...checkedInfo.data.nonExistingDossiers, ...checkedInfo.data.existingStudents.map(s => s.dossier)].map(dossier => {
                     let studentLoadedData = readRange.data.find(r => r.dossier == dossier);
-                    let isExisting = checkedInfo.data.existingStudents.some(s => s.dossier === dossier);
+                    let existingStudent = checkedInfo.data.existingStudents.find(s => s.dossier === dossier);
+                    let isExisting = !!existingStudent;
                     
                     return {
                         dossier: dossier,
@@ -259,9 +258,9 @@ export function StudentRegistering() {
                         id: studentLoadedData.id,
                         name: studentLoadedData.name.trim(),
                         email: studentLoadedData.email.trim(),
-                        alreadyStudied: studentLoadedData.alreadyStudied.trim().toLowerCase(),
+                        alreadyStudied: (isExisting && existingStudent.isRecursante) ? 'x' : '',
                         allPreviousSubjectsApproved: String(studentLoadedData.allPreviousSubjectsApproved).trim().length !== 0 ? 'P' : false,
-                        state: isExisting ? 'Pendiente (v)' : 'Pendiente'
+                        state: 'Pendiente'
                     };
                 });
                 okListData = okListData.sort((a, b) => parseInt(a._row) - parseInt(b._row));
@@ -283,7 +282,7 @@ export function StudentRegistering() {
                                 id: studentLoadedData.id,
                                 name: studentLoadedData.name.trim(),
                                 email: studentLoadedData.email.trim(),
-                                alreadyStudied: studentLoadedData.alreadyStudied.trim().toLowerCase(),
+                                alreadyStudied: dossierInfo.oldAlreadyStudied ? 'x' : '',
                                 allPreviousSubjectsApproved: String(studentLoadedData.allPreviousSubjectsApproved).trim().length !== 0 ? 'P' : false,
                                 
                                 // Datos viejos desde el back
@@ -406,8 +405,8 @@ export function StudentRegistering() {
 
     const handleTemplateDownload = () => { 
         let sheetContent = [
-            ["Legajo", "DNI", "Nombre", "Mail", "Correlativas", "Recursante"],
-            [192656, 24977506, "WALTER JAVIER ALAMO", "walterjalamo@hotmail.com", "P", "x"],
+            ["Legajo", "DNI", "Nombre", "Mail", "Correlativas"],
+            [192656, 24977506, "WALTER JAVIER ALAMO", "walterjalamo@hotmail.com", "P"],
         ];
         spreadsheetManipulator.create("Plantilla de alta de estudiantes", "alta-alumnos", sheetContent);
     }
@@ -441,7 +440,7 @@ export function StudentRegistering() {
                 <select id="sheet-names" onChange={handleSheetNameValueChange} required></select>
                 
                 <p>Rango de celdas a cargar (excluir encabezados)</p>
-                <input type="text" id="cell-range" placeholder="Ejemplo para cargar los primeros dos registros: A2:F3" onChange={handleCellRangeName} required />
+                <input type="text" id="cell-range" placeholder="Ejemplo para cargar los primeros dos registros: A2:E3" onChange={handleCellRangeName} required />
                 
                 <button type="submit" className="load-button" onClick={handleRangeLoading}>Cargar registros</button>
             </form>

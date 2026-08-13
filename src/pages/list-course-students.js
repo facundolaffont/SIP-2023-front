@@ -218,10 +218,31 @@ export const ListCourseStudents = () => {
 
     // HANDLER: Exportar a Excel
     const handleExport = () => {
-        spreadsheetManipulator.export(
-            document.getElementById("students-table-export"),
-            "Estudiantes de la cursada",
-            "estudiantes-cursada"
+        if (studentsList.length === 0) {
+            toast.error("No hay datos para exportar.");
+            return;
+        }
+
+        const headers = ["Legajo", "DNI", "Nombre", "Email", "Correlativas", "Recursante", "Condición"];
+        const rows = studentsList.map(student => [
+            student.dossier,
+            student.id,
+            student.name,
+            student.email,
+            student.allPreviousSubjectsApproved ? 'P' : '',
+            student.alreadyStudied ? 'x' : '',
+            student.finalCondition || ''
+        ]);
+        const sheetContent = [headers, ...rows];
+
+        const subjectCode = course.getSubjectCode();
+        const commission = course.getCommission();
+        const year = course.getYear();
+
+        spreadsheetManipulator.create(
+            `Estudiantes - ${subjectCode} C${commission} ${year}`,
+            `estudiantes-cursada`,
+            sheetContent
         );
     };
 
@@ -251,18 +272,16 @@ export const ListCourseStudents = () => {
                 : row.email
         },
         {
-            header: "Recursante",
-            accessor: "alreadyStudied",
-            render: (row) => editingId === row.id 
-                ? <input type="checkbox" name="alreadyStudied" checked={editFormData.alreadyStudied} onChange={handleFormChange} /> 
-                : (row.alreadyStudied ? 'x' : '')
-        },
-        {
             header: "Correlativas",
             accessor: "allPreviousSubjectsApproved",
             render: (row) => editingId === row.id 
                 ? <input type="checkbox" name="allPreviousSubjectsApproved" checked={editFormData.allPreviousSubjectsApproved} onChange={handleFormChange} /> 
                 : (row.allPreviousSubjectsApproved ? 'P' : '')
+        },
+        {
+            header: "Recursante",
+            accessor: "alreadyStudied",
+            render: (row) => (row.alreadyStudied ? 'Sí' : 'No')
         },
         { 
             header: "Condición", 

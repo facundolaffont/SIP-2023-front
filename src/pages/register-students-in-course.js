@@ -66,13 +66,11 @@ export function CourseStudentRegistering() {
                     columnNames: [
                         "Legajo:Legajo",
                         "Correlativas:Correlativas",
-                        "Recursante:Recursante",
                         "formatInfo:Error de formato",
                     ],
                     tableRows: invalidRegistersList,
                     columnClasses: [
                         "Correlativas:centered",
-                        "Recursante:centered",
                     ]
                 },
                 `Registros con formato inválido (${invalidRegistersList.length})`
@@ -193,7 +191,6 @@ export function CourseStudentRegistering() {
             spreadsheetManipulator.loadRange(sheetNameValue, cellRangeName, [
                 "Legajo",
                 "Correlativas",
-                "Recursante",
             ]);
 
             /*
@@ -247,17 +244,8 @@ export function CourseStudentRegistering() {
 
                 // Determina si el formato es inválido y añade una descripción del problema.
                 let invalidFormat = false;
-                if (typeof row.Legajo !== 'number') {
-                    row.formatInfo = "El legajo no es un entero.";
-                    invalidFormat = true;
-                } else if (
-                    typeof row.Recursante !== 'string'
-                    || (
-                        row.Recursante !== ""
-                        && row.Recursante.toLowerCase() !== "x"
-                    ) 
-                ) {
-                    row.formatInfo = "El campo que indica si es recursante debe estar marcado por una 'x' o debe estar vacío.";
+                if (isNaN(row.Legajo) || row.Legajo <= 0) {
+                    row.formatInfo = "El legajo no es un entero positivo.";
                     invalidFormat = true;
                 }
 
@@ -327,9 +315,7 @@ export function CourseStudentRegistering() {
                                 ? "P"
                                 : false;
                             studentInfo.studiedPreviously =
-                                studentLoadedData.Recursante === 'x'
-                                ? true
-                                : false;
+                                studentInfo.isRecursante === true;
 
                             // Agrega el estado de registración en sistema.
                             studentInfo.state = 'Pendiente';
@@ -555,8 +541,8 @@ export function CourseStudentRegistering() {
             "Plantilla de vinculación de estudiantes",
             "registrar-alumnos-en-cursada",
             [
-                ["Legajo", "Correlativas", "Recursante"],
-                [192656, "P", "x"],
+                ["Legajo", "Correlativas"],
+                [192656, "P"],
             ]
         );
     }
@@ -619,7 +605,7 @@ export function CourseStudentRegistering() {
                 <input
                     type="text"
                     id="cell-range"
-                    placeholder="Ejemplo para cargar los primeros dos registros: A2:C3"
+                    placeholder="Ejemplo para cargar los primeros dos registros: A2:B3"
                     onChange={handleCellRangeName}
                     required
                 />
