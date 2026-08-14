@@ -8,6 +8,7 @@ import toast from "react-hot-toast";
 // Componentes internos.
 import { PageLayout } from "../components/page-layout";
 import { Table } from "../components/Table";
+import { LoadingState } from "../components/LoadingState";
 import { ConfirmModal } from "../components/ConfirmModal";
 import { useSelectedCourse } from "../contexts/course/course-provider.js";
 import SpreadsheetManipulator from "../services/spreadsheet-manipulator.service";
@@ -184,10 +185,7 @@ export const ListStudentGroups = () => {
             )}
 
             {loading ? (
-                <div className="modal-loading">
-                    <div className="spinner"></div>
-                    <p style={{ fontSize: '20px' }}>Cargando grupos, por favor espere...</p>
-                </div>
+                <LoadingState message="Cargando grupos, por favor espere..." />
             ) : (
                 <>
                     <Table

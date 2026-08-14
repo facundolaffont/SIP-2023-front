@@ -4,6 +4,7 @@ import { useHistory } from "react-router-dom";
 import axios from 'axios';
 import { PageLayout } from "../components/page-layout"; 
 import { Table } from "../components/Table"; 
+import { LoadingState } from "../components/LoadingState";
 import toast from "react-hot-toast";
 import { ConfirmModal } from "../components/ConfirmModal";
 
@@ -171,10 +172,7 @@ export function ListCourses() {
             )}
             
             {loading ? (
-                <div className="modal-loading">
-                    <div className="spinner"></div>
-                    <p style={{fontSize: '20px'}}>Cargando cursadas, por favor espere...</p>
-                </div>
+                <LoadingState message="Cargando cursadas, por favor espere..." />
             ) : (
                 <Table 
                     columns={tableColumns} 

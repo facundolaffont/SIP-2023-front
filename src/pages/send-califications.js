@@ -11,6 +11,7 @@ import { useSelectedCourse } from "../contexts/course/course-provider.js";
 import CourseDTO from "../contexts/course/course-d-t-o";
 import { ConfirmModal } from "../components/ConfirmModal";
 import { EmptyState } from "../components/EmptyState";
+import { LoadingState } from "../components/LoadingState";
 
 // Imports de estilos.
 import '../styles/send-califications.css';
@@ -155,7 +156,7 @@ export function SendCalifications() {
             )}
 
             {loading && !error && (
-                <p className="send-cal__loading">Cargando información...</p>
+                <LoadingState message="Cargando información, por favor espere..." />
             )}
 
             {!loading && !error && summary && (

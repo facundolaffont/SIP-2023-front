@@ -3,6 +3,7 @@ import { useAuth0 } from "@auth0/auth0-react";
 import axios from "axios";
 import { PageLayout } from "../components/page-layout";
 import { Table } from "../components/Table"; 
+import { LoadingState } from "../components/LoadingState"; 
 
 import '../styles/list-course-events.css'; 
 
@@ -265,10 +266,7 @@ export function ListProfessors() {
             )}
 
             {loading ? (
-                <div className="modal-loading">
-                    <div className="spinner"></div>
-                    <p style={{fontSize: '20px'}}>Cargando docentes...</p>
-                </div>
+                <LoadingState message="Cargando docentes, por favor espere..." />
             ) : (
                 <Table 
                     columns={tableColumns}

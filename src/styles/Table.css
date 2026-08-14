@@ -1,0 +1,42 @@
+.table-filter-cell {
+    padding: 4px;
+}
+
+.table-filter-wrapper {
+    position: relative;
+    width: 100%;
+}
+
+.table-filter-input {
+    display: block;
+    width: 100%;
+    min-width: 10px;
+    /* Evita que el navegador fuerce 150px de ancho */
+    box-sizing: border-box;
+    font-weight: normal;
+    padding: 4px 25px 4px 8px;
+    font-size: 13px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.table-filter-clear-button {
+    position: absolute;
+    right: 4px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #666;
+    font-size: 12px;
+    padding: 4px;
+    margin: 0;
+    line-height: 1;
+}
+
+.table-filter-clear-button:hover {
+    color: #333;
+    background: transparent;
+    background-color: transparent;
+}

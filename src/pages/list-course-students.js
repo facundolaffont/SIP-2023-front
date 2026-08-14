@@ -8,6 +8,7 @@ import toast from "react-hot-toast";
 // Componentes internos.
 import { PageLayout } from "../components/page-layout";
 import { Table } from "../components/Table"; // Asegurate de que la ruta sea correcta
+import { LoadingState } from "../components/LoadingState";
 import { useSelectedCourse } from "../contexts/course/course-provider.js";
 import SpreadsheetManipulator from "../services/spreadsheet-manipulator.service";
 import { ConfirmModal } from "../components/ConfirmModal";
@@ -358,10 +359,7 @@ export const ListCourseStudents = () => {
                     {error}
                 </div>
             ) : loading ? (
-                <div className="modal-loading">
-                    <div className="spinner"></div>
-                    <p style={{fontSize: '20px'}}>Cargando estudiantes, por favor espere...</p>
-                </div>
+                <LoadingState message="Cargando estudiantes, por favor espere..." />
             ) : (
                 <div id="students-table-export">
                     <Table 

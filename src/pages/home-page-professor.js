@@ -1,6 +1,5 @@
 // Imports externos.
-import React from "react";
-import { useEffect } from 'react';
+import React, { useEffect, useState } from "react";
 import axios from 'axios';
 import { useAuth0 } from '@auth0/auth0-react';
 
@@ -8,6 +7,7 @@ import { useAuth0 } from '@auth0/auth0-react';
 import { PageLayout } from "../components/page-layout";
 import CourseDTO from "../contexts/course/course-d-t-o";
 import { useSelectedCourse } from "../contexts/course/course-provider";
+import EmptyState from "../components/EmptyState";
 
 // Estilos.
 import "../styles/components/system-messages.css";
@@ -20,6 +20,7 @@ export const HomePageProfessor = () => {
     const urlSearchParams = new URLSearchParams(window.location.search);
     const courseMissing = urlSearchParams.has("course-missing");
     const noEvents = urlSearchParams.has("no-events");
+    const [hasCourses, setHasCourses] = useState(null);
 
     useEffect(() => {
 
@@ -54,6 +55,9 @@ export const HomePageProfessor = () => {
             // Obtiene y limpia el contenedor HTML de las cursadas.
             const cursadasContainer = document.getElementById('cursadas-container');
             cursadasContainer.innerHTML = '';
+            
+            // Actualizamos el estado para saber si mostramos el EmptyState
+            setHasCourses(userCourses.data.length > 0);
 
             // Iterar sobre las cursadas y crear un cuadro para cada una.
             userCourses.data.forEach((cursada, index) => {
@@ -126,6 +130,12 @@ export const HomePageProfessor = () => {
             )}
             <div id="cursadas-container">
             </div>
+            
+            {hasCourses === false && (
+                <div style={{ marginTop: '30px' }}>
+                    <EmptyState message="No hay cursadas asociadas actualmente." />
+                </div>
+            )}
         </PageLayout>
     );
 };

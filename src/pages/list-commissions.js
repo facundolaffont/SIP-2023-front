@@ -3,6 +3,7 @@ import { useAuth0 } from "@auth0/auth0-react";
 import axios from "axios";
 import { PageLayout } from "../components/page-layout";
 import { Table } from "../components/Table"; 
+import { LoadingState } from "../components/LoadingState";
 import toast from "react-hot-toast";
 import { ConfirmModal } from "../components/ConfirmModal";
 
@@ -295,10 +296,7 @@ export function ListCommissions() {
             )}
 
             {loading ? (
-                <div className="modal-loading">
-                    <div className="spinner"></div>
-                    <p style={{fontSize: '20px'}}>Cargando comisiones, por favor espere...</p>
-                </div>
+                <LoadingState message="Cargando comisiones, por favor espere..." />
             ) : (
                 <Table 
                     columns={tableColumns}

@@ -6,6 +6,8 @@ import { useHistory } from "react-router-dom";
 import { PageLayout } from "../components/page-layout";
 import { useSelectedCourse } from "../contexts/course/course-provider.js";
 import SpreadsheetManipulator from "../services/spreadsheet-manipulator.service";
+import { LoadingState } from "../components/LoadingState";
+import { EmptyState } from "../components/EmptyState";
 
 // Estilos.
 import '../styles/search-student.css';
@@ -15,6 +17,8 @@ export const SearchStudent = () => {
     const [dataAlumno, setDataAlumno] = useState(null);
     const [eventos, setEventos] = useState(null);
     const [dataCursada, setDataCursada] = useState(null);
+    const [loading, setLoading] = useState(false);
+    const [notFound, setNotFound] = useState(false);
     const [spreadsheetManipulator, setSpreadsheetManipulator] = useState(null);
 
     /** @type {CourseDTO} */ const course = useSelectedCourse(false);
@@ -39,6 +43,11 @@ export const SearchStudent = () => {
     };
 
     const handleSearch = () => {
+        setLoading(true);
+        setDataAlumno(null);
+        setEventos(null);
+        setDataCursada(null);
+        setNotFound(false);
         
         // Realizar la solicitud al backend
         fetch(`${process.env.REACT_APP_API_SERVER_URL}/api/v1/course/getStudent?courseId=${course.getId()}&dossier=${legajo}`)
@@ -46,20 +55,22 @@ export const SearchStudent = () => {
             .then(data => {
                 
                 // Verificar si se encontró un alumno
-                if (data) {
+                if (data && data.estudiante) {
                     // Establecer la información del alumno
                     setDataAlumno(data.estudiante);
                     setEventos(data.eventos);
                     setDataCursada(data.datosCursada);
                 } else {
-                    // Si no se encontró el alumno, mostrar un mensaje de error o manejarlo según tu necesidad
-                    console.log("No se encontró ningún alumno con ese legajo.");
-                    // También podrías establecer un mensaje de error para mostrar al usuario
+                    // Si no se encontró el alumno
+                    setNotFound(true);
                 }
             })
             .catch(error => {
                 console.error("Error al realizar la búsqueda del alumno:", error);
-                // Manejar el error según tu necesidad (mostrar un mensaje al usuario, registrar el error, etc.)
+                setNotFound(true);
+            })
+            .finally(() => {
+                setLoading(false);
             });
     };
 
@@ -86,52 +97,62 @@ export const SearchStudent = () => {
                     value={legajo}
                     onChange={handleLegajoChange}
                 />
-                <button onClick={handleSearch}>Buscar</button>
+                <button onClick={handleSearch} disabled={loading}>Buscar</button>
             </div>
-            {dataAlumno && dataCursada && (
-                <div className="alumno-info-container">
-                    <h2>Información del Alumno</h2>
-                    <p><span className="data-label">Nombre:</span> <span className="data-value">{dataAlumno.nombre}</span></p>
-                    <p><span className="data-label">Email:</span> <span className="data-value">{dataAlumno.email}</span></p>
-                    <p><span className="data-label">DNI:</span> <span className="data-value">{dataAlumno.dni}</span></p>
-                    <p><span className="data-label">Correlativas aprobadas:</span> <span className={`data-value ${dataCursada.previousSubjectsApproved ? 'yes' : 'no'}`}>{dataCursada.previousSubjectsApproved ? 'Sí' : 'No'}</span></p>
-                    <p><span className="data-label">Recursante:</span> <span className={`data-value ${dataCursada.recursante ? 'yes' : 'no'}`}>{dataCursada.recursante ? 'Sí' : 'No'}</span></p>
+            
+            {loading ? (
+                <LoadingState message="Buscando alumno, por favor espere..." />
+            ) : notFound ? (
+                <div style={{ marginTop: '20px' }}>
+                    <EmptyState message="No se encontró ningún estudiante con ese legajo en esta cursada." />
                 </div>
-
-            )}
-            {eventos && (
-                <div className="student-events-table-container">
-                    <h2>Eventos del Alumno</h2>
-                    <table id="condition-table" class="student-events-table">
-                        <thead>
-                            <tr>
-                                <th>Tipo de Evento</th>
-                                <th>Fecha de Inicio</th>
-                                <th>Fecha de Fin</th>
-                                <th>Asistencia</th>
-                                <th>Nota</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {eventos.map(evento => (
-                                <tr key={evento.id}>
-                                    <td>{evento.eventoCursada.tipoEvento.nombre}</td>
-                                    <td>{evento.eventoCursada.fechaHoraInicio}</td>
-                                    <td>{evento.eventoCursada.fechaHoraFin}</td>
-                                    <td>{evento.asistencia ? 'Sí' : 'No'}</td>
-                                    <td>{evento.nota !== null ? evento.nota : '-'}</td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                    <button
-                        type="button"
-                        className="export-button"
-                        onClick={handleExport}
-                    >
-                        Exportar a Excel
-                    </button>
-                </div>
+            ) : (
+                <>
+                    {dataAlumno && dataCursada && (
+                        <div className="alumno-info-container">
+                            <h2>Información del Alumno</h2>
+                            <p><span className="data-label">Nombre:</span> <span className="data-value">{dataAlumno.nombre}</span></p>
+                            <p><span className="data-label">Email:</span> <span className="data-value">{dataAlumno.email}</span></p>
+                            <p><span className="data-label">DNI:</span> <span className="data-value">{dataAlumno.dni}</span></p>
+                            <p><span className="data-label">Correlativas aprobadas:</span> <span className={`data-value ${dataCursada.previousSubjectsApproved ? 'yes' : 'no'}`}>{dataCursada.previousSubjectsApproved ? 'Sí' : 'No'}</span></p>
+                            <p><span className="data-label">Recursante:</span> <span className={`data-value ${dataCursada.recursante ? 'yes' : 'no'}`}>{dataCursada.recursante ? 'Sí' : 'No'}</span></p>
+                        </div>
+                    )}
+                    {eventos && (
+                        <div className="student-events-table-container">
+                            <h2>Eventos del Alumno</h2>
+                            <table id="condition-table" className="student-events-table">
+                                <thead>
+                                    <tr>
+                                        <th>Tipo de Evento</th>
+                                        <th>Fecha de Inicio</th>
+                                        <th>Fecha de Fin</th>
+                                        <th>Asistencia</th>
+                                        <th>Nota</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {eventos.map(evento => (
+                                        <tr key={evento.id}>
+                                            <td>{evento.eventoCursada.tipoEvento.nombre}</td>
+                                            <td>{evento.eventoCursada.fechaHoraInicio}</td>
+                                            <td>{evento.eventoCursada.fechaHoraFin}</td>
+                                            <td>{evento.asistencia ? 'Sí' : 'No'}</td>
+                                            <td>{evento.nota !== null ? evento.nota : '-'}</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                            <button
+                                type="button"
+                                className="export-button"
+                                onClick={handleExport}
+                            >
+                                Exportar a Excel
+                            </button>
+                        </div>
+                    )}
+                </>
             )}
         </PageLayout>
     );

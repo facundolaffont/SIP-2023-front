@@ -7,7 +7,8 @@ import { VictoryPie, VictoryLabel } from "victory";
 
 // Componentes internos.
 import { PageLayout } from "../components/page-layout.js";
-import HTMLTableManipulator from "../services/html-table-manipulator";
+import { Table } from "../components/Table.js";
+import { LoadingState } from "../components/LoadingState";
 import SpreadsheetManipulator from "../services/spreadsheet-manipulator.service";
 import { useSelectedCourse } from "../contexts/course/course-provider.js";
 import CourseDTO from "../contexts/course/course-d-t-o";
@@ -20,6 +21,7 @@ export const ShowEventsSummary = () => {
     const { getAccessTokenSilently } = useAuth0();
 
     const [error, setError] = useState(null);
+    const [loading, setLoading] = useState(true);
 
     const [spreadsheetManipulator, setSpreadsheetManipulator] = useState(null);
 
@@ -90,11 +92,13 @@ export const ShowEventsSummary = () => {
         if (!course) return;
 
         const getEventsSummary = async () => {
+            setLoading(true);
 
             // Obtiene el token Auth0.
             const auth0Token = await getAccessTokenSilently()
             .then(response => response)
             .catch(error => {
+                setLoading(false);
                 throw error;
             });
 
@@ -159,6 +163,7 @@ export const ShowEventsSummary = () => {
                 setAttendanceSummaryList(response.data.classEventsSummaryList);
                 setNoteSummaryList(response.data.evaluationEventsByNoteSummaryList);
                 setApprovalRateSummaryList(response.data.evaluationEventsByApprovalRateSummaryList);
+                setLoading(false);
 
             })
 
@@ -171,6 +176,7 @@ export const ShowEventsSummary = () => {
                     // Guarda el mensaje de error traído del back al usuario, y
                     // en el próximo renderizado se mostrará el mensaje.
                     setError("Hubo un error. Por favor, contactarse con Soporte Técnico.");
+                    setLoading(false);
 
                 }
             );
@@ -180,105 +186,45 @@ export const ShowEventsSummary = () => {
 
     }, []);
 
-    // Actualiza las tablas.
-    useEffect(() => {
+    // Define columnas para Asistencia
+    const attendanceColumns = [
+        { header: "ID de evento", accessor: "eventId", align: "center", sortable: true },
+        { header: "Tipo de evento", accessor: "eventType", align: "left", sortable: true },
+        { header: "Nombre", accessor: "eventName", align: "left", sortable: true },
+        { header: "Fecha de inicio", accessor: "initialDatetime", align: "center", sortable: true },
+        { header: "Fecha de fin", accessor: "endDatetime", align: "center", sortable: true },
+        { header: "Obligatorio", accessor: "obligatory", align: "center", sortable: true, render: (row) => row.obligatory ? 'Sí' : 'No' },
+        { header: "Presentes", accessor: "attended", align: "center", sortable: true },
+        { header: "%", accessor: "attendedPercentage", align: "center", sortable: true },
+        { header: "Ausentes", accessor: "notAttended", align: "center", sortable: true },
+        { header: "%", accessor: "notAttendedPercentage", align: "center", sortable: true },
+        { header: "Sin registro", accessor: "missingRegisters", align: "center", sortable: true }
+    ];
 
-        // Actualiza la tabla de asistencias.
-        let attendanceSummaryTable = document.getElementsByClassName(
-            "attendance-summary-table"
-        )[0];
-        let attendanceSummaryTableContainer = document.getElementsByClassName(
-            "attendance-summary-table-container"
-        )[0];
-        if (attendanceSummaryList.length !== 0) {
-            HTMLTableManipulator.insertDataIntoTable(
-                attendanceSummaryTable,
-                {
-                    tableRows: attendanceSummaryList,
-                    columnNames: [
-                        "eventId:ID de evento",
-                        "eventType:Tipo de evento",
-                        "eventName:Nombre",
-                        "initialDatetime:Fecha de inicio",
-                        "endDatetime:Fecha de fin",
-                        "obligatory:Obligatorio",
-                        "attended:Presentes",
-                        "attendedPercentage:%",
-                        "notAttended:Ausentes",
-                        "notAttendedPercentage:%",
-                        "missingRegisters:Sin registro",
-                    ],
-                    columnClasses: [
-                        "obligatory:centered",
-                        "attended:centered",
-                        "attendedPercentage:centered",
-                        "notAttended:centered",
-                        "notAttendedPercentage:centered",
-                        "missingRegisters:centered",
-                    ],
-                    onClickEventHandler: updateClassPiechart,
-                    onClickEventHandlerParameters: [
-                        "eventId", "eventType", "eventName",
-                        "attended", "attendedPercentage",
-                        "notAttended", "notAttendedPercentage"
-                    ],
-                },
-                "Resumen de asistencias."
-            );
-            attendanceSummaryTableContainer.classList.remove("not-displayed");
-        } else attendanceSummaryTableContainer.classList.add("not-displayed");
+    // Define columnas para Evaluación
+    const approvalColumns = [
+        { header: "ID de evento", accessor: "eventId", align: "center", sortable: true },
+        { header: "Tipo de evento", accessor: "eventType", align: "left", sortable: true },
+        { header: "Nombre", accessor: "eventName", align: "left", sortable: true },
+        { header: "Fecha de inicio", accessor: "initialDatetime", align: "center", sortable: true },
+        { header: "Fecha de fin", accessor: "endDatetime", align: "center", sortable: true },
+        { header: "Obligatorio", accessor: "obligatory", align: "center", sortable: true, render: (row) => row.obligatory ? 'Sí' : 'No' },
+        { header: "Aprobados", accessor: "approvedStudents", align: "center", sortable: true },
+        { header: "%", accessor: "approvedStudentsPercentage", align: "center", sortable: true },
+        { header: "Desaprobados", accessor: "disapprovedStudents", align: "center", sortable: true },
+        { header: "%", accessor: "disapprovedStudentsPercentage", align: "center", sortable: true },
+        { header: "Ausentes", accessor: "nonAttendingStudents", align: "center", sortable: true },
+        { header: "%", accessor: "nonAttendingStudentsPercentage", align: "center", sortable: true },
+        { header: "Sin registro", accessor: "missingRegisters", align: "center", sortable: true }
+    ];
 
-        // Actualiza la tabla de resumen de eventos de evaluación por aprobados.
-        let approvalRateSummaryTable = document.getElementsByClassName(
-            "approval-rate-summary-table"
-        )[0];
-        let approvalRateSummaryTableContainer = document.getElementsByClassName(
-            "approval-rate-summary-table-container"
-        )[0];
-        if (approvalRateSummaryList.length !== 0) {
-            HTMLTableManipulator.insertDataIntoTable(
-                approvalRateSummaryTable,
-                {
-                    tableRows: approvalRateSummaryList,
-                    columnNames: [
-                        "eventId:ID de evento",
-                        "eventType:Tipo de evento",
-                        "eventName:Nombre",
-                        "initialDatetime:Fecha de inicio",
-                        "endDatetime:Fecha de fin",
-                        "obligatory:Obligatorio",
-                        "approvedStudents:Aprobados",
-                        "approvedStudentsPercentage:%",
-                        "disapprovedStudents:Desaprobados",
-                        "disapprovedStudentsPercentage:%",
-                        "nonAttendingStudents:Ausentes",
-                        "nonAttendingStudentsPercentage:%",
-                        "missingRegisters:Sin registro",
-                    ],
-                    columnClasses: [
-                        "obligatory:centered",
-                        "approvedStudents:centered",
-                        "approvedStudentsPercentage:centered",
-                        "disapprovedStudents:centered",
-                        "disapprovedStudentsPercentage:centered",
-                        "nonAttendingStudents:centered",
-                        "nonAttendingStudentsPercentage:centered",
-                        "missingRegisters:centered",
-                    ],
-                    onClickEventHandler: updateEvaluationPiechart,
-                    onClickEventHandlerParameters: [
-                        "eventId", "eventType", "eventName",
-                        "approvedStudents", "approvedStudentsPercentage",
-                        "disapprovedStudents", "disapprovedStudentsPercentage",
-                        "nonAttendingStudents", "nonAttendingStudentsPercentage",
-                    ],
-                },
-                "Resumen de evaluaciones."
-            );
-            approvalRateSummaryTableContainer.classList.remove("not-displayed");
-        } else approvalRateSummaryTableContainer.classList.add("not-displayed");
+    const handleAttendanceRowClick = (row) => {
+        updateClassPiechart(row.eventId, row.eventType, row.eventName, row.attended, row.attendedPercentage, row.notAttended, row.notAttendedPercentage);
+    };
 
-    }, [attendanceSummaryList, noteSummaryList, approvalRateSummaryList]);
+    const handleApprovalRowClick = (row) => {
+        updateEvaluationPiechart(row.eventId, row.eventType, row.eventName, row.approvedStudents, row.approvedStudentsPercentage, row.disapprovedStudents, row.disapprovedStudentsPercentage, row.nonAttendingStudents, row.nonAttendingStudentsPercentage);
+    };
 
     /**
      * Actualiza el gráfico de torta de asistencias.
@@ -520,54 +466,75 @@ export const ShowEventsSummary = () => {
                     <p className="info-msg-description"></p>
                 </div>
             </div>
-            {attendanceSummaryList && (
-                <div id="hola" className="attendance-summary-table-container table-container not-displayed">
-                    <table id="attendance-summary-table" className="attendance-summary-table"></table>
-                    <button
-                        type="button"
-                        className="export-button"
-                        onClick={() => handleExport("attendance-summary-table", "Resumen de asistencias", "resumen-asistencias")}
-                    >
-                        Exportar a Excel
-                    </button>
-                </div>
+            
+            {loading ? (
+                <LoadingState message="Cargando resumen de eventos, por favor espere..." />
+            ) : (
+                <>
+                    <div id="attendance-summary-table-container" className="table-container">
+                        <Table
+                            title="Resumen de asistencias"
+                            columns={attendanceColumns}
+                            data={attendanceSummaryList}
+                            onRowClick={handleAttendanceRowClick}
+                        />
+                        {attendanceSummaryList && attendanceSummaryList.length > 0 && (
+                            <button
+                                type="button"
+                                className="export-button"
+                                style={{ marginTop: '15px' }}
+                                onClick={() => handleExport("attendance-summary-table-container", "Resumen de asistencias", "resumen-asistencias")}
+                            >
+                                Exportar a Excel
+                            </button>
+                        )}
+                    </div>
+                    
+                    <div id="attendancePiechart" className="piechart-container white-background not-displayed">
+                        <label className="piechart-title">{attendancePiechartTitle}</label>
+                        <VictoryPie
+                            data={attendancePiechartData}
+                            colorScale={attendancePiechartColorScale}
+                            radius={120}
+                            style={{ labels: {
+                                fontSize: 25,
+                                fontWeight: "bold"
+                            }}}
+                        />
+                    </div>
+
+                    <div id="approval-rate-summary-table-container" className="table-container">
+                        <Table
+                            title="Resumen de calificaciones"
+                            columns={approvalColumns}
+                            data={approvalRateSummaryList}
+                            onRowClick={handleApprovalRowClick}
+                        />
+                        {approvalRateSummaryList && approvalRateSummaryList.length > 0 && (
+                            <button
+                                type="button"
+                                className="export-button"
+                                style={{ marginTop: '15px' }}
+                                onClick={() => handleExport("approval-rate-summary-table-container", "Resumen de calificaciones", "resumen-calificaciones")}
+                            >
+                                Exportar a Excel
+                            </button>
+                        )}
+                    </div>
+                    <div id="approvalPiechart" className="piechart-container white-background not-displayed">
+                        <label className="piechart-title">{approvalPiechartTitle}</label>
+                        <VictoryPie
+                            data={approvalPiechartData}
+                            colorScale={approvalPiechartColorScale}
+                            radius={120}
+                            style={{ labels: {
+                                fontSize: 25,
+                                fontWeight: "bold"
+                            }}}
+                        />
+                    </div>
+                </>
             )}
-            <div id="attendancePiechart" className="piechart-container white-background not-displayed">
-                <label className="piechart-title">{attendancePiechartTitle}</label>
-                <VictoryPie
-                    data={attendancePiechartData}
-                    colorScale={attendancePiechartColorScale}
-                    radius={120}
-                    style={{ labels: {
-                        fontSize: 25,
-                        fontWeight: "bold"
-                    }}}
-                />
-            </div>
-            {approvalRateSummaryList && (
-                <div className="approval-rate-summary-table-container table-container not-displayed">
-                    <table id="approval-rate-summary-table" className="approval-rate-summary-table"></table>
-                    <button
-                        type="button"
-                        className="export-button"
-                        onClick={() => handleExport("approval-rate-summary-table", "Resumen de calificaciones", "resumen-asistencias")}
-                    >
-                        Exportar a Excel
-                    </button>
-                </div>
-            )}
-            <div id="approvalPiechart" className="piechart-container white-background not-displayed">
-                <label className="piechart-title">{approvalPiechartTitle}</label>
-                <VictoryPie
-                    data={approvalPiechartData}
-                    colorScale={approvalPiechartColorScale}
-                    radius={120}
-                    style={{ labels: {
-                        fontSize: 25,
-                        fontWeight: "bold"
-                    }}}
-                />
-            </div>
         </PageLayout>
     );
 };
