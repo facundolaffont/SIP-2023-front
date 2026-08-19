@@ -106,8 +106,7 @@ export function ModificateCourse() {
         // 3. Relleno el formulario con los datos de la cursada
         const courseData = courseRes.data;
         
-        // Asumiendo la estructura del JSON que viene del back:
-        setComissionId(courseData.idComision || "");
+        setComissionId(courseData.comision?.id || "");
         setAnio(courseData.anio);
         
         // Formateo de fechas: Cortamos la parte de la hora (T) para que el input date la acepte

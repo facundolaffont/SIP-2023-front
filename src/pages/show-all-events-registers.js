@@ -181,6 +181,14 @@ export const ShowAllEventsRegisters = () => {
             <h1 id="page-title" className="content__title">
                 Listar detalle de eventos
             </h1>
+            <h2 className="selected-course-info">
+                {
+                    course !== null && `Cursada seleccionada: (${course.getSubjectCode()}) ${course.getSubject()}, comisión ${course.getCommission()}, año ${course.getYear()}`
+                }
+                {
+                    course === null && 'Sin cursada seleccionada'
+                }
+            </h2>
             {loading ? (
                 <LoadingState message="Cargando detalles de eventos, por favor espere..." />
             ) : (

@@ -4,6 +4,7 @@ import axios from 'axios';
 import { useParams, useHistory } from "react-router-dom";
 import { PageLayout } from "../components/page-layout";
 import toast from "react-hot-toast";
+import { ConfirmModal } from "../components/ConfirmModal.js";
 
 // Reutilizamos los estilos de crear cursada porque la estructura es igual.
 import "../styles/create-course.css";
@@ -39,6 +40,10 @@ export function ModificateGroup() {
     const [error, setError] = useState(null);
     const [result, setResult] = useState("");
     const [loading, setLoading] = useState(true);
+    const [modalState, setModalState] = useState({
+        isOpen: false, title: "", message: "", confirmType: "danger", confirmText: "Aceptar", onConfirm: () => { }
+    });
+    const closeModal = () => setModalState(prev => ({ ...prev, isOpen: false }));
 
     // EFECTO: Cargar detalle del grupo al montar.
     useEffect(() => {
@@ -113,37 +118,47 @@ export function ModificateGroup() {
             studentDossiers: selectedStudents.map(s => s.dossier)
         };
 
-        try {
-            const auth0Token = await getAccessTokenSilently();
-            await axios.put(
-                `${process.env.REACT_APP_API_SERVER_URL}/api/v1/course/update-group`,
-                dataToUpdate,
-                {
-                    headers: { Authorization: `Bearer ${auth0Token}` }
+        setModalState({
+            isOpen: true,
+            title: "Guardar cambios",
+            message: "¿Está seguro de que desea guardar los cambios en el grupo?",
+            confirmType: "primary",
+            confirmText: "Guardar",
+            onConfirm: async () => {
+                closeModal();
+                try {
+                    const auth0Token = await getAccessTokenSilently();
+                    await axios.put(
+                        `${process.env.REACT_APP_API_SERVER_URL}/api/v1/course/update-group`,
+                        dataToUpdate,
+                        {
+                            headers: { Authorization: `Bearer ${auth0Token}` }
+                        }
+                    );
+
+                    toast.success('Grupo modificado exitosamente.');
+
+                    // Redirigir al listado.
+                    setTimeout(() => {
+                        history.push("/list-student-groups");
+                    }, 1500);
+
+                } catch (err) {
+                    console.error(err);
+                    if (err.response) {
+                        const errorData = err.response.data;
+                        if (err.response.status === 409) {
+                            // Nombre duplicado.
+                            toast.error(errorData.error || 'Ya existe un grupo con ese nombre en esta cursada.');
+                        } else {
+                            toast.error(errorData.error || errorData || 'Error al modificar el grupo.');
+                        }
+                    } else {
+                        toast.error(err.message);
+                    }
                 }
-            );
-
-            toast.success('Grupo modificado exitosamente.');
-
-            // Redirigir al listado.
-            setTimeout(() => {
-                history.push("/list-student-groups");
-            }, 1500);
-
-        } catch (err) {
-            console.error(err);
-            if (err.response) {
-                const errorData = err.response.data;
-                if (err.response.status === 409) {
-                    // Nombre duplicado.
-                    toast.error(errorData.error || 'Ya existe un grupo con ese nombre en esta cursada.');
-                } else {
-                    toast.error(errorData.error || errorData || 'Error al modificar el grupo.');
-                }
-            } else {
-                toast.error(err.message);
             }
-        }
+        });
     };
 
     if (loading) return <PageLayout><div className="modal-loading"><div className="spinner"></div><p style={{fontSize: '20px'}}>Cargando datos del grupo...</p></div></PageLayout>;
@@ -151,6 +166,15 @@ export function ModificateGroup() {
     return (
         <PageLayout>
             <h1 id="page-title" className="content__title">Modificar Grupo</h1>
+            <ConfirmModal
+                isOpen={modalState.isOpen}
+                title={modalState.title}
+                message={modalState.message}
+                confirmType={modalState.confirmType}
+                confirmText={modalState.confirmText}
+                onConfirm={modalState.onConfirm}
+                onCancel={closeModal}
+            />
 
             <form onSubmit={handleSubmit}>
 

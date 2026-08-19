@@ -32,9 +32,9 @@ export const FinalCondition = () => {
     const [infoText, setInfoText] = useState("");
     const [isCalculating, setIsCalculating] = useState(false);
     const [spreadsheetManipulator, setSpreadsheetManipulator] = useState(null);
-    
+
     // Estado del tipo de ordenamiento: 'ascending', 'descending', o null
-    const [sortDirection, setSortDirection] = useState(null);   
+    const [sortDirection, setSortDirection] = useState(null);
 
     /** @type {CourseDTO} */ const course = useSelectedCourse(false);
     const history = useHistory();
@@ -45,7 +45,7 @@ export const FinalCondition = () => {
     useEffect(() => {
 
         if (!course) history.push('/profile?course-missing');
-        
+
     }, []);
 
     // Inicializa el objeto que manipula las planillas.
@@ -65,24 +65,24 @@ export const FinalCondition = () => {
 
                 // Obtiene el token Auth0.
                 const auth0Token = await getAccessTokenSilently()
-                .then(response => response)
-                .catch(error => {
-                    throw error;
-                });
+                    .then(response => response)
+                    .catch(error => {
+                        throw error;
+                    });
 
                 await axios
-                .get(
-                    `${process.env.REACT_APP_API_SERVER_URL}/api/v1/criterion-course/evaluationCriterias?courseId=${course.getId()}`,
-                    {
-                        headers: {
-                            Authorization: `Bearer ${auth0Token}`,
-                        },
-                    }
-                )
-                .then(criteria => {
-                    setCriterias(criteria.data);
-                })
-                .catch(error => error.response);
+                    .get(
+                        `${process.env.REACT_APP_API_SERVER_URL}/api/v1/criterion-course/evaluationCriterias?courseId=${course.getId()}`,
+                        {
+                            headers: {
+                                Authorization: `Bearer ${auth0Token}`,
+                            },
+                        }
+                    )
+                    .then(criteria => {
+                        setCriterias(criteria.data);
+                    })
+                    .catch(error => error.response);
 
             } catch (error) {
                 console.error("Error al obtener los criterios de evaluación:", error);
@@ -128,8 +128,8 @@ export const FinalCondition = () => {
     }
 
     const [cacheConditions, setCacheConditions] = useState({
-    cursada: null,
-    final: null
+        cursada: null,
+        final: null
     });
 
     const handleEditCondition = (legajo) => {
@@ -165,34 +165,34 @@ export const FinalCondition = () => {
 
     // --- FUNCIONES PARA ORDENAR CRITERIOS ---
     const handleMoveUp = (index) => {
-        if (index === 0) return; 
-        
+        if (index === 0) return;
+
         const newCriterias = [...criterias];
         const temp = newCriterias[index - 1];
         newCriterias[index - 1] = newCriterias[index];
         newCriterias[index] = temp;
-        
+
         setCriterias(newCriterias);
     };
 
     const handleMoveDown = (index) => {
-        if (index === criterias.length - 1) return; 
-        
+        if (index === criterias.length - 1) return;
+
         const newCriterias = [...criterias];
         const temp = newCriterias[index + 1];
         newCriterias[index + 1] = newCriterias[index];
         newCriterias[index] = temp;
-        
+
         setCriterias(newCriterias);
     };
 
     const handleSaveOrder = async () => {
         try {
             const auth0Token = await getAccessTokenSilently();
-            
+
             // Armamos el array con el ID de la base de datos y su nueva posición (índice)
             const orderPayload = criterias.map((c, index) => ({
-                id: c.id, 
+                id: c.id,
                 orden: index
             }));
 
@@ -224,18 +224,18 @@ export const FinalCondition = () => {
     };
 
     const handleCalculate = async (isFinal) => {
-        
+
         // Oculta el mensaje de guardado exitoso, si se estuviese mostrando.
         setSaveMessage(false);
-        
+
         const type = isFinal ? "final" : "cursada";
         setCalculationType(type);
 
         // Mensaje informativo según el tipo.
         setInfoText(
-        isFinal
-            ? "Los resultados muestran la CONDICIÓN FINAL: P (Promueve), R (Regular), L (Libre)."
-            : "Los resultados muestran la CONDICIÓN DE CURSADA: En condiciones de integrar, R (Regular), L (Libre)."
+            isFinal
+                ? "Los resultados muestran la CONDICIÓN FINAL: P (Promueve), R (Regular), L (Libre)."
+                : "Los resultados muestran la CONDICIÓN DE CURSADA: En condiciones de integrar, R (Regular), L (Libre)."
         );
         setShowInfo(true);
 
@@ -398,6 +398,14 @@ export const FinalCondition = () => {
     return (
         <PageLayout>
             <h1 id="page-title" className="content__title">Calcular condiciones</h1>
+            <h2 className="selected-course-info">
+                {
+                    course !== null && `Cursada seleccionada: (${course.getSubjectCode()}) ${course.getSubject()}, comisión ${course.getCommission()}, año ${course.getYear()}`
+                }
+                {
+                    course === null && 'Sin cursada seleccionada'
+                }
+            </h2>
             <form>
                 <p>Se evaluará la condicion de los estudiantes según los siguientes criterios:</p>
                 <table className="criteria-table">
@@ -415,16 +423,16 @@ export const FinalCondition = () => {
 
                                 {/* CELDA DE LAS FLECHAS */}
                                 <td>
-                                    <button 
-                                        type="button" 
+                                    <button
+                                        type="button"
                                         onClick={() => handleMoveUp(index)}
                                         disabled={index === 0}
                                         title="Mover arriba"
                                     >
                                         ⬆️
                                     </button>
-                                    <button 
-                                        type="button" 
+                                    <button
+                                        type="button"
                                         onClick={() => handleMoveDown(index)}
                                         disabled={index === criterias.length - 1}
                                         title="Mover abajo"
@@ -432,7 +440,7 @@ export const FinalCondition = () => {
                                         ⬇️
                                     </button>
                                 </td>
-                                
+
                                 <td>{criteria.criteria.name}</td>
                                 <td>
                                     {criteria.criteria.name !== 'Promedio de parciales' && criteria.criteria.name !== 'Integrador aprobado'
@@ -469,11 +477,11 @@ export const FinalCondition = () => {
             {sortedConditions.length > 0 && (
                 <div className="final-condition-table-container">
                     <h2>
-                    {
-                        esCondicionFinal
-                        ? "Resultado: Condición final de los alumnos"
-                        : "Resultado: Condición de cursada de los alumnos"
-                    }
+                        {
+                            esCondicionFinal
+                                ? "Resultado: Condición final de los alumnos"
+                                : "Resultado: Condición de cursada de los alumnos"
+                        }
                     </h2>
                     <div className="condition-references" style={{ marginBottom: "15px", padding: "10px", backgroundColor: "#f9f9f9", border: "1px solid #ddd", borderRadius: "4px", display: "inline-block" }}>
                         <strong style={{ marginRight: "15px", color: "black" }}>Referencias:</strong>
@@ -484,9 +492,9 @@ export const FinalCondition = () => {
                     <table id="final-condition-table" className="final-condition-table">
                         <thead>
                             <tr>
-                                <th 
+                                <th
                                     onClick={toggleSortNombre}
-                                    style={{cursor: 'pointer', userSelect: 'none'}}
+                                    style={{ cursor: 'pointer', userSelect: 'none' }}
                                     title="Ordenar por nombre"
                                 >Nombre {sortDirection === 'ascending' ? '▲' : (sortDirection === 'descending' ? '▼' : '')}
                                 </th>
@@ -497,7 +505,7 @@ export const FinalCondition = () => {
                                 {criteriosFiltrados.map((criteria, index) => {
                                     // Usamos el mapa de claves calculado para este criterio evaluando a todos los alumnos
                                     const notasKeys = criteriosKeysMap[criteria.criteria.name] || [];
-                                    
+
                                     return (
                                         <React.Fragment key={index}>
                                             {/* A. Columnas de Notas Individuales*/}
@@ -521,14 +529,14 @@ export const FinalCondition = () => {
                                 <tr key={index}>
                                     <td>{student.Nombre}</td>
                                     <td>{student.Legajo}</td>
-                                    <td>{student.Email}</td>  
+                                    <td>{student.Email}</td>
                                     <td>{student.Correlativas ? 'P' : ''}</td>
 
                                     {criteriosFiltrados.map((criteria, criteriaIndex) => {
 
                                         // 1. Buscamos el detalle del alumno actual
                                         const detalleObj = student.Detalle.find(d => d.Criterio === criteria.criteria.name);
-                                        
+
                                         // 2. Obtenemos las mismas claves de notas (calculadas previamente para toda la columna)
                                         const notasKeys = criteriosKeysMap[criteria.criteria.name] || [];
 
@@ -585,7 +593,7 @@ export const FinalCondition = () => {
 
                                         return (
                                             <React.Fragment key={criteriaIndex}>
-                                                
+
                                                 {/* A. Celdas de NOTAS INDIVIDUALES */}
                                                 {notasKeys.map((keyNota) => (
                                                     <td key={keyNota}>
@@ -616,53 +624,52 @@ export const FinalCondition = () => {
 
                                         return (
                                             <td
-                                            className={`final-condition-table-condition-cell ${
-                                                editedConditions[student.Legajo] !== undefined &&
-                                                editedConditions[student.Legajo] !== student.Condición
-                                                ? "edited-cell"
-                                                : ""
-                                            }`}
-                                            data-original-value={getCondicionFinalTexto(finalCond)}
-                                            style={{ backgroundColor: finalBgColor, color: "black" }}
+                                                className={`final-condition-table-condition-cell ${editedConditions[student.Legajo] !== undefined &&
+                                                        editedConditions[student.Legajo] !== student.Condición
+                                                        ? "edited-cell"
+                                                        : ""
+                                                    }`}
+                                                data-original-value={getCondicionFinalTexto(finalCond)}
+                                                style={{ backgroundColor: finalBgColor, color: "black" }}
                                             >
-                                            
-                                            {esCondicionFinal ? (
-                                                <>
-                                                {editingConditionLegajo === student.Legajo ? (
-                                                    <input
-                                                type="text"
-                                                value={editedConditions[student.Legajo] || ""}
-                                                onChange={(e) => {
-                                                    const newValue = e.target.value.trim().toUpperCase();
-                                                    if (newValue === "" || ["P", "R", "L", "A"].includes(newValue)) {
-                                                        setErrorMessage("");
-                                                        handleConditionChange(student.Legajo, newValue !== "" ? newValue : undefined);
-                                                    } else {
-                                                        setErrorMessage("Solo se permiten las letras 'P', 'R', 'A' o 'L'");
-                                                    }
-                                                }}
-                                            />
-                                        ) : (
-                                            <span>{getCondicionFinalTexto(editedConditions[student.Legajo] || student.Condición)}</span>
-                                        )}
-                                        {!editingConditionLegajo && (
-                                            <button onClick={() => handleEditCondition(student.Legajo)}>
-                                                <FontAwesomeIcon icon={faPencilAlt} />
-                                            </button>
-                                        )}
-                                        {editingConditionLegajo === student.Legajo && (
-                                            <td className="edit-buttons">
-                                                <button onClick={handleConfirmCondition}>✔️</button>
-                                                <button onClick={handleCancelCondition}>❌</button>
-                                            </td>
-                                        )}
-                                        {errorMessage && editingConditionLegajo === student.Legajo &&
-                                            <p>{errorMessage}</p>}
-                                    </>
-                                    ) : (
-                                    // Si no es condición final, solo mostramos el texto sin permitir edición
-                                    <span style={{ color: "black", fontWeight: "bold" }}>{getCondicionFinalTexto(editedConditions[student.Legajo] || student.Condición)}</span>
-                                    )}
+
+                                                {esCondicionFinal ? (
+                                                    <>
+                                                        {editingConditionLegajo === student.Legajo ? (
+                                                            <input
+                                                                type="text"
+                                                                value={editedConditions[student.Legajo] || ""}
+                                                                onChange={(e) => {
+                                                                    const newValue = e.target.value.trim().toUpperCase();
+                                                                    if (newValue === "" || ["P", "R", "L", "A"].includes(newValue)) {
+                                                                        setErrorMessage("");
+                                                                        handleConditionChange(student.Legajo, newValue !== "" ? newValue : undefined);
+                                                                    } else {
+                                                                        setErrorMessage("Solo se permiten las letras 'P', 'R', 'A' o 'L'");
+                                                                    }
+                                                                }}
+                                                            />
+                                                        ) : (
+                                                            <span>{getCondicionFinalTexto(editedConditions[student.Legajo] || student.Condición)}</span>
+                                                        )}
+                                                        {!editingConditionLegajo && (
+                                                            <button onClick={() => handleEditCondition(student.Legajo)}>
+                                                                <FontAwesomeIcon icon={faPencilAlt} />
+                                                            </button>
+                                                        )}
+                                                        {editingConditionLegajo === student.Legajo && (
+                                                            <td className="edit-buttons">
+                                                                <button onClick={handleConfirmCondition}>✔️</button>
+                                                                <button onClick={handleCancelCondition}>❌</button>
+                                                            </td>
+                                                        )}
+                                                        {errorMessage && editingConditionLegajo === student.Legajo &&
+                                                            <p>{errorMessage}</p>}
+                                                    </>
+                                                ) : (
+                                                    // Si no es condición final, solo mostramos el texto sin permitir edición
+                                                    <span style={{ color: "black", fontWeight: "bold" }}>{getCondicionFinalTexto(editedConditions[student.Legajo] || student.Condición)}</span>
+                                                )}
                                             </td>
                                         );
                                     })()}

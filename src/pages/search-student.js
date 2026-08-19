@@ -48,12 +48,12 @@ export const SearchStudent = () => {
         setEventos(null);
         setDataCursada(null);
         setNotFound(false);
-        
+
         // Realizar la solicitud al backend
         fetch(`${process.env.REACT_APP_API_SERVER_URL}/api/v1/course/getStudent?courseId=${course.getId()}&dossier=${legajo}`)
             .then(response => response.json())
             .then(data => {
-                
+
                 // Verificar si se encontró un alumno
                 if (data && data.estudiante) {
                     // Establecer la información del alumno
@@ -90,6 +90,14 @@ export const SearchStudent = () => {
             <h1 id="page-title" className="content__title">
                 Consultar eventos por alumno
             </h1>
+            <h2 className="selected-course-info">
+                {
+                    course !== null && `Cursada seleccionada: (${course.getSubjectCode()}) ${course.getSubject()}, comisión ${course.getCommission()}, año ${course.getYear()}`
+                }
+                {
+                    course === null && 'Sin cursada seleccionada'
+                }
+            </h2>
             <div>
                 <input
                     type="text"
@@ -99,7 +107,7 @@ export const SearchStudent = () => {
                 />
                 <button onClick={handleSearch} disabled={loading}>Buscar</button>
             </div>
-            
+
             {loading ? (
                 <LoadingState message="Buscando alumno, por favor espere..." />
             ) : notFound ? (

@@ -104,7 +104,7 @@ export const ListCourseStudents = () => {
             email: student.email,
             alreadyStudied: student.alreadyStudied,
             allPreviousSubjectsApproved: student.allPreviousSubjectsApproved,
-            finalCondition: student.finalCondition || 'A' // Valor por defecto por si viene null
+            finalCondition: student.finalCondition || '' // Valor por defecto por si viene null o vacio
         });
     };
 
@@ -295,6 +295,7 @@ export const ListCourseStudents = () => {
                         value={editFormData.finalCondition} 
                         onChange={handleFormChange}
                     >
+                        <option value="">(Sin condición)</option>
                         <option value="P">P - Promovido</option>
                         <option value="R">R - Regular</option>
                         <option value="L">L - Libre</option>

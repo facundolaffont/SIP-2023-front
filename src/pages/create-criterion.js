@@ -19,7 +19,7 @@ export function CreateCriterion() {
   // se había hecho.
   useEffect(() => {
 
-      if (!course) history.push('/profile?course-missing');
+    if (!course) history.push('/profile?course-missing');
 
   }, []);
 
@@ -46,34 +46,34 @@ export function CreateCriterion() {
 
     // Verificar el tipo de criterio seleccionado y validar los valores ingresados
     if (criterio === "5" || criterio === "10") { // Promedio de parciales o Integrador
-      if ((regularValue < 1 || regularValue > 10 || promovidoValue < 0 || promovidoValue > 10) || (regularValue > promovidoValue)){
+      if ((regularValue < 1 || regularValue > 10 || promovidoValue < 0 || promovidoValue > 10) || (regularValue > promovidoValue)) {
         isValid = false;
       }
     } else {
-        if (criterio === "4" || criterio === "2" || criterio === "6" || criterio === "1") {
-            if ((regularValue < 0 || regularValue > 100 || promovidoValue < 0 || promovidoValue > 100) || (regularValue > promovidoValue) ) {
-              isValid = false;
-            } 
-        }
-        else {
-          if ((regularValue < 0 || regularValue > 100 || promovidoValue < 0 || promovidoValue > 100) || (promovidoValue > regularValue)){
-            isValid = false;
-          }
+      if (criterio === "4" || criterio === "2" || criterio === "6" || criterio === "1") {
+        if ((regularValue < 0 || regularValue > 100 || promovidoValue < 0 || promovidoValue > 100) || (regularValue > promovidoValue)) {
+          isValid = false;
         }
       }
+      else {
+        if ((regularValue < 0 || regularValue > 100 || promovidoValue < 0 || promovidoValue > 100) || (promovidoValue > regularValue)) {
+          isValid = false;
+        }
+      }
+    }
 
     if (!isValid) {
       setErrorMessage("Valores incorrectos. Por favor, ingrese valores válidos.");
       return;
-    } 
+    }
 
     const data = {
-      criteria: {id: criterio },
+      criteria: { id: criterio },
       value_to_regulate: vRegular,
       value_to_promote: vPromovido,
-      course: {id: course.getId()}
+      course: { id: course.getId() }
     };
-    
+
     fetch(`${process.env.REACT_APP_API_SERVER_URL}/api/v1/criterion-course/add`, {
       method: "POST",
       headers: {
@@ -96,7 +96,7 @@ export function CreateCriterion() {
       });
   };
 
-  const esIntegrador = criterio === "10"; 
+  const esIntegrador = criterio === "10";
 
   return (
 
@@ -105,20 +105,29 @@ export function CreateCriterion() {
       <h1 id="page-title" className="content__title">
         Crear criterio de evaluación
       </h1>
-    
+
+      <h2 className="selected-course-info">
+        {
+          course !== null && `Cursada seleccionada: (${course.getSubjectCode()}) ${course.getSubject()}, comisión ${course.getCommission()}, año ${course.getYear()}`
+        }
+        {
+          course === null && 'Sin cursada seleccionada'
+        }
+      </h2>
+
       <form onSubmit={handleSubmit}>
 
-      <div className="correlatives-info-box">
-        <p>
-          ℹ️ <strong>Importante:</strong> La verificación de materias <strong>correlativas</strong> se realiza automáticamente por el sistema, no es necesario crear un criterio.
-        </p>
-      </div>
+        <div className="correlatives-info-box">
+          <p>
+            ℹ️ <strong>Importante:</strong> La verificación de materias <strong>correlativas</strong> se realiza automáticamente por el sistema, no es necesario crear un criterio.
+          </p>
+        </div>
 
-      <label htmlFor="criterio">
-        <p>Criterio de Evaluacion</p>
-      </label>
-    
-      <select value={criterio} onChange={handleCriterioChange} required>
+        <label htmlFor="criterio">
+          <p>Criterio de Evaluacion</p>
+        </label>
+
+        <select value={criterio} onChange={handleCriterioChange} required>
           <option value="">Seleccione un criterio</option>
           <option value="4">Parciales aprobados</option>
           <option value="8">Parciales recuperados</option>
@@ -131,9 +140,9 @@ export function CreateCriterion() {
           <option value="10">Integrador</option>
         </select>
 
-      {infoMessage && <p style={{ color: "blue" }}>{infoMessage}</p>}
+        {infoMessage && <p style={{ color: "blue" }}>{infoMessage}</p>}
 
-      {!esIntegrador && (
+        {!esIntegrador && (
           <>
             <label htmlFor="valorRegular">
               <p>Valor para regular</p>
@@ -146,23 +155,23 @@ export function CreateCriterion() {
               required
             />
           </>
-      )}
+        )}
 
 
-      <label htmlFor="valorPromovido">
-        <p>Valor para promovido</p>
-      </label>
+        <label htmlFor="valorPromovido">
+          <p>Valor para promovido</p>
+        </label>
 
-      <input
-        type="number"
-        value={vPromovido}
-        onChange={(e) => setVPromovido(e.target.value)}
-        required
-      />
+        <input
+          type="number"
+          value={vPromovido}
+          onChange={(e) => setVPromovido(e.target.value)}
+          required
+        />
 
-      <button type="submit">Cargar</button>
-      {submitMessage && <p style={{ color: "blue" }}>{submitMessage}</p>}
-      {errorMessage && <p style={{ color: "red" }}>{errorMessage}</p>}
+        <button type="submit">Cargar</button>
+        {submitMessage && <p style={{ color: "blue" }}>{submitMessage}</p>}
+        {errorMessage && <p style={{ color: "red" }}>{errorMessage}</p>}
       </form>
 
     </PageLayout>

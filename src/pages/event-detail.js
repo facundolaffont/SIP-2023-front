@@ -19,7 +19,7 @@ import '../styles/search-event.css';
 const ERROR_MESSAGES = {
     "NETWORK_ERROR": "No se pudo conectar con el servidor. Verifique su conexión a internet.",
     "DEFAULT": "Hubo un problema inesperado al cargar la información del evento."
-};  
+};
 
 export const EventDetail = () => {
 
@@ -41,7 +41,7 @@ export const EventDetail = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [modalState, setModalState] = useState({
-        isOpen: false, title: "", message: "", confirmType: "danger", confirmText: "Aceptar", onConfirm: () => {}
+        isOpen: false, title: "", message: "", confirmType: "danger", confirmText: "Aceptar", onConfirm: () => { }
     });
     const closeModal = () => setModalState(prev => ({ ...prev, isOpen: false }));
 
@@ -64,12 +64,12 @@ export const EventDetail = () => {
             try {
                 const auth0Token = await getAccessTokenSilently();
                 const eventInfoResponse = await axios.get(
-                `${process.env.REACT_APP_API_SERVER_URL}/api/v1/events/get-event-info?event-id=${eventId}`, 
-                {
-                    headers: {
-                        Authorization: `Bearer ${auth0Token}`,
-                    },
-                });
+                    `${process.env.REACT_APP_API_SERVER_URL}/api/v1/events/get-event-info?event-id=${eventId}`,
+                    {
+                        headers: {
+                            Authorization: `Bearer ${auth0Token}`,
+                        },
+                    });
                 const data = eventInfoResponse.data;
                 // Adecúa los valores de asistencia y nota 
                 data.eventRegistersList.forEach((eventRegister) => {
@@ -110,7 +110,7 @@ export const EventDetail = () => {
         }
     }, [eventInfo]);
     // #endregion ==== Definición de useEffect. ====
-    
+
     // #region ==== Definición de funciones. ====
     const checkIfEventRegisterDossierHasFinalCondition = async (eventRegisterId) => {
         try {
@@ -137,7 +137,7 @@ export const EventDetail = () => {
         }
     }
 
-    const updateEventRegisterNote = async (eventRegisterId, newNoteValue) => { 
+    const updateEventRegisterNote = async (eventRegisterId, newNoteValue) => {
         try {
             const response = await axios.post(
                 `${process.env.REACT_APP_API_SERVER_URL}/api/v1/events/update-event-register-note`,
@@ -150,7 +150,7 @@ export const EventDetail = () => {
         }
     }
 
-    const deleteEventRegister = async (eventRegisterId) => { 
+    const deleteEventRegister = async (eventRegisterId) => {
         try {
             const response = await axios.post(
                 `${process.env.REACT_APP_API_SERVER_URL}/api/v1/events/delete-event-register`,
@@ -173,7 +173,7 @@ export const EventDetail = () => {
     ) => {
         let nameString = eventName !== null ? `"${eventName}" ` : '';
         let dateTimeString = "";
-        
+
         if (initialDateTime !== null && endDateTime !== null) {
             const formatOptsDate = { weekday: 'short', day: '2-digit', month: '2-digit', year: '2-digit' };
             const formatOptsTime = { hour: '2-digit', minute: '2-digit' };
@@ -181,12 +181,12 @@ export const EventDetail = () => {
             const initialTime = Intl.DateTimeFormat('es-AR', formatOptsTime).format(new Date(initialDateTime));
             const endDate = Intl.DateTimeFormat('es-AR', formatOptsDate).format(new Date(endDateTime));
             const endTime = Intl.DateTimeFormat('es-AR', formatOptsTime).format(new Date(endDateTime));
-            
+
             dateTimeString = initialDate === endDate
                 ? `: ${initialDate} de ${initialTime} a ${endTime}`
                 : `: ${initialDate} ${initialTime} - ${endDate} ${endTime}`;
         }
-        
+
         let mandatoryString = mandatory ? 'obligatorio' : 'no obligatorio';
         setEventTitle(`ID ${eventId} - ${eventType} ${nameString}(${mandatoryString})${dateTimeString}`);
     }
@@ -211,38 +211,48 @@ export const EventDetail = () => {
     };
 
     const handleSaveEdit = async (row) => {
-        try {
-            const response = await checkIfEventRegisterDossierHasFinalCondition(row.eventRegisterId);
-            if (response.data === true) {
-                toast.error('El legajo tiene registrada la condición final. No se puede modificar el registro de evento.');
-                return;
+        setModalState({
+            isOpen: true,
+            title: "Guardar cambios",
+            message: "¿Está seguro de que desea guardar los cambios en este registro de evento?",
+            confirmType: "primary",
+            confirmText: "Guardar",
+            onConfirm: async () => {
+                closeModal();
+                try {
+                    const response = await checkIfEventRegisterDossierHasFinalCondition(row.eventRegisterId);
+                    if (response.data === true) {
+                        toast.error('El legajo tiene registrada la condición final. No se puede modificar el registro de evento.');
+                        return;
+                    }
+
+                    if (eventInfo.eventInfo.eventTypeId === 1) {
+                        await updateEventRegisterAttendance(row.eventRegisterId, editValue === 'Sí');
+                    } else {
+                        await updateEventRegisterNote(row.eventRegisterId, editValue);
+                    }
+
+                    setEventInfo({
+                        ...eventInfo,
+                        eventRegistersList: eventInfo.eventRegistersList.map(register =>
+                            register.eventRegisterId === row.eventRegisterId
+                                ? {
+                                    ...register,
+                                    attendanceStr: eventInfo.eventInfo.eventTypeId === 1 ? editValue : register.attendanceStr,
+                                    note: eventInfo.eventInfo.eventTypeId !== 1 ? editValue : register.note,
+                                }
+                                : register
+                        )
+                    });
+
+                    toast.success("El registro de evento se ha actualizado exitosamente");
+                    setEditingRowId(null);
+                } catch (error) {
+                    toast.error(error.response?.data?.errorDescription || "Error al actualizar el registro");
+                    console.error(error);
+                }
             }
-
-            if (eventInfo.eventInfo.eventTypeId === 1) {
-                await updateEventRegisterAttendance(row.eventRegisterId, editValue === 'Sí');
-            } else {
-                await updateEventRegisterNote(row.eventRegisterId, editValue);
-            }
-
-            setEventInfo({
-                ...eventInfo,
-                eventRegistersList: eventInfo.eventRegistersList.map(register =>
-                    register.eventRegisterId === row.eventRegisterId
-                        ? {
-                            ...register,
-                            attendanceStr: eventInfo.eventInfo.eventTypeId === 1 ? editValue : register.attendanceStr,
-                            note: eventInfo.eventInfo.eventTypeId !== 1 ? editValue : register.note,
-                        }
-                        : register
-                )
-            });
-
-            toast.success("El registro de evento se ha actualizado exitosamente");
-            setEditingRowId(null);
-        } catch (error) {
-            toast.error(error.response?.data?.errorDescription || "Error al actualizar el registro");
-            console.error(error);
-        }
+        });
     }
 
     const handleDelete = async (row) => {
@@ -310,8 +320,8 @@ export const EventDetail = () => {
             },
             render: (row) => {
                 if (editingRowId === row.eventRegisterId) {
-                    const options = isClassEvent 
-                        ? ['Sí', 'No'] 
+                    const options = isClassEvent
+                        ? ['Sí', 'No']
                         : ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'A', 'A-', 'D', 'AUSENTE'];
                     return (
                         <select value={editValue} onChange={(e) => setEditValue(e.target.value)}>
@@ -326,7 +336,7 @@ export const EventDetail = () => {
             header: 'Acciones',
             accessor: 'actions',
             align: "center",
-            className: "actions-column", 
+            className: "actions-column",
             render: (row) => {
                 if (editingRowId === row.eventRegisterId) {
                     return (
@@ -351,8 +361,15 @@ export const EventDetail = () => {
             <h1 id="page-title" className="content__title">
                 Detalle de evento
             </h1>
-
-            <ConfirmModal 
+            <h2 className="selected-course-info">
+                {
+                    course !== null && `Cursada seleccionada: (${course.getSubjectCode()}) ${course.getSubject()}, comisión ${course.getCommission()}, año ${course.getYear()}`
+                }
+                {
+                    course === null && 'Sin cursada seleccionada'
+                }
+            </h2>
+            <ConfirmModal
                 isOpen={modalState.isOpen}
                 title={modalState.title}
                 message={modalState.message}
@@ -363,7 +380,7 @@ export const EventDetail = () => {
             />
 
             {error && (
-                <div className="msg-error" style={{textAlign: 'center', margin: '20px 0', fontSize: '20px'}}>
+                <div className="msg-error" style={{ textAlign: 'center', margin: '20px 0', fontSize: '20px' }}>
                     {error}
                 </div>
             )}
@@ -373,7 +390,7 @@ export const EventDetail = () => {
             ) : (
                 eventInfo && eventInfo.eventRegistersList && (
                     <div ref={tableContainerRef}>
-                        <Table 
+                        <Table
                             title={eventTitle}
                             columns={columns}
                             data={eventInfo.eventRegistersList}
