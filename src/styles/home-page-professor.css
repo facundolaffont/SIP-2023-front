@@ -17,3 +17,91 @@
     /* Imagen cruda sin overlay */
     background-image: url('../img/AULA1.jpg');
 }
+
+.cursadas-grid {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px; /* Menos desperdicio de espacio */
+    width: 100%;
+    max-width: 1100px;
+    margin: 0 auto;
+}
+
+.cuadro-cursada-grid {
+    display: grid;
+    grid-template-columns: 2fr 3fr 1fr 1fr;
+    align-items: center;
+    background-color: rgba(255, 255, 255, 0.95);
+    border-radius: 6px;
+    padding: 12px 20px;
+    width: 100%;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    color: #333;
+}
+
+.cuadro-cursada-grid:hover {
+    background-color: #8fca8a;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.cuadro-cursada-header {
+    background-color: rgba(230, 230, 230, 0.98);
+    cursor: default;
+    color: #000;
+    padding: 10px 20px; /* Un poco más finito que las cursadas */
+}
+
+.cuadro-cursada-header:hover {
+    background-color: rgba(230, 230, 230, 0.98);
+    transform: none;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.cuadro-cursada-header .cursada-col {
+    font-weight: 700;
+    color: #111;
+    border-right: 1px solid #ccc;
+}
+
+.cursada-col {
+    font-size: 1.6rem;
+    font-weight: 500;
+    padding: 0 10px;
+    border-right: 1px solid #ddd;
+}
+
+.cursada-col:last-child {
+    border-right: none;
+}
+
+.cursada-carrera {
+    font-weight: 600;
+    color: #111;
+}
+
+.cursada-asignatura {
+    color: #444;
+}
+
+.cursada-comision, .cursada-anio {
+    text-align: center;
+    color: #666;
+}
+
+@media (max-width: 768px) {
+    .cuadro-cursada-grid {
+        grid-template-columns: 1fr;
+        gap: 4px;
+        padding: 12px;
+    }
+    .cursada-col {
+        border-right: none;
+        text-align: left;
+        padding: 4px 0;
+    }
+}
+
