@@ -1,0 +1,19 @@
+.home-page-professor-bg {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: -1;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    opacity: 0;
+    transition: opacity 0.5s ease-in-out;
+}
+
+.home-page-professor-bg.bg-loaded {
+    opacity: 1;
+    /* Imagen cruda sin overlay */
+    background-image: url('../img/AULA1.jpg');
+}
