@@ -17,17 +17,146 @@ import { useSelectedCourse } from "../contexts/course/course-provider.js";
 // Estilos.
 import "../styles/final-condition.css";
 
+const ConditionEditor = ({ studentLegajo, currentCondition, onConfirm, getCondicionFinalTexto, isEditing, onEditStart, onCancel }) => {
+    const [tempValue, setTempValue] = useState("");
+    const [errorMessage, setErrorMessage] = useState("");
+
+    useEffect(() => {
+        if (isEditing) {
+            setTempValue(currentCondition || "");
+            setErrorMessage("");
+        }
+    }, [isEditing, currentCondition]);
+
+    const handleEdit = () => {
+        onEditStart();
+    };
+
+    const handleConfirm = () => {
+        if (tempValue === "" || ["P", "R", "L", "A"].includes(tempValue)) {
+            onConfirm(studentLegajo, tempValue !== "" ? tempValue : undefined);
+        } else {
+            setErrorMessage("Solo se permiten las letras 'P', 'R', 'A' o 'L'");
+        }
+    };
+
+    const handleCancel = () => {
+        onCancel();
+        setErrorMessage("");
+    };
+
+    return (
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "4px", height: "100%" }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "6px" }}>
+                {isEditing ? (
+                    <input
+                        type="text"
+                        value={tempValue}
+                        style={{ width: "40px", height: "28px", textAlign: "center", textTransform: "uppercase", boxSizing: "border-box", margin: 0, padding: "4px" }}
+                        onChange={(e) => {
+                            const newValue = e.target.value.trim().toUpperCase();
+                            setTempValue(newValue);
+                            if (newValue === "" || ["P", "R", "L", "A"].includes(newValue)) {
+                                setErrorMessage("");
+                            } else {
+                                setErrorMessage("Solo se permiten las letras 'P', 'R', 'A' o 'L'");
+                            }
+                        }}
+                    />
+                ) : (
+                    <span>{getCondicionFinalTexto(currentCondition)}</span>
+                )}
+                {!isEditing && (
+                    <button onClick={handleEdit} className="edit-action-btn" title="Editar" style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
+                        <FontAwesomeIcon icon={faPencilAlt} />
+                    </button>
+                )}
+                {isEditing && (
+                    <div className="edit-buttons-container" style={{ display: "flex", alignItems: "center", margin: 0, gap: "4px" }}>
+                        <button onClick={handleConfirm} className="confirm-btn" title="Confirmar" style={{ display: "flex", alignItems: "center", justifyContent: "center", padding: 0, minWidth: "26px", width: "26px", height: "26px" }}>
+                            <FontAwesomeIcon icon={faCheck} style={{ fontSize: "14px" }} />
+                        </button>
+                        <button onClick={handleCancel} className="cancel-btn" title="Cancelar" style={{ display: "flex", alignItems: "center", justifyContent: "center", padding: 0, minWidth: "26px", width: "26px", height: "26px" }}>
+                            <FontAwesomeIcon icon={faTimes} style={{ fontSize: "14px" }} />
+                        </button>
+                    </div>
+                )}
+            </div>
+            {errorMessage && isEditing &&
+                <p style={{ color: "black", fontWeight: "bold", fontSize: "12px", margin: "0" }}>{errorMessage}</p>}
+        </div>
+    );
+};
+
+const ObservationEditor = ({ studentLegajo, currentObservation, onConfirm, isEditing, onEditStart, onCancel }) => {
+    const [tempValue, setTempValue] = useState("");
+    const containerRef = React.useRef(null);
+
+    useEffect(() => {
+        if (isEditing) {
+            setTempValue(currentObservation || "");
+        }
+    }, [isEditing, currentObservation]);
+
+    useEffect(() => {
+        if (isEditing && containerRef.current) {
+            containerRef.current.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'end' });
+        }
+    }, [isEditing]);
+
+    const handleEdit = () => {
+        onEditStart();
+    };
+
+    const handleConfirm = () => {
+        onConfirm(studentLegajo, tempValue);
+    };
+
+    const handleCancel = () => {
+        onCancel();
+    };
+
+    return (
+        <div ref={containerRef} style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "6px", minWidth: isEditing ? "250px" : "auto", height: "100%" }}>
+            {isEditing ? (
+                <input
+                    type="text"
+                    value={tempValue}
+                    onChange={(e) => setTempValue(e.target.value)}
+                    style={{ flex: 1, width: "100%", minWidth: "200px", boxSizing: "border-box", padding: "4px 8px", margin: 0, height: "28px" }}
+                />
+            ) : (
+                <span>{currentObservation || ""}</span>
+            )}
+            
+            {!isEditing && (
+                <button onClick={handleEdit} className="edit-action-btn" title="Editar" style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    <FontAwesomeIcon icon={faPencilAlt} />
+                </button>
+            )}
+            {isEditing && (
+                <div className="edit-buttons-container" style={{ display: "flex", alignItems: "center", margin: 0, gap: "4px" }}>
+                    <button onClick={handleConfirm} className="confirm-btn" title="Confirmar" style={{ display: "flex", alignItems: "center", justifyContent: "center", padding: 0, minWidth: "26px", width: "26px", height: "26px" }}>
+                        <FontAwesomeIcon icon={faCheck} style={{ fontSize: "14px" }} />
+                    </button>
+                    <button onClick={handleCancel} className="cancel-btn" title="Cancelar" style={{ display: "flex", alignItems: "center", justifyContent: "center", padding: 0, minWidth: "26px", width: "26px", height: "26px" }}>
+                        <FontAwesomeIcon icon={faTimes} style={{ fontSize: "14px" }} />
+                    </button>
+                </div>
+            )}
+        </div>
+    );
+};
+
 export const FinalCondition = () => {
     const [criterias, setCriterias] = useState([]);
     const { getAccessTokenSilently } = useAuth0();
     const [sortedConditions, setSortedConditions] = useState([]);
     const [saveMessage, setSaveMessage] = useState("");
     const [editedConditions, setEditedConditions] = useState({}); // Estado para manejar las condiciones editadas
-    const [errorMessage, setErrorMessage] = useState(""); // Estado para manejar mensajes de error
     const [editedObservations, setEditedObservations] = useState({});
-    const [editingConditionLegajo, setEditingConditionLegajo] = useState(null); // Estado para almacenar el legajo de la celda seleccionada de condición final para editar
-    const [editingObservationLegajo, setEditingObservationLegajo] = useState(null); // Estado para almacenar el legajo de la celda seleccionada de observaciones para editar
     const [calculationType, setCalculationType] = useState(null); // "cursada" o "final"
+    const [editingCell, setEditingCell] = useState(null); // String del tipo "legajo-condition" o "legajo-observation" para exclusión mutua
     const [showInfo, setShowInfo] = useState(false);
     const [infoText, setInfoText] = useState("");
     const [isCalculating, setIsCalculating] = useState(false);
@@ -131,30 +260,6 @@ export const FinalCondition = () => {
         cursada: null,
         final: null
     });
-
-    const handleEditCondition = (legajo) => {
-        setEditingConditionLegajo(legajo);
-    };
-
-    const handleEditObservation = (legajo) => {
-        setEditingObservationLegajo(legajo);
-    };
-
-    const handleConfirmCondition = () => {
-        setEditingConditionLegajo(null);
-    };
-
-    const handleConfirmObservation = () => {
-        setEditingObservationLegajo(null);
-    };
-
-    const handleCancelCondition = () => {
-        setEditingConditionLegajo(null);
-    };
-
-    const handleCancelObservation = () => {
-        setEditingObservationLegajo(null);
-    };
 
     const handleConditionChange = (legajo, value) => {
         setEditedConditions(prevState => ({
@@ -625,47 +730,27 @@ export const FinalCondition = () => {
                                         return (
                                             <td
                                                 className={`final-condition-table-condition-cell ${editedConditions[student.Legajo] !== undefined &&
-                                                        editedConditions[student.Legajo] !== student.Condición
-                                                        ? "edited-cell"
-                                                        : ""
+                                                    editedConditions[student.Legajo] !== student.Condición
+                                                    ? "edited-cell"
+                                                    : ""
                                                     }`}
                                                 data-original-value={getCondicionFinalTexto(finalCond)}
                                                 style={{ backgroundColor: finalBgColor, color: "black" }}
                                             >
 
                                                 {esCondicionFinal ? (
-                                                    <>
-                                                        {editingConditionLegajo === student.Legajo ? (
-                                                            <input
-                                                                type="text"
-                                                                value={editedConditions[student.Legajo] || ""}
-                                                                onChange={(e) => {
-                                                                    const newValue = e.target.value.trim().toUpperCase();
-                                                                    if (newValue === "" || ["P", "R", "L", "A"].includes(newValue)) {
-                                                                        setErrorMessage("");
-                                                                        handleConditionChange(student.Legajo, newValue !== "" ? newValue : undefined);
-                                                                    } else {
-                                                                        setErrorMessage("Solo se permiten las letras 'P', 'R', 'A' o 'L'");
-                                                                    }
-                                                                }}
-                                                            />
-                                                        ) : (
-                                                            <span>{getCondicionFinalTexto(editedConditions[student.Legajo] || student.Condición)}</span>
-                                                        )}
-                                                        {!editingConditionLegajo && (
-                                                            <button onClick={() => handleEditCondition(student.Legajo)}>
-                                                                <FontAwesomeIcon icon={faPencilAlt} />
-                                                            </button>
-                                                        )}
-                                                        {editingConditionLegajo === student.Legajo && (
-                                                            <td className="edit-buttons">
-                                                                <button onClick={handleConfirmCondition}>✔️</button>
-                                                                <button onClick={handleCancelCondition}>❌</button>
-                                                            </td>
-                                                        )}
-                                                        {errorMessage && editingConditionLegajo === student.Legajo &&
-                                                            <p>{errorMessage}</p>}
-                                                    </>
+                                                    <ConditionEditor 
+                                                        studentLegajo={student.Legajo}
+                                                        currentCondition={editedConditions[student.Legajo] || student.Condición}
+                                                        onConfirm={(legajo, val) => {
+                                                            handleConditionChange(legajo, val);
+                                                            setEditingCell(null);
+                                                        }}
+                                                        getCondicionFinalTexto={getCondicionFinalTexto}
+                                                        isEditing={editingCell === `${student.Legajo}-condition`}
+                                                        onEditStart={() => setEditingCell(`${student.Legajo}-condition`)}
+                                                        onCancel={() => setEditingCell(null)}
+                                                    />
                                                 ) : (
                                                     // Si no es condición final, solo mostramos el texto sin permitir edición
                                                     <span style={{ color: "black", fontWeight: "bold" }}>{getCondicionFinalTexto(editedConditions[student.Legajo] || student.Condición)}</span>
@@ -677,26 +762,17 @@ export const FinalCondition = () => {
                                         <td className="final-condition-table-observation-cell"
                                             data-original-value={editedObservations[student.Legajo] || ""}
                                         >
-                                            {editingObservationLegajo === student.Legajo ? (
-                                                <input
-                                                    type="text"
-                                                    value={editedObservations[student.Legajo] || ""}
-                                                    onChange={(e) => handleObservationChange(student.Legajo, e.target.value)}
-                                                />
-                                            ) : (
-                                                <span>{editedObservations[student.Legajo] || ""}</span>
-                                            )}
-                                            {!editingObservationLegajo && (
-                                                <button onClick={() => handleEditObservation(student.Legajo)}>
-                                                    <FontAwesomeIcon icon={faPencilAlt} />
-                                                </button>
-                                            )}
-                                            {editingObservationLegajo === student.Legajo && (
-                                                <td className="edit-buttons">
-                                                    <button onClick={handleConfirmObservation}>✔️</button>
-                                                    <button onClick={handleCancelObservation}>❌</button>
-                                                </td>
-                                            )}
+                                            <ObservationEditor
+                                                studentLegajo={student.Legajo}
+                                                currentObservation={editedObservations[student.Legajo]}
+                                                onConfirm={(legajo, val) => {
+                                                    handleObservationChange(legajo, val);
+                                                    setEditingCell(null);
+                                                }}
+                                                isEditing={editingCell === `${student.Legajo}-observation`}
+                                                onEditStart={() => setEditingCell(`${student.Legajo}-observation`)}
+                                                onCancel={() => setEditingCell(null)}
+                                            />
                                         </td>
                                     )}
                                 </tr>

@@ -1,7 +1,7 @@
 .final-condition-table-container {
-    padding: 0 20px 20px 20px;
+    padding: 0 20px 20px 0;
     border-radius: 5px;
-    background: linear-gradient(to bottom, #ffffff 0%,#f6f6f6 100%);
+    background: linear-gradient(to bottom, #ffffff 0%, #f6f6f6 100%);
     margin-top: 20px;
     overflow-x: auto;
     color: black;
@@ -9,8 +9,8 @@
 
     /* Cambios para hacer que la cabecera de las condiciones finales sea visible siempre */
     max-height: 85vh;
-    overflow-y: auto; 
-    position: relative; 
+    overflow-y: auto;
+    position: relative;
     display: block;
 }
 
@@ -20,49 +20,94 @@
     margin-bottom: 10px;
 }
 
+.final-condition-table-container>h2,
+.final-condition-table-container>.condition-references,
+.final-condition-table-container>.button-container {
+    margin-left: 20px;
+}
+
 .final-condition-table {
     border-radius: 5px;
-    border-collapse: collapse;
+    border-collapse: separate;
+    border-spacing: 0;
     margin-bottom: 2rem;
+    margin-left: 20px;
+    border-top: 1px solid #ccc;
+    border-left: 1px solid #ccc;
 }
 
 .final-condition-table thead tr th {
     position: sticky;
-    top: -1px;
-    z-index: 100; 
+    top: 0;
+    z-index: 100;
     background-color: #f2f2f2;
-    border-bottom: none;
-    box-shadow: 0 1px 0 #ccc;
 }
 
-.final-condition-table td, .final-condition-table th {
+.final-condition-table td,
+.final-condition-table th {
     color: black;
-    border: 1px solid #ccc;
+    border-bottom: 1px solid #ccc;
+    border-right: 1px solid #ccc;
+    border-top: none;
+    border-left: none;
     text-align: center;
 }
 
+.final-condition-table th {
+    padding: 8px;
+    white-space: normal;
+    word-break: normal;
+    overflow-wrap: normal;
+    width: 130px;
+}
+
+.final-condition-table th:first-child,
+.final-condition-table td:first-child {
+    position: sticky;
+    left: 0;
+    text-align: left;
+    padding-left: 15px;
+}
+
+.final-condition-table th:first-child {
+    z-index: 150;
+    background-color: #f2f2f2;
+}
+
+.final-condition-table td:first-child {
+    z-index: 50;
+}
+
 .final-condition-table tbody tr:nth-child(odd) {
-  background-color: #f2f2f2;
+    background-color: #f2f2f2;
+}
+
+.final-condition-table tbody tr:nth-child(odd) td:first-child {
+    background-color: #f2f2f2 !important;
 }
 
 .final-condition-table tbody tr:nth-child(even) {
-  background-color: white;
+    background-color: white;
+}
+
+.final-condition-table tbody tr:nth-child(even) td:first-child {
+    background-color: white !important;
 }
 
 td.final-condition-table-condition-cell {
-  background-color:rgb(197, 255, 197);
+    background-color: rgb(197, 255, 197);
 }
 
 .final-condition-table-condition-cell span {
-  margin-right: 10px;
+    margin-right: 10px;
 }
 
 .final-condition-table-condition-cell button {
-  display: inline-block;
+    display: inline-block;
 }
 
 .final-condition-table-condition-cell p {
-  color: black;
+    color: black;
 }
 
 .final-condition-table-observation-cell button {
@@ -74,5 +119,54 @@ div.button-container p {
 }
 
 div.button-container button.export-button {
-  margin-top: 3px;
+    margin-top: 3px;
+}
+
+.edit-action-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #555;
+    padding: 4px 8px;
+    border-radius: 4px;
+}
+
+.edit-action-btn:hover {
+    background-color: #e0e0e0;
+}
+
+.edit-buttons-container {
+    display: inline-flex;
+    gap: 5px;
+    justify-content: center;
+    align-items: center;
+    margin-top: 5px;
+}
+
+.edit-buttons-container button {
+    border: none;
+    border-radius: 4px;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: white;
+}
+
+.edit-buttons-container button.confirm-btn {
+    background-color: #4caf50;
+}
+
+.edit-buttons-container button.confirm-btn:hover {
+    background-color: #43a047;
+}
+
+.edit-buttons-container button.cancel-btn {
+    background-color: #f44336;
+}
+
+.edit-buttons-container button.cancel-btn:hover {
+    background-color: #e53935;
 }
