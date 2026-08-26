@@ -1,0 +1,64 @@
+.configure-ausente-container {
+    margin: 20px 0;
+    padding: 25px;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    border: 1px solid #dee2e6;
+}
+
+.configure-ausente-title {
+    margin-top: 0;
+    font-size: 2rem;
+    color: #333;
+}
+
+.configure-ausente-explanation {
+    font-size: 1.6rem;
+    /* Equivale a 16px exactos */
+    line-height: 1.6;
+    color: #444;
+}
+
+.configure-ausente-note {
+    font-style: italic;
+    font-size: 1.4rem;
+    /* 14px */
+    color: #666;
+    margin-top: 15px;
+}
+
+.configure-ausente-subtitle {
+    margin-top: 25px;
+    font-size: 1.8rem;
+    /* 18px */
+    color: #fff;
+    /* Aseguramos que se vea bien en el fondo */
+    margin-bottom: 15px;
+}
+
+/* Removido el estilo custom para el botón para usar el global */
+
+.configure-ausente-list {
+    margin-top: 15px;
+}
+
+.configure-ausente-item {
+    margin-bottom: 12px;
+}
+
+.configure-ausente-label {
+    display: flex;
+    align-items: center;
+}
+
+.configure-ausente-checkbox {
+    margin-right: 12px;
+    width: 20px;
+    height: 20px;
+}
+
+.configure-ausente-event-name {
+    font-size: 1.6rem;
+    /* 16px */
+    color: #fff;
+}

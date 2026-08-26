@@ -29,6 +29,7 @@ import { CourseAttendanceRegistering } from "./pages/register-course-attendance"
 import { CalificationRegistering } from "./pages/register-califications";
 import { StudentRegistering } from "./pages/register-students";
 import { FinalCondition } from "./pages/final-condition";
+import { ConfigureAusente } from "./pages/configure-ausente";
 import { CreateCriterion } from "./pages/create-criterion";
 import { ModificateCriterion } from "./pages/modificate-criterion";
 import { ModificateCourse } from "./pages/modificate-course";
@@ -193,6 +194,7 @@ export const App = () => {
                 {isProfessor && <ProtectedRoute path="/list-student-groups" component={ListStudentGroups} />}
                 {isProfessor && <ProtectedRoute path="/modificate-group/:groupId" component={ModificateGroup} />}
                 {isProfessor && <ProtectedRoute path="/final-condition" component={FinalCondition} />}
+                {isProfessor && <ProtectedRoute path="/configure-ausente" component={ConfigureAusente} />}
                 {isProfessor && <ProtectedRoute path="/modificate-criterion" component={ModificateCriterion} />}
                 {isProfessor && <ProtectedRoute path="/search-student" component={SearchStudent} />}
                 {/*isProfessor && <ProtectedRoute path="/search-event" component={SearchEvent} />*/}

@@ -128,7 +128,7 @@ const ObservationEditor = ({ studentLegajo, currentObservation, onConfirm, isEdi
             ) : (
                 <span>{currentObservation || ""}</span>
             )}
-            
+
             {!isEditing && (
                 <button onClick={handleEdit} className="edit-action-btn" title="Editar" style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
                     <FontAwesomeIcon icon={faPencilAlt} />
@@ -358,6 +358,32 @@ export const FinalCondition = () => {
 
         try {
             const auth0Token = await getAccessTokenSilently();
+
+            // Verificar si hay eventos obligatorios vacíos para advertir al profesor
+            try {
+                const checkResponse = await fetch(
+                    `${process.env.REACT_APP_API_SERVER_URL}/api/v1/course/check-empty-mandatory-events?courseId=${course.getId()}`,
+                    {
+                        method: "GET",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "Authorization": `Bearer ${auth0Token}`,
+                        },
+                    }
+                );
+                if (checkResponse.ok) {
+                    const emptyEvents = await checkResponse.json();
+                    if (emptyEvents && emptyEvents.length > 0) {
+                        toast(
+                            `Atención: Existen eventos obligatorios sin registros evaluados: ${emptyEvents.join(", ")}. El cálculo de AUSENTE podría ser prematuro.`,
+                            { duration: 8000 }
+                        );
+                    }
+                }
+            } catch (e) {
+                console.warn("No se pudo verificar eventos vacíos", e);
+            }
+
             const response = await fetch(
                 `${process.env.REACT_APP_API_SERVER_URL}/api/v1/course/condition?courseId=${course.getId()}&isFinal=${isFinal}`,
                 {
@@ -739,7 +765,7 @@ export const FinalCondition = () => {
                                             >
 
                                                 {esCondicionFinal ? (
-                                                    <ConditionEditor 
+                                                    <ConditionEditor
                                                         studentLegajo={student.Legajo}
                                                         currentCondition={editedConditions[student.Legajo] || student.Condición}
                                                         onConfirm={(legajo, val) => {

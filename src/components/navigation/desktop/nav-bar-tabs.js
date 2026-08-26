@@ -216,6 +216,10 @@ export const NavBarTabs = () => {
                                         label="Modificar criterios de evaluación"
                                     />
                                     <NavBarTab
+                                        path="/configure-ausente"
+                                        label="Configurar condición de AUSENTE"
+                                    />
+                                    <NavBarTab
                                         path="/final-condition"
                                         label="Calcular condiciones"
                                     />
