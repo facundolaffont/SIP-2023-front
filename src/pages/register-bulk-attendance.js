@@ -10,6 +10,8 @@ import SpreadsheetManipulator from "../services/spreadsheet-manipulator.service"
 import HTMLTableManipulator from "../services/html-table-manipulator";
 import { useSelectedCourse } from "../contexts/course/course-provider.js";
 import CourseDTO from "../contexts/course/course-d-t-o";
+import { useSpreadsheetContext } from "../contexts/spreadsheet/spreadsheet-provider.js";
+import { DragAndDropFile } from "../components/drag-and-drop-file.js";
 
 // Estilos.
 import '../styles/register-bulk-attendance.css';
@@ -43,6 +45,42 @@ export function BulkAttendanceRegistering() {
 
     /** @type {CourseDTO} */ const course = useSelectedCourse(false);
     const history = useHistory();
+    const { getSpreadsheetData, saveSpreadsheetData, clearSpreadsheetData } = useSpreadsheetContext();
+
+    // Restaura el estado desde el contexto
+    useEffect(() => {
+        const savedData = getSpreadsheetData('bulk-attendance');
+        if (savedData) {
+            setFileName(savedData.fileName);
+            setSheetNameValue(savedData.sheetNameValue || "");
+            setCellRangeName(savedData.cellRangeName || "");
+            setSpreadsheetManipulator(savedData.manipulator);
+            
+            // Re-poblar inputs luego de que el DOM esté listo
+            setTimeout(() => {
+                const sheetNamesList = savedData.manipulator.getSheetNamesList();
+                let sheetNamesSelect = document.getElementById("sheet-names");
+                if (sheetNamesSelect) {
+                    while (sheetNamesSelect.firstChild) sheetNamesSelect.removeChild(sheetNamesSelect.firstChild);
+                    const listFirstElement = document.createElement("option");
+                    listFirstElement.innerHTML = "SELECCIONAR PESTAÑA";
+                    sheetNamesSelect.appendChild(listFirstElement);
+                    sheetNamesList.forEach(sheetName => {
+                        const listElement = document.createElement("option");
+                        listElement.innerHTML = sheetName;
+                        sheetNamesSelect.appendChild(listElement);
+                    });
+                    if (savedData.sheetNameValue) {
+                        sheetNamesSelect.value = savedData.sheetNameValue;
+                    }
+                }
+                const cellRangeInput = document.getElementById("cell-range");
+                if (cellRangeInput && savedData.cellRangeName) {
+                    cellRangeInput.value = savedData.cellRangeName;
+                }
+            }, 100);
+        }
+    }, []);
     
     // #endregion ==== Definición de parámetros. ====
     
@@ -179,7 +217,10 @@ export function BulkAttendanceRegistering() {
 
     // Inicializa SpreadsheetManipulator.
     useState(() => { 
-        setSpreadsheetManipulator(new SpreadsheetManipulator());
+        const savedData = getSpreadsheetData('bulk-attendance');
+        if (!savedData) {
+            setSpreadsheetManipulator(new SpreadsheetManipulator());
+        }
     }, []);
 
     /**
@@ -236,40 +277,102 @@ export function BulkAttendanceRegistering() {
     const loadSheetNames = () => { 
         let sheetNamesList = spreadsheetManipulator.getSheetNamesList();
         let sheetNamesSelect = document.getElementById("sheet-names");
-        while (sheetNamesSelect.firstChild) {
-            sheetNamesSelect.removeChild(sheetNamesSelect.firstChild);
+        if (sheetNamesSelect) {
+            while (sheetNamesSelect.firstChild) {
+                sheetNamesSelect.removeChild(sheetNamesSelect.firstChild);
+            }
+            const listFirstElement = document.createElement("option");
+            listFirstElement.innerHTML = "SELECCIONAR PESTAÑA";
+            sheetNamesSelect.appendChild(listFirstElement);
+            sheetNamesList.forEach(sheetName => {
+                const listElement = document.createElement("option");
+                listElement.innerHTML = sheetName;
+                sheetNamesSelect.appendChild(listElement);
+            });
         }
-        const listFirstElement = document.createElement("option");
-        listFirstElement.innerHTML = "SELECCIONAR PESTAÑA";
-        sheetNamesSelect.appendChild(listFirstElement);
-        sheetNamesList.forEach(sheetName => {
-            const listElement = document.createElement("option");
-            listElement.innerHTML = sheetName;
-            sheetNamesSelect.appendChild(listElement);
-        });
+
+        // Auto-selección y sugerencia de rango si hay una sola hoja
+        if (sheetNamesList.length === 1) {
+            const singleSheet = sheetNamesList[0];
+            setSheetNameValue(singleSheet);
+            if (sheetNamesSelect) sheetNamesSelect.value = singleSheet;
+            
+            const suggestedRange = spreadsheetManipulator.getSuggestedRange(singleSheet);
+            if (suggestedRange) {
+                setCellRangeName(suggestedRange);
+                const cellRangeInput = document.getElementById("cell-range");
+                if (cellRangeInput) cellRangeInput.value = suggestedRange;
+                saveSpreadsheetData('bulk-attendance', { sheetNameValue: singleSheet, cellRangeName: suggestedRange });
+            } else {
+                saveSpreadsheetData('bulk-attendance', { sheetNameValue: singleSheet });
+            }
+        }
     }
 
-    const handleFileSelection = event => { 
-        const file = event.target.files[0];
+    const handleFileSelection = file => { 
         setFileName(file.name);
         setFileHandle(file);
         setError(null);
         setOkStudentsList([]);
         setNotOkStudentsList([]);
         setInvalidRegistersList([]);
-        spreadsheetManipulator.loadFile(file, loadSheetNames);
-        const inputElement = document.getElementById("file");
-        inputElement.value = '';
+        
+        spreadsheetManipulator.loadFile(file, () => {
+            loadSheetNames();
+            saveSpreadsheetData('bulk-attendance', {
+                fileName: file.name,
+                manipulator: spreadsheetManipulator
+            });
+        });
     }
 
+    const handleFileRemove = () => {
+        setFileName("");
+        setFileHandle(null);
+        setSheetNameValue("");
+        setCellRangeName("");
+        setError(null);
+        setOkStudentsList([]);
+        setNotOkStudentsList([]);
+        setInvalidRegistersList([]);
+        setSpreadsheetManipulator(new SpreadsheetManipulator());
+        clearSpreadsheetData('bulk-attendance');
+        
+        let sheetNamesSelect = document.getElementById("sheet-names");
+        if (sheetNamesSelect) {
+            while (sheetNamesSelect.firstChild) {
+                sheetNamesSelect.removeChild(sheetNamesSelect.firstChild);
+            }
+        }
+        let cellRangeInput = document.getElementById("cell-range");
+        if (cellRangeInput) {
+            cellRangeInput.value = "";
+        }
+    };
+
     const handleCellRangeName = event => { 
-        setCellRangeName(event.target.value);
+        const val = event.target.value.toUpperCase();
+        setCellRangeName(val);
+        saveSpreadsheetData('bulk-attendance', { cellRangeName: val });
     }
 
     const handleSheetNameValueChange = event => { 
-        if(event.target.value !== "SELECCIONAR PESTAÑA") 
-            setSheetNameValue(event.target.value);
-        else setSheetNameValue("");
+        const val = event.target.value;
+        if(val !== "SELECCIONAR PESTAÑA") {
+            setSheetNameValue(val);
+            const suggestedRange = spreadsheetManipulator.getSuggestedRange(val);
+            if (suggestedRange) {
+                setCellRangeName(suggestedRange);
+                const cellRangeInput = document.getElementById("cell-range");
+                if (cellRangeInput) cellRangeInput.value = suggestedRange;
+                saveSpreadsheetData('bulk-attendance', { sheetNameValue: val, cellRangeName: suggestedRange });
+            } else {
+                saveSpreadsheetData('bulk-attendance', { sheetNameValue: val });
+            }
+        } else {
+            setSheetNameValue("");
+            saveSpreadsheetData('bulk-attendance', { sheetNameValue: "" });
+        }
     }
 
     /**
@@ -540,33 +643,22 @@ export function BulkAttendanceRegistering() {
                 </div>
             </div>
             <form onSubmit={(e) => e.preventDefault()}>
-                <p>Seleccionar archivo de asistencias masivas</p>
-                <div className="label_button">
-                    <label htmlFor="file">
-                        Cargar archivo
-                    </label>
-                </div>
-                <input
-                    type="file"
-                    id="file"
-                    onChange={handleFileSelection}
-                    accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-                    required
-                    hidden
+                <DragAndDropFile 
+                    onFileDrop={handleFileSelection} 
+                    onFileRemove={handleFileRemove}
+                    accept=".xlsx,.xls,.ods" 
+                    fileName={fileName} 
                 />
-                <div className="label_button download-button">
-                    <label htmlFor="download-button">
+                
+                <div style={{ marginTop: '15px', marginBottom: '15px' }}>
+                    <button
+                        type="button"
+                        className="load-button"
+                        onClick={handleTemplateDownload}
+                    >
                         Descargar plantilla masiva
-                    </label>
+                    </button>
                 </div>
-                <input
-                    type="button"
-                    id="download-button"
-                    onClick={handleTemplateDownload}
-                    required
-                    hidden
-                />
-                <p>{fileName}</p>
 
                 <p>Nombre de la pestaña en la planilla</p>
                 <select

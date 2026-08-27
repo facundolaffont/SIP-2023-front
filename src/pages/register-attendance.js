@@ -10,6 +10,8 @@ import SpreadsheetManipulator from "../services/spreadsheet-manipulator.service"
 import HTMLTableManipulator from "../services/html-table-manipulator";
 import { useSelectedCourse } from "../contexts/course/course-provider.js";
 import CourseDTO from "../contexts/course/course-d-t-o";
+import { useSpreadsheetContext } from "../contexts/spreadsheet/spreadsheet-provider.js";
+import { DragAndDropFile } from "../components/drag-and-drop-file.js";
 
 // Estilos.
 import '../styles/register-attendance.css';
@@ -43,8 +45,42 @@ export function AttendanceRegistering() {
 
     /** @type {CourseDTO} */ const course = useSelectedCourse(false);
     const history = useHistory();
-    
-    // #endregion ==== Definición de parámetros. ====
+    const { getSpreadsheetData, saveSpreadsheetData, clearSpreadsheetData } = useSpreadsheetContext();
+
+    // Restaura el estado desde el contexto
+    useEffect(() => {
+        const savedData = getSpreadsheetData('attendance');
+        if (savedData) {
+            setFileName(savedData.fileName);
+            setSheetNameValue(savedData.sheetNameValue || "");
+            setCellRangeName(savedData.cellRangeName || "");
+            setSpreadsheetManipulator(savedData.manipulator);
+            
+            // Re-poblar inputs luego de que el DOM esté listo
+            setTimeout(() => {
+                const sheetNamesList = savedData.manipulator.getSheetNamesList();
+                let sheetNamesSelect = document.getElementById("sheet-names");
+                if (sheetNamesSelect) {
+                    while (sheetNamesSelect.firstChild) sheetNamesSelect.removeChild(sheetNamesSelect.firstChild);
+                    const listFirstElement = document.createElement("option");
+                    listFirstElement.innerHTML = "SELECCIONAR PESTAÑA";
+                    sheetNamesSelect.appendChild(listFirstElement);
+                    sheetNamesList.forEach(sheetName => {
+                        const listElement = document.createElement("option");
+                        listElement.innerHTML = sheetName;
+                        sheetNamesSelect.appendChild(listElement);
+                    });
+                    if (savedData.sheetNameValue) {
+                        sheetNamesSelect.value = savedData.sheetNameValue;
+                    }
+                }
+                const cellRangeInput = document.getElementById("cell-range");
+                if (cellRangeInput && savedData.cellRangeName) {
+                    cellRangeInput.value = savedData.cellRangeName;
+                }
+            }, 100);
+        }
+    }, []);
     
     // Redirige a la página de selección de cursada, si todavía no se seleccionó una,
     // o si se actualiza la página, ya que se pierde el contexto de la selección que
@@ -311,11 +347,11 @@ export function AttendanceRegistering() {
 
     }, [okStudentsList, notOkStudentsList, invalidRegistersList, tableManualUpdateTrigger]);
 
-    // Inicializa el objeto que manipula las planillas.
     useState(() => { 
-
-        setSpreadsheetManipulator(new SpreadsheetManipulator());
-        
+        const savedData = getSpreadsheetData('attendance');
+        if (!savedData) {
+            setSpreadsheetManipulator(new SpreadsheetManipulator());
+        }
     }, []);
 
     /**
@@ -362,62 +398,96 @@ export function AttendanceRegistering() {
      * Carga los nombres de pestaña para que sean seleccionados.
      */
     const loadSheetNames = () => { 
-        
-        // Obtiene la lista de nombres.
         let sheetNamesList = spreadsheetManipulator.getSheetNamesList();
-
-        // Carga las pestañas en la lista de selección.
         let sheetNamesSelect = document.getElementById("sheet-names");
-        while (sheetNamesSelect.firstChild) {
-            sheetNamesSelect.removeChild(sheetNamesSelect.firstChild);
+        if (sheetNamesSelect) {
+            while (sheetNamesSelect.firstChild) {
+                sheetNamesSelect.removeChild(sheetNamesSelect.firstChild);
+            }
+            const listFirstElement = document.createElement("option");
+            listFirstElement.innerHTML = "SELECCIONAR PESTAÑA";
+            sheetNamesSelect.appendChild(listFirstElement);
+            sheetNamesList.forEach(sheetName => {
+                const listElement = document.createElement("option");
+                listElement.innerHTML = sheetName;
+                sheetNamesSelect.appendChild(listElement);
+            });
         }
-        const listFirstElement = document.createElement("option");
-        listFirstElement.innerHTML = "SELECCIONAR PESTAÑA";
-        sheetNamesSelect.appendChild(listFirstElement);
-        sheetNamesList.forEach(sheetName => {
-            const listElement = document.createElement("option");
-            listElement.innerHTML = sheetName;
-            sheetNamesSelect.appendChild(listElement);
-        });
 
+        // Auto-selección y sugerencia de rango si hay una sola hoja
+        if (sheetNamesList.length === 1) {
+            const singleSheet = sheetNamesList[0];
+            setSheetNameValue(singleSheet);
+            if (sheetNamesSelect) sheetNamesSelect.value = singleSheet;
+            
+            const suggestedRange = spreadsheetManipulator.getSuggestedRange(singleSheet);
+            if (suggestedRange) {
+                setCellRangeName(suggestedRange);
+                const cellRangeInput = document.getElementById("cell-range");
+                if (cellRangeInput) cellRangeInput.value = suggestedRange;
+                saveSpreadsheetData('attendance', { sheetNameValue: singleSheet, cellRangeName: suggestedRange });
+            } else {
+                saveSpreadsheetData('attendance', { sheetNameValue: singleSheet });
+            }
+        }
     }
 
     /**
      * Manejador del evento que surge cuando se carga un
      * nuevo archivo con el explorador de archivos.
      *
-     * @param {Event} event Evento de cambio de la etiqueta input.
+     * @param {File} file Archivo seleccionado.
      */
-    const handleFileSelection = event => { 
-
-        // Obtiene y almacena el nombre del archivo.
-        const file = event.target.files[0];
+    const handleFileSelection = file => { 
         setFileName(file.name);
         setFileHandle(file);
         
-        // Limpia la pantalla.
         setError(null);
         setOkStudentsList([]);
         setNotOkStudentsList([]);
         setInvalidRegistersList([]);
 
-        // Carga el archivo Excel.
-        spreadsheetManipulator.loadFile(file, loadSheetNames);
-
-        // Permite que se vuelva a cargar el mismo archivo.
-        const inputElement = document.getElementById("file");
-        inputElement.value = '';
-
+        spreadsheetManipulator.loadFile(file, () => {
+            loadSheetNames();
+            saveSpreadsheetData('attendance', {
+                fileName: file.name,
+                manipulator: spreadsheetManipulator
+            });
+        });
     }
+
+    const handleFileRemove = () => {
+        setFileName("");
+        setFileHandle(null);
+        setSheetNameValue("");
+        setCellRangeName("");
+        setError(null);
+        setOkStudentsList([]);
+        setNotOkStudentsList([]);
+        setInvalidRegistersList([]);
+        setSpreadsheetManipulator(new SpreadsheetManipulator());
+        clearSpreadsheetData('attendance');
+        
+        let sheetNamesSelect = document.getElementById("sheet-names");
+        if (sheetNamesSelect) {
+            while (sheetNamesSelect.firstChild) {
+                sheetNamesSelect.removeChild(sheetNamesSelect.firstChild);
+            }
+        }
+        let cellRangeInput = document.getElementById("cell-range");
+        if (cellRangeInput) {
+            cellRangeInput.value = "";
+        }
+    };
 
     /**
      * Manejador del evento que se genera cuando se cambia
      * el valor del campo de rango de celdas.
      */
     const handleCellRangeName = event => { 
-
-        setCellRangeName(event.target.value);
-
+        const val = event.target.value.toUpperCase();
+        setCellRangeName(val);
+        saveSpreadsheetData('attendance', { cellRangeName: val });
     }
 
     /**
@@ -709,11 +779,22 @@ export function AttendanceRegistering() {
      * de nombre de pestaña.
      */
     const handleSheetNameValueChange = event => { 
-
-        if(event.target.value !== "SELECCIONAR PESTAÑA") 
-            setSheetNameValue(event.target.value);
-        else setSheetNameValue("");
-
+        const val = event.target.value;
+        if(val !== "SELECCIONAR PESTAÑA") {
+            setSheetNameValue(val);
+            const suggestedRange = spreadsheetManipulator.getSuggestedRange(val);
+            if (suggestedRange) {
+                setCellRangeName(suggestedRange);
+                const cellRangeInput = document.getElementById("cell-range");
+                if (cellRangeInput) cellRangeInput.value = suggestedRange;
+                saveSpreadsheetData('attendance', { sheetNameValue: val, cellRangeName: suggestedRange });
+            } else {
+                saveSpreadsheetData('attendance', { sheetNameValue: val });
+            }
+        } else {
+            setSheetNameValue("");
+            saveSpreadsheetData('attendance', { sheetNameValue: "" });
+        }
     }
 
     const handleTemplateDownload = () => { 
@@ -744,33 +825,21 @@ export function AttendanceRegistering() {
                 </div>
             </div>
             <form onSubmit={loadFile}>
-                <p>Seleccionar archivo de asistencias</p>
-                <div className="label_button">
-                    <label htmlFor="file">
-                        Cargar archivo
-                    </label>
-                </div>
-                <input
-                    type="file"
-                    id="file"
-                    onChange={handleFileSelection}
-                    accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-                    required
-                    hidden
+                <DragAndDropFile 
+                    onFileDrop={handleFileSelection} 
+                    onFileRemove={handleFileRemove}
+                    accept=".xlsx,.xls,.ods" 
+                    fileName={fileName} 
                 />
-                <div className="label_button download-button">
-                    <label htmlFor="download-button">
-                        Descargar plantilla
-                    </label>
+                <div style={{ marginTop: '15px', marginBottom: '15px' }}>
+                    <button
+                        type="button"
+                        className="load-button"
+                        onClick={handleTemplateDownload}
+                    >
+                        Descargar plantilla de ejemplo
+                    </button>
                 </div>
-                <input
-                    type="button"
-                    id="download-button"
-                    onClick={handleTemplateDownload}
-                    required
-                    hidden
-                />
-                <p>{fileName}</p>
 
                 <p>Nombre de la pestaña en la planilla</p>
                 <select

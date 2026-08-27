@@ -1,0 +1,74 @@
+.drag-and-drop-container {
+    border: 2px dashed #99a2ad;
+    border-radius: 8px;
+    padding: 30px 20px;
+    text-align: center;
+    background-color: #f8f9fa;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-bottom: 20px;
+    margin-top: 10px;
+}
+
+.drag-and-drop-container:hover {
+    background-color: #eef2f5;
+    border-color: #6c757d;
+}
+
+.drag-and-drop-container.dragging {
+    background-color: #e3f2fd;
+    border-color: #0d6efd;
+}
+
+.drag-and-drop-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: #495057;
+}
+
+.drag-and-drop-content .upload-icon {
+    font-size: 40px;
+    margin-bottom: 15px;
+    font-style: normal;
+}
+
+.drag-and-drop-content p {
+    margin: 0;
+    font-size: 16px;
+}
+
+.file-name-loaded {
+    color: #198754;
+}
+
+.file-name-loaded-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+}
+
+.remove-file-button {
+    background-color: #ffebee;
+    color: #c62828;
+    border: 1px solid #ef9a9a;
+    border-radius: 50%;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: bold;
+    transition: all 0.2s ease;
+    padding: 0;
+}
+
+.remove-file-button:hover {
+    background-color: #ef9a9a;
+    color: #b71c1c;
+    transform: scale(1.1);
+}

@@ -253,6 +253,61 @@ class SpreadsheetManipulator {
     }
 
     /**
+     * Devuelve el rango sugerido de la planilla, detectando las celdas
+     * usadas y restando la primera fila (encabezados).
+     * 
+     * @param {String} sheetName Nombre de la pestaña.
+     * @returns {String|null} Rango sugerido (ej. "A2:D50") o null si no hay datos.
+     */
+    getSuggestedRange(sheetName) {
+        if (this.#loadedWorkbook && this.#loadedWorkbook.Sheets[sheetName]) {
+            const sheet = this.#loadedWorkbook.Sheets[sheetName];
+            const ref = sheet['!ref'];
+            if (!ref) return null;
+            
+            const range = XLSX.utils.decode_range(ref);
+            
+            let minRow = range.e.r + 1;
+            let maxRow = range.s.r - 1;
+            let minCol = range.e.c + 1;
+            let maxCol = range.s.c - 1;
+
+            let hasData = false;
+
+            // Escanea todas las celdas dentro del rango reportado por SheetJS
+            for (let r = range.s.r; r <= range.e.r; ++r) {
+                for (let c = range.s.c; c <= range.e.c; ++c) {
+                    const cellAddress = XLSX.utils.encode_cell({ r: r, c: c });
+                    const cell = sheet[cellAddress];
+                    if (cell && cell.v !== undefined && cell.v !== null && String(cell.v).trim() !== '') {
+                        hasData = true;
+                        if (r < minRow) minRow = r;
+                        if (r > maxRow) maxRow = r;
+                        if (c < minCol) minCol = c;
+                        if (c > maxCol) maxCol = c;
+                    }
+                }
+            }
+
+            if (!hasData) return null;
+
+            // Establecemos el nuevo rango estrictamente a la "caja" con datos reales
+            range.s.r = minRow;
+            range.e.r = maxRow;
+            range.s.c = minCol;
+            range.e.c = maxCol;
+
+            // Ignora la primera fila (encabezados) asumiendo que siempre hay uno, solo si hay más de una fila
+            if (range.s.r < range.e.r) {
+                range.s.r += 1; 
+            }
+
+            return XLSX.utils.encode_range(range);
+        }
+        return null;
+    }
+
+    /**
      * @returns {Array.<String>} La lista de nombres de pestañas de la planilla cargada.
      */
     getSheetNamesList() { return this.#loadedWorkbook.SheetNames; }

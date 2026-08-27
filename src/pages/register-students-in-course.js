@@ -11,6 +11,8 @@ import SpreadsheetManipulator from "../services/spreadsheet-manipulator.service"
 import HTMLTableManipulator from "../services/html-table-manipulator";
 import { useSelectedCourse } from "../contexts/course/course-provider.js";
 import CourseDTO from "../contexts/course/course-d-t-o";
+import { useSpreadsheetContext } from "../contexts/spreadsheet/spreadsheet-provider.js";
+import { DragAndDropFile } from "../components/drag-and-drop-file.js";
 
 // Estilos.
 import "../styles/components/table.css";
@@ -33,9 +35,45 @@ export function CourseStudentRegistering() {
     const [error, setError] = useState(null);
 
     const { getAccessTokenSilently } = useAuth0();
-    
+
     /** @type {CourseDTO} */ const course = useSelectedCourse(false);
     const history = useHistory();
+    const { getSpreadsheetData, saveSpreadsheetData } = useSpreadsheetContext();
+
+    // Restaura el estado desde el contexto
+    useEffect(() => {
+        const savedData = getSpreadsheetData('register-students-in-course');
+        if (savedData) {
+            setFileName(savedData.fileName);
+            setSheetNameValue(savedData.sheetNameValue || "");
+            setCellRangeName(savedData.cellRangeName || "");
+            setSpreadsheetManipulator(savedData.manipulator);
+
+            // Re-poblar inputs luego de que el DOM esté listo
+            setTimeout(() => {
+                const sheetNamesList = savedData.manipulator.getSheetNamesList();
+                let sheetNamesSelect = document.getElementById("sheet-names");
+                if (sheetNamesSelect) {
+                    while (sheetNamesSelect.firstChild) sheetNamesSelect.removeChild(sheetNamesSelect.firstChild);
+                    const listFirstElement = document.createElement("option");
+                    listFirstElement.innerHTML = "SELECCIONAR PESTAÑA";
+                    sheetNamesSelect.appendChild(listFirstElement);
+                    sheetNamesList.forEach(sheetName => {
+                        const listElement = document.createElement("option");
+                        listElement.innerHTML = sheetName;
+                        sheetNamesSelect.appendChild(listElement);
+                    });
+                    if (savedData.sheetNameValue) {
+                        sheetNamesSelect.value = savedData.sheetNameValue;
+                    }
+                }
+                const cellRangeInput = document.getElementById("cell-range");
+                if (cellRangeInput && savedData.cellRangeName) {
+                    cellRangeInput.value = savedData.cellRangeName;
+                }
+            }, 100);
+        }
+    }, []);
 
     // Redirige a la página de selección de cursada, si todavía no se seleccionó una,
     // o si se actualiza la página, ya que se pierde el contexto de la selección que
@@ -48,7 +86,10 @@ export function CourseStudentRegistering() {
 
     // Inicializa el objeto que manipula las planillas.
     useState(() => {
-        setSpreadsheetManipulator(new SpreadsheetManipulator());
+        const savedData = getSpreadsheetData('register-students-in-course');
+        if (!savedData) {
+            setSpreadsheetManipulator(new SpreadsheetManipulator());
+        }
     }, []);
 
     // Actualiza las tablas.
@@ -125,7 +166,7 @@ export function CourseStudentRegistering() {
                 },
                 `Estudiantes para registrar en la cursada (${okList.length})`
             );
-               okStudentsTableContainer.classList.remove("not-displayed");
+            okStudentsTableContainer.classList.remove("not-displayed");
         } else okStudentsTableContainer.classList.add("not-displayed");
 
     }, [okList, notOkList, invalidRegistersList, tableManualUpdateTrigger]);
@@ -265,26 +306,26 @@ export function CourseStudentRegistering() {
 
             // Obtiene el token Auth0.
             const auth0Token = await getAccessTokenSilently()
-            .then(response => response)
-            .catch(error => {
-                throw error;
-            });
+                .then(response => response)
+                .catch(error => {
+                    throw error;
+                });
 
             const checkedInfo = await axios
-            .post(
-                `${process.env.REACT_APP_API_SERVER_URL}/api/v1/course/students-registration-check`,
-                {
-                    courseId: course.getId(),
-                    dossierList: dossierArray,
-                },
-                {
-                    headers: {
-                        Authorization: `Bearer ${auth0Token}`,
+                .post(
+                    `${process.env.REACT_APP_API_SERVER_URL}/api/v1/course/students-registration-check`,
+                    {
+                        courseId: course.getId(),
+                        dossierList: dossierArray,
                     },
-                }
-            )
-            .then(okReponse => okReponse)
-            .catch(error => error.response);
+                    {
+                        headers: {
+                            Authorization: `Bearer ${auth0Token}`,
+                        },
+                    }
+                )
+                .then(okReponse => okReponse)
+                .catch(error => error.response);
 
             // Si la petición no fue exitosa, guarda el mensaje de error,
             // traído del back al usuario, y en el próximo renderizado se
@@ -292,7 +333,7 @@ export function CourseStudentRegistering() {
             if (checkedInfo.status !== 200) {
                 setError("Hubo un error. Por favor, contactarse con Soporte Técnico.");
 
-            // Si la petición fue exitosa, muestra la información traída del back.
+                // Si la petición fue exitosa, muestra la información traída del back.
             } else {
 
                 // Muestra la lista de registros, leídos de la planilla, con formato
@@ -310,10 +351,10 @@ export function CourseStudentRegistering() {
                             );
 
                             // Une la información traída del back con la que se cargó del Excel.
-                            studentInfo.previousSubjectsApproved = 
+                            studentInfo.previousSubjectsApproved =
                                 String(studentLoadedData.Correlativas).trim().length != 0
-                                ? "P"
-                                : false;
+                                    ? "P"
+                                    : false;
                             studentInfo.studiedPreviously =
                                 studentInfo.isRecursante === true;
 
@@ -358,41 +399,56 @@ export function CourseStudentRegistering() {
      * Carga los nombres de pestaña para que sean seleccionados.
      */
     const loadSheetNames = () => {
-        
+
         // Obtiene la lista de nombres.
         let sheetNamesList = spreadsheetManipulator.getSheetNamesList();
 
         // Carga las pestañas en la lista de selección.
         let sheetNamesSelect = document.getElementById("sheet-names");
-        while (sheetNamesSelect.firstChild) {
-            sheetNamesSelect.removeChild(sheetNamesSelect.firstChild);
+        if (sheetNamesSelect) {
+            while (sheetNamesSelect.firstChild) {
+                sheetNamesSelect.removeChild(sheetNamesSelect.firstChild);
+            }
+            const listFirstElement = document.createElement("option");
+            listFirstElement.innerHTML = "SELECCIONAR PESTAÑA";
+            sheetNamesSelect.appendChild(listFirstElement);
+            sheetNamesList.forEach(sheetName => {
+                const listElement = document.createElement("option");
+                listElement.innerHTML = sheetName;
+                sheetNamesSelect.appendChild(listElement);
+            });
         }
-        const listFirstElement = document.createElement("option");
-        listFirstElement.innerHTML = "SELECCIONAR PESTAÑA";
-        sheetNamesSelect.appendChild(listFirstElement);
-        sheetNamesList.forEach(sheetName => {
-            const listElement = document.createElement("option");
-            listElement.innerHTML = sheetName;
-            sheetNamesSelect.appendChild(listElement);
-        });
 
+        // Auto-selección y sugerencia de rango si hay una sola hoja
+        if (sheetNamesList.length === 1) {
+            const singleSheet = sheetNamesList[0];
+            setSheetNameValue(singleSheet);
+            if (sheetNamesSelect) sheetNamesSelect.value = singleSheet;
+
+            const suggestedRange = spreadsheetManipulator.getSuggestedRange(singleSheet);
+            if (suggestedRange) {
+                setCellRangeName(suggestedRange);
+                const cellRangeInput = document.getElementById("cell-range");
+                if (cellRangeInput) cellRangeInput.value = suggestedRange;
+                saveSpreadsheetData('register-students-in-course', { sheetNameValue: singleSheet, cellRangeName: suggestedRange });
+            } else {
+                saveSpreadsheetData('register-students-in-course', { sheetNameValue: singleSheet });
+            }
+        }
     }
 
     /**
      * Manejador del evento que surge cuando se carga un
      * nuevo archivo con el explorador de archivos.
      *
-     * @param {Event} event Evento de cambio de la etiqueta input.
+     * @param {File} file Archivo seleccionado.
      */
-    const handleFileSelection = event => {
-
-        // Muestra el botón de actualizar.
+    const handleFileSelection = file => {
 
         // Obtiene y almacena el nombre del archivo.
-        const file = event.target.files[0];
         setFileName(file.name);
         setFileHandle(file);
-        
+
         // Limpia la pantalla.
         setError(null);
         setOkList([]);
@@ -400,24 +456,39 @@ export function CourseStudentRegistering() {
         setInvalidRegistersList([]);
 
         // Carga el archivo Excel.
-        spreadsheetManipulator.loadFile(file, loadSheetNames);
-
-        // Permite que se vuelva a cargar el mismo archivo.
-        const inputElement = document.getElementById("file");
-        inputElement.value = '';
+        spreadsheetManipulator.loadFile(file, () => {
+            loadSheetNames();
+            saveSpreadsheetData('register-students-in-course', {
+                fileName: file.name,
+                manipulator: spreadsheetManipulator
+            });
+        });
 
     };
 
     const handleSheetNameValueChange = event => {
-
-        if(event.target.value !== "SELECCIONAR PESTAÑA") 
-            setSheetNameValue(event.target.value);
-        else setSheetNameValue("");
-
+        const val = event.target.value;
+        if (val !== "SELECCIONAR PESTAÑA") {
+            setSheetNameValue(val);
+            const suggestedRange = spreadsheetManipulator.getSuggestedRange(val);
+            if (suggestedRange) {
+                setCellRangeName(suggestedRange);
+                const cellRangeInput = document.getElementById("cell-range");
+                if (cellRangeInput) cellRangeInput.value = suggestedRange;
+                saveSpreadsheetData('register-students-in-course', { sheetNameValue: val, cellRangeName: suggestedRange });
+            } else {
+                saveSpreadsheetData('register-students-in-course', { sheetNameValue: val });
+            }
+        } else {
+            setSheetNameValue("");
+            saveSpreadsheetData('register-students-in-course', { sheetNameValue: "" });
+        }
     };
 
     const handleCellRangeName = event => {
-        setCellRangeName(event.target.value.toUpperCase());
+        const val = event.target.value.toUpperCase();
+        setCellRangeName(val);
+        saveSpreadsheetData('register-students-in-course', { cellRangeName: val });
     };
 
     /**
@@ -498,14 +569,14 @@ export function CourseStudentRegistering() {
 
         // 6.A
         if (response.status !== 200) {
-            
+
             // 6.A.1
             // Guarda el mensaje de error traído del back al usuario y,
             // en el próximo renderizado, se mostrará el mensaje.
             setError("Hubo un error. Por favor, contactarse con Soporte Técnico.");
 
         } else {
-            
+
             // 3
             // El front inserta un símbolo en la primera columna de cada registro para indicar
             // que se registró en el sistema. [usar okList y notOkList]
@@ -521,7 +592,7 @@ export function CourseStudentRegistering() {
             response.data.nok.forEach(notRegisteredStudentInfo => {
                 let notRegisteredStudent = okList
                     .find(student => student.dossier === notRegisteredStudentInfo.dossier);
-                switch(notRegisteredStudentInfo.errorCode) {
+                switch (notRegisteredStudentInfo.errorCode) {
                     case 1: notRegisteredStudent.state = "No registrado: el legajo no existe en sistema.";
                         break;
                     case 2: notRegisteredStudent.state = "No registrado: el legajo ya estaba registrado.";
@@ -566,33 +637,21 @@ export function CourseStudentRegistering() {
                 </div>
             </div>
             <form>
-                <p>Seleccionar archivo de estudiantes</p>
-                <div className="label_button">
-                    <label htmlFor="file">
-                        Cargar archivo
-                    </label>
-                </div>
-                <input
-                    type="file"
-                    id="file"
-                    onChange={handleFileSelection}
-                    accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-                    required
-                    hidden
+                <DragAndDropFile
+                    onFileDrop={handleFileSelection}
+                    accept=".xlsx,.xls,.ods"
+                    fileName={fileName}
                 />
-                <div className="label_button download-button">
-                    <label htmlFor="download-button">
-                        Descargar plantilla
-                    </label>
+
+                <div style={{ marginTop: '15px', marginBottom: '15px' }}>
+                    <button
+                        type="button"
+                        className="load-button"
+                        onClick={handleTemplateDownload}
+                    >
+                        Descargar plantilla de ejemplo
+                    </button>
                 </div>
-                <input
-                    type="button"
-                    id="download-button"
-                    onClick={handleTemplateDownload}
-                    required
-                    hidden
-                />
-                <p>{fileName}</p>
 
                 <p>Nombre de la pestaña en la planilla</p>
                 <select
