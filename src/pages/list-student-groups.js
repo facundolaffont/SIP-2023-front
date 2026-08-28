@@ -104,29 +104,51 @@ export const ListStudentGroups = () => {
     };
 
     // HANDLER: Exportar a Excel.
-    const handleExportExcel = () => {
+    const handleExportExcel = async () => {
         if (groupsList.length === 0) {
             toast.error("No hay datos para exportar.");
             return;
         }
 
-        const headers = ["Grupo", "Legajos", "Cantidad de integrantes"];
-        const rows = groupsList.map(group => [
-            group.groupName,
-            group.studentDossiers.join(", "),
-            group.studentCount
-        ]);
-        const sheetContent = [headers, ...rows];
+        try {
+            const token = await getAccessTokenSilently();
+            
+            // Obtener todos los alumnos de la cursada
+            const studentsResponse = await axios.get(
+                `${process.env.REACT_APP_API_SERVER_URL}/api/v1/course/get-students?courseId=${course.getId()}`,
+                { headers: { Authorization: `Bearer ${token}` } }
+            );
+            const studentsList = studentsResponse.data.studentsList || [];
 
-        const subjectCode = course.getSubjectCode();
-        const commission = course.getCommission();
-        const year = course.getYear();
+            // Mapear legajo -> nombre_grupo
+            const studentGroupMap = {};
+            groupsList.forEach(g => {
+                g.studentDossiers.forEach(dossier => {
+                    studentGroupMap[dossier] = g.groupName;
+                });
+            });
 
-        spreadsheetManipulator.create(
-            `Grupos - ${subjectCode} C${commission} ${year}`,
-            `grupos-${subjectCode}-C${commission}-${year}`,
-            sheetContent
-        );
+            // Armar el Excel
+            let sheetContent = [["Legajo", "Nombre", "Grupo"]];
+            studentsList.forEach(student => {
+                const currentGroup = studentGroupMap[student.dossier] || "";
+                sheetContent.push([student.dossier, student.name, currentGroup]);
+            });
+
+            const subjectCode = course.getSubjectCode();
+            const commission = course.getCommission();
+            const year = course.getYear();
+
+            spreadsheetManipulator.create(
+                `Grupos - ${subjectCode} C${commission} ${year}`,
+                `grupos-${subjectCode}-C${commission}-${year}`,
+                sheetContent
+            );
+
+        } catch (error) {
+            console.error("Error obteniendo alumnos para exportar a Excel:", error);
+            toast.error("Hubo un error al generar el archivo. Por favor, intente nuevamente.");
+        }
     };
 
     // Formatea la columna de integrantes: legajos si son ≤5, cantidad si son más.

@@ -24,6 +24,7 @@ export const HomePageProfessor = () => {
     const urlSearchParams = new URLSearchParams(window.location.search);
     const courseMissing = urlSearchParams.has("course-missing");
     const noEvents = urlSearchParams.has("no-events");
+    const noStudents = urlSearchParams.has("no-students");
     const [hasCourses, setHasCourses] = useState(null);
     const [coursesList, setCoursesList] = useState([]);
 
@@ -103,6 +104,14 @@ export const HomePageProfessor = () => {
                     <div className="info-msg-desc-container">
                         <p className="info-msg-description">La cursada seleccionada no tiene eventos.</p>
                         <p className="info-msg-description">Primero debe crear al menos un evento.</p>
+                    </div>
+                </div>
+            )}
+            {noStudents && (
+                <div className="info-msg-container">
+                    <div className="info-msg-desc-container">
+                        <p className="info-msg-description">La cursada seleccionada no tiene estudiantes registrados.</p>
+                        <p className="info-msg-description">Primero debe registrar al menos un estudiante.</p>
                     </div>
                 </div>
             )}

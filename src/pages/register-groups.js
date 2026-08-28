@@ -5,6 +5,7 @@ import { useAuth0 } from "@auth0/auth0-react";
 import React, { useEffect } from "react";
 import { useHistory } from 'react-router-dom';
 import toast from "react-hot-toast";
+import * as XLSX from 'xlsx';
 
 // Componentes internos.
 import { PageLayout } from "../components/page-layout";
@@ -53,6 +54,35 @@ export function GroupRegistering() {
     useEffect(() => {
         if (!course) history.push('/profile?course-missing');
     }, []);
+
+    // Redirige a la página de inicio si la cursada no tiene estudiantes registrados.
+    useEffect(() => {
+        if (!course) return;
+
+        const checkStudents = async () => {
+            try {
+                const token = await getAccessTokenSilently();
+                const studentsResponse = await axios.get(
+                    `${process.env.REACT_APP_API_SERVER_URL}/api/v1/course/get-students?courseId=${course.getId()}`,
+                    { headers: { Authorization: `Bearer ${token}` } }
+                );
+                
+                const studentsList = studentsResponse.data.studentsList || [];
+                if (studentsList.length === 0) {
+                    history.push('/profile?no-students');
+                }
+            } catch (error) {
+                // Si la API devuelve un error de tipo Not Found o EmptyQueryException
+                if (error.response && error.response.status === 404) {
+                    history.push('/profile?no-students');
+                } else {
+                    setError("Hubo un error al verificar los estudiantes. Por favor, contactarse con Soporte Técnico.");
+                }
+            }
+        };
+
+        checkStudents();
+    }, [course, getAccessTokenSilently, history]);
 
     // Restaura el estado desde el contexto
     useEffect(() => {
@@ -247,9 +277,20 @@ export function GroupRegistering() {
         } else {
             setError(null);
 
-            spreadsheetManipulator.loadRange(sheetNameValue, cellRangeName, [
-                "dossier", "groupName",
-            ]);
+            const rangeObj = XLSX.utils.decode_range(cellRangeName);
+            const colCount = rangeObj.e.c - rangeObj.s.c + 1;
+
+            let columnsMapping = [];
+            if (colCount === 2) {
+                columnsMapping = ["dossier", "groupName"];
+            } else if (colCount === 3) {
+                columnsMapping = ["dossier", "name", "groupName"];
+            } else {
+                setError(`El rango seleccionado tiene ${colCount} columnas. Debe tener 2 (sin nombres) o 3 (con nombres).`);
+                return;
+            }
+
+            spreadsheetManipulator.loadRange(sheetNameValue, cellRangeName, columnsMapping);
 
             let readRange = spreadsheetManipulator.getLastReadRange();
             let validFormatRange = [];
@@ -491,16 +532,16 @@ export function GroupRegistering() {
             });
 
             // 4. Armar el Excel
-            let sheetContent = [["Legajo", "Grupo"]];
+            let sheetContent = [["Legajo", "Nombre", "Grupo"]];
             studentsList.forEach(student => {
                 const currentGroup = studentGroupMap[student.dossier] || "";
-                sheetContent.push([student.dossier, currentGroup]);
+                sheetContent.push([student.dossier, student.name, currentGroup]);
             });
 
             spreadsheetManipulator.create("Plantilla de grupos de estudiantes", "grupos-estudiantes", sheetContent);
         } catch (error) {
             console.error("Error obteniendo alumnos/grupos para plantilla:", error);
-            let sheetContent = [["Legajo", "Grupo"]];
+            let sheetContent = [["Legajo", "Nombre", "Grupo"]];
             spreadsheetManipulator.create("Plantilla de grupos de estudiantes", "grupos-estudiantes", sheetContent);
         }
     };
