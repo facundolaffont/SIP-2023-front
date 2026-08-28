@@ -238,19 +238,18 @@ export const ListCourseEvents = () => {
             toast.error("El nombre del evento es obligatorio.");
             return;
         }
-        if (!editFormData.initialDateTime) {
-            toast.error("La fecha y hora de inicio es obligatoria.");
-            return;
+        let newInitialDate = null;
+        let newEndDate = null;
+
+        if (editFormData.initialDateTime) {
+            newInitialDate = new Date(editFormData.initialDateTime).toISOString();
         }
-        if (!editFormData.endDateTime) {
-            toast.error("La fecha y hora de fin es obligatoria.");
-            return;
+        
+        if (editFormData.endDateTime) {
+            newEndDate = new Date(editFormData.endDateTime).toISOString();
         }
 
-        const newInitialDate = new Date(editFormData.initialDateTime).toISOString();
-        const newEndDate = new Date(editFormData.endDateTime).toISOString();
-
-        if (new Date(newInitialDate) > new Date(newEndDate)) {
+        if (newInitialDate && newEndDate && new Date(newInitialDate) > new Date(newEndDate)) {
             toast.error("La fecha de inicio del evento no puede ser mayor que la fecha de fin.");
             return;
         }

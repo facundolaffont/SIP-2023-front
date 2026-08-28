@@ -42,7 +42,7 @@ export function EventsBulkRegistering() {
     const [error, setError] = useState(null);
 
     const { getAccessTokenSilently } = useAuth0();
-    
+
     /** @type {CourseDTO} */ const course = useSelectedCourse(false);
     const history = useHistory();
     const { getSpreadsheetData, saveSpreadsheetData, clearSpreadsheetData } = useSpreadsheetContext();
@@ -55,7 +55,7 @@ export function EventsBulkRegistering() {
             setSheetNameValue(savedData.sheetNameValue || "");
             setCellRangeName(savedData.cellRangeName || "");
             setSpreadsheetManipulator(savedData.manipulator);
-            
+
             // Re-poblar inputs luego de que el DOM esté listo
             setTimeout(() => {
                 const sheetNamesList = savedData.manipulator.getSheetNamesList();
@@ -92,7 +92,7 @@ export function EventsBulkRegistering() {
     }, []);
 
     // Actualiza el estado del botón de registración.
-    useEffect(() => { 
+    useEffect(() => {
 
         // Obtiene el manejador del botón de registración.
         const registerButton = document.getElementsByClassName("register-button")[0];
@@ -101,15 +101,15 @@ export function EventsBulkRegistering() {
         if (registerButtonEnabled) {
             registerButton.disabled = false;
             registerButton.classList.remove("disabled");
-        
-        // Inhabilita el botón de registración.
+
+            // Inhabilita el botón de registración.
         } else {
             registerButton.disabled = true;
             registerButton.classList.add("disabled");
         }
 
     }, [registerButtonEnabled]);
-    
+
     // Actualiza las tablas cuando hay un cambio en los correspondientes datos.
     useEffect(() => {
 
@@ -124,11 +124,11 @@ export function EventsBulkRegistering() {
                 {
                     columnNames: [
                         "_row:Fila",
-                        "formatInfo:Error de formato",
+                        "formatInfo:Detalle del error",
                     ],
                     tableRows: invalidRegistersList,
                 },
-                `Registros con formato inválido (${invalidRegistersList.length})`
+                `Registros inválidos (${invalidRegistersList.length})`
             );
             notValidFormatTable.classList.remove("not-displayed");
         } else notValidFormatTable.classList.add("not-displayed");
@@ -159,7 +159,7 @@ export function EventsBulkRegistering() {
                 },
                 `Eventos para crear (${okList.length})`
             );
-               okTableContainer.classList.remove("not-displayed");
+            okTableContainer.classList.remove("not-displayed");
         } else okTableContainer.classList.add("not-displayed");
 
     }, [okList, notOkList, invalidRegistersList, tableManualUpdateTrigger]);
@@ -171,10 +171,10 @@ export function EventsBulkRegistering() {
 
             // Obtiene el token Auth0.
             const auth0Token = await getAccessTokenSilently()
-            .then(response => response)
-            .catch(error => {
-                throw error;
-            });
+                .then(response => response)
+                .catch(error => {
+                    throw error;
+                });
 
             // Realiza la solicitud al endpoint para crear los eventos.
             const response = await axios.get(
@@ -185,8 +185,8 @@ export function EventsBulkRegistering() {
                     },
                 }
             )
-            .then(response => response)
-            .catch(error => error.response);
+                .then(response => response)
+                .catch(error => error.response);
 
             // Si la petición al back no finalizó correctamente, se establece el mensaje de error
             // que se le mostrará al usuario; si no, se guardan los códigos de tipo de evento.
@@ -262,18 +262,18 @@ export function EventsBulkRegistering() {
 
             setError("Debe seleccionar un nombre de pestaña.");
 
-        // Notifica al usuario si el rango no fue ingresado.
+            // Notifica al usuario si el rango no fue ingresado.
         } else if (cellRangeName === "") {
 
             setError("El campo 'Rango de celdas a cargar' no puede estar vacío.");
 
-        // Notifica al usuario si el rango de celdas no tiene formato válido.
+            // Notifica al usuario si el rango de celdas no tiene formato válido.
         } else if (!cellRangeName.match("[A-Z]+[0-9]+:[A-Z]+[0-9]+")) {
 
             setError("El campo 'Rango de celdas a cargar' no tiene un formato válido; debe ser '&lt;letras&gt;&lt;números&gt;:&lt;letras&gt;&lt;números&gt;'.");
 
-        // Condición que se cumple si se pasaron correctamente todas las validaciones de
-        // formato de los datos de entrada en la interfaz gráfica.
+            // Condición que se cumple si se pasaron correctamente todas las validaciones de
+            // formato de los datos de entrada en la interfaz gráfica.
         } else {
 
             // Limpia el eventual mensaje de error que se encuentre en pantalla.
@@ -292,6 +292,7 @@ export function EventsBulkRegistering() {
                 "initialDatetime",
                 "endDatetime",
                 "obligatory",
+                "baseEventRow"
             ]);
 
             // Obtiene el rango seleccionado del Excel.
@@ -300,6 +301,10 @@ export function EventsBulkRegistering() {
             // Verifica los registros del Excel con formato incorrecto y los separa.
             let validFormatRange = [];
             let invalidFormatRange = [];
+
+            // Set para rastrear qué filas base ya tienen un recuperatorio asignado en esta carga
+            const claimedBaseRows = new Set();
+
             readRange.data.forEach(row => {
 
                 let invalidFormat = false;
@@ -322,24 +327,91 @@ export function EventsBulkRegistering() {
                 }
 
                 // Verifica si las fechas de inicio y fin son obligatorias y correctas.
-                else if (String(row.initialDatetime).trim() === "" || !dateRegex.test(String(row.initialDatetime).trim())) {
-                    row.formatInfo = "El campo de fecha y hora inicial es obligatorio y debe tener el formato DD/MM/AAAA HH:MM.";
+                else if (row.initialDatetime !== undefined && String(row.initialDatetime).trim() !== "" && !dateRegex.test(String(row.initialDatetime).trim())) {
+                    row.formatInfo = "El campo de fecha y hora inicial debe tener el formato DD/MM/AAAA HH:MM.";
                     invalidFormat = true;
-                } else if (String(row.endDatetime).trim() === "" || !dateRegex.test(String(row.endDatetime).trim())) {
-                    row.formatInfo = "El campo de fecha y hora final es obligatorio y debe tener el formato DD/MM/AAAA HH:MM.";
+                } else if (row.endDatetime !== undefined && String(row.endDatetime).trim() !== "" && !dateRegex.test(String(row.endDatetime).trim())) {
+                    row.formatInfo = "El campo de fecha y hora final debe tener el formato DD/MM/AAAA HH:MM.";
                     invalidFormat = true;
+                } else if (
+                    row.initialDatetime !== undefined && String(row.initialDatetime).trim() !== "" &&
+                    row.endDatetime !== undefined && String(row.endDatetime).trim() !== ""
+                ) {
+                    const initStr = String(row.initialDatetime).trim();
+                    const endStr = String(row.endDatetime).trim();
+                    // initStr formato: DD/MM/AAAA HH:MM
+                    const initDate = new Date(initStr.substring(6, 10), initStr.substring(3, 5) - 1, initStr.substring(0, 2), initStr.substring(11, 13), initStr.substring(14, 16));
+                    const endDate = new Date(endStr.substring(6, 10), endStr.substring(3, 5) - 1, endStr.substring(0, 2), endStr.substring(11, 13), endStr.substring(14, 16));
+                    if (initDate >= endDate) {
+                        row.formatInfo = "La fecha y hora inicial no puede ser mayor o igual a la final.";
+                        invalidFormat = true;
+                    }
                 }
-                
+
                 // Verifica si el formato del campo que indica la obligatoriedad tiene un formato correcto.
                 else if (
-                    typeof row.obligatory !== 'string'
+                    row.obligatory !== undefined
+                    && typeof row.obligatory !== 'string'
                     || (
-                        row.obligatory !== ""
-                        && row.obligatory.toLowerCase() !== "x"
+                        row.obligatory !== undefined
+                        && row.obligatory !== ""
+                        && String(row.obligatory).toLowerCase() !== "x"
                     )
                 ) {
-                    row.formatInfo = "El campo que indica si la clase es obligatoria debe estar marcada por una 'x' o debe estar vacía.";
+                    row.formatInfo = "El campo que indica si el evento es obligatorio debe estar marcado por una 'x' o debe estar vacío.";
                     invalidFormat = true;
+                }
+
+                // Verifica baseEventRow usando validación cruzada
+                else {
+                    const matchedEventType = eventTypeList.find(et => et.eventTypeId == row.eventTypeId);
+
+                    if (matchedEventType && matchedEventType.baseEventTypeId !== null) {
+                        // Es un recuperatorio
+                        if (row.baseEventRow === undefined || String(row.baseEventRow).trim() === "") {
+                            row.formatInfo = "La columna 'Evento a recuperar (nro de fila)' es obligatoria para los recuperatorios.";
+                            invalidFormat = true;
+                        } else if (isNaN(row.baseEventRow) || row.baseEventRow <= 0) {
+                            row.formatInfo = "El evento a recuperar (nro de fila) debe ser numérico y mayor a cero.";
+                            invalidFormat = true;
+                        } else {
+                            // Validar que la fila referenciada exista en el excel
+                            const baseRow = readRange.data.find(r => r._row == row.baseEventRow);
+                            if (!baseRow) {
+                                row.formatInfo = `La fila base referenciada (${row.baseEventRow}) no existe en los registros cargados.`;
+                                invalidFormat = true;
+                            } else {
+                                // Validar que el tipo de evento de la fila base coincida con el requerido
+                                if (baseRow.eventTypeId != matchedEventType.baseEventTypeId) {
+                                    const baseTypeObj = eventTypeList.find(et => et.eventTypeId == matchedEventType.baseEventTypeId);
+                                    const baseTypeName = baseTypeObj ? baseTypeObj.eventTypeName : matchedEventType.baseEventTypeId;
+                                    row.formatInfo = `El evento a recuperar debe ser de tipo '${baseTypeName}' (código ${matchedEventType.baseEventTypeId}).`;
+                                    invalidFormat = true;
+                                } else {
+                                    // Validar que no haya otro recuperatorio apuntando a este mismo evento base
+                                    if (claimedBaseRows.has(row.baseEventRow)) {
+                                        row.formatInfo = `El evento base de la fila ${row.baseEventRow} ya tiene otro recuperatorio asignado en esta planilla. Solo se permite uno.`;
+                                        invalidFormat = true;
+                                    } else {
+                                        claimedBaseRows.add(row.baseEventRow);
+                                    }
+                                }
+                            }
+                        }
+                    } else if (matchedEventType && matchedEventType.baseEventTypeId === null) {
+                        // NO es un recuperatorio
+                        if (row.baseEventRow !== undefined && String(row.baseEventRow).trim() !== "") {
+                            row.formatInfo = "Este tipo de evento no es un recuperatorio, la columna 'Evento a recuperar' debe estar vacía.";
+                            invalidFormat = true;
+                        }
+                    } else if (
+                        row.baseEventRow !== undefined &&
+                        String(row.baseEventRow).trim() !== "" &&
+                        (isNaN(row.baseEventRow) || row.baseEventRow <= 0)
+                    ) {
+                        row.formatInfo = "El evento a recuperar (nro de fila) debe ser numérico y mayor a cero.";
+                        invalidFormat = true;
+                    }
                 }
 
                 // Separa los registros con formato válido de los que tienen formato inválido.
@@ -351,11 +423,36 @@ export function EventsBulkRegistering() {
 
             });
 
+            // Segunda pasada: Evitar recuperatorios huérfanos
+            // Si el evento base se fue a la tabla de errores, el recuperatorio debe irse también.
+            const invalidRowsIds = new Set(invalidFormatRange.map(r => String(r._row)));
+            const finalValidFormatRange = [];
+
+            validFormatRange.forEach(row => {
+                if (row.baseEventRow !== undefined && String(row.baseEventRow).trim() !== "") {
+                    // row._row es un String (XLSX.utils.encode_row), así que lo casteamos a String
+                    if (invalidRowsIds.has(String(row.baseEventRow))) {
+                        row.formatInfo = "El evento base al que apunta tiene errores de formato. Debe corregir el evento base primero.";
+                        invalidFormatRange.push(row);
+                    } else {
+                        finalValidFormatRange.push(row);
+                    }
+                } else {
+                    finalValidFormatRange.push(row);
+                }
+            });
+            validFormatRange = finalValidFormatRange;
+
             // Establece, si hubiere, la lista de registros con formato inválido para ser mostrados
             // al actualizar el componente de React.
             setInvalidRegistersList(
                 invalidFormatRange
             );
+
+            if (validFormatRange.length === 0) {
+                setOkList([]);
+                setNotOkList([]);
+            }
 
             // Si hay registros con formato válido, envía la petición de chequeo de información
             // al back, para saber cuáles registros podrían registrarse y cuáles no.
@@ -364,42 +461,43 @@ export function EventsBulkRegistering() {
                 // Guarda los registros con formato correcto en el arreglo con el formato necesario
                 // para ser enviado al back.
                 /** @type {Array.<number>} */ const newEventsArray = validFormatRange.map(element => {
-                    return {
-                        eventTempId: element._row,
-                        eventTypeId: element.eventTypeId,
-                        eventName: String(element.eventName).trim(),
+                return {
+                    eventTempId: element._row,
+                    eventTypeId: element.eventTypeId,
+                    eventName: element.eventName !== undefined ? String(element.eventName).trim() : "",
 
-                        // Si la fecha inicial no fue ingresada, deja el campo vacío;
-                        // si fue ingresada, formatea el campo para el envío al back.
-                        initialDatetime: 
-                            String(element.initialDatetime).trim() !== ""
+                    // Si la fecha inicial no fue ingresada, deja el campo vacío;
+                    // si fue ingresada, formatea el campo para el envío al back.
+                    initialDatetime:
+                        (element.initialDatetime !== undefined && String(element.initialDatetime).trim() !== "")
                             ? (
-                                element.initialDatetime.substring(6, 10) +
+                                String(element.initialDatetime).substring(6, 10) +
                                 "-" +
-                                element.initialDatetime.substring(3, 5) +
+                                String(element.initialDatetime).substring(3, 5) +
                                 "-" +
-                                element.initialDatetime.substring(0, 2) +
+                                String(element.initialDatetime).substring(0, 2) +
                                 "T" +
-                                element.initialDatetime.substring(11, 16)
+                                String(element.initialDatetime).substring(11, 16)
                             ) : null,
-                        
-                        // Si la fecha final no fue ingresada, deja el campo vacío;
-                        // si fue ingresada, formatea el campo para el envío al back.
-                        endDatetime:
-                            String(element.endDatetime).trim() !== ""
-                        ? (
-                            element.endDatetime.substring(6, 10) +
-                            "-" +
-                            element.endDatetime.substring(3, 5) +
-                            "-" +
-                            element.endDatetime.substring(0, 2) +
-                            "T" +
-                            element.endDatetime.substring(11, 16)
-                        ) : null,
 
-                        obligatory: element.obligatory.toLowerCase() == "x" ? true : false
-                    }
-                });
+                    // Si la fecha final no fue ingresada, deja el campo vacío;
+                    // si fue ingresada, formatea el campo para el envío al back.
+                    endDatetime:
+                        (element.endDatetime !== undefined && String(element.endDatetime).trim() !== "")
+                            ? (
+                                String(element.endDatetime).substring(6, 10) +
+                                "-" +
+                                String(element.endDatetime).substring(3, 5) +
+                                "-" +
+                                String(element.endDatetime).substring(0, 2) +
+                                "T" +
+                                String(element.endDatetime).substring(11, 16)
+                            ) : null,
+
+                    obligatory: (element.obligatory !== undefined && String(element.obligatory).toLowerCase() == "x") ? true : false,
+                    baseEventRow: (element.baseEventRow !== undefined && String(element.baseEventRow).trim() !== "") ? parseInt(element.baseEventRow) : null
+                }
+            });
 
                 // Obtiene el token Auth0.
                 const auth0Token = await getAccessTokenSilently()
@@ -431,63 +529,79 @@ export function EventsBulkRegistering() {
                     setError("Hubo un error. Por favor, contactarse con Soporte Técnico.");
                 else if (checkedInfo.status !== 200)
                     setError(checkedInfo.data.errorDescription);
-                
+
                 // Si la petición al back finalizó correctamente, se establecen los registros de formato
                 // inválido, si los hubiere, así como también los de formato válido, para que sean mostrados
                 // en la próxima actualización del componente de React.
                 else {
 
-                    // Establece, si hubiere, la lista de registros que pueden ser procesados y almacenados
-                    // por el back al actualizar el componente de React.
-                    setOkList(
-                        checkedInfo.data.ok.map(
-                            eventInfo => {
-
-                                // Obtiene el registro de readRange que tiene mismo legajo.
-                                let eventLoadedData = readRange.data.find(
-                                    readRegister => readRegister._row == eventInfo.eventTempId
-                                );
-
-                                // Une la información traída del back con la que se cargó del Excel.
-                                eventInfo.eventTypeId = eventLoadedData.eventTypeId;
-                                eventInfo.eventName = String(eventLoadedData.eventName).trim();
-                                eventInfo.initialDatetime =
-                                    String(eventLoadedData.initialDatetime).trim() !== ""
-                                    ? eventLoadedData.initialDatetime
-                                    : '-';
-                                eventInfo.endDatetime =
-                                    String(eventLoadedData.endDatetime).trim() !== ""
-                                    ? eventLoadedData.endDatetime
-                                    : '-';
-                                eventInfo.obligatory = eventLoadedData.obligatory;
-
-                                // Agrega el estado de registración en sistema.
-                                eventInfo.state = 'Pendiente';
-
-                                return eventInfo;
-
-                            }
-                        )
-                    );
-
-                    // Agrega a la tabla de registros inválidos aquellos que no superaron
-                    // las validaciones del backend (ej. nombres duplicados).
+                    let backendNokRegisters = [];
                     if (checkedInfo.data.nok && checkedInfo.data.nok.length > 0) {
-                        let backendNokRegisters = checkedInfo.data.nok.map(notOkInfo => {
+                        backendNokRegisters = checkedInfo.data.nok.map(notOkInfo => {
                             let eventLoadedData = readRange.data.find(
                                 readRegister => readRegister._row == notOkInfo.eventTempId
                             );
-                            
+
                             if (notOkInfo.errorCode === 1) {
                                 eventLoadedData.formatInfo = "El nombre del evento ya se encuentra registrado en la cursada.";
                             } else if (notOkInfo.errorCode === 2) {
                                 eventLoadedData.formatInfo = "El nombre del evento se encuentra duplicado en este mismo archivo.";
                             }
-                            
+
                             return eventLoadedData;
                         });
-                        setInvalidRegistersList([...invalidFormatRange, ...backendNokRegisters]);
                     }
+
+                    // Segunda pasada de backend: Evitar recuperatorios huérfanos
+                    const backendNokIds = new Set(backendNokRegisters.map(r => String(r._row)));
+                    const finalOkList = [];
+                    const extraNokRegisters = [];
+
+                    checkedInfo.data.ok.forEach(eventInfo => {
+                        let eventLoadedData = readRange.data.find(
+                            readRegister => readRegister._row == eventInfo.eventTempId
+                        );
+
+                        if (eventLoadedData.baseEventRow !== undefined && String(eventLoadedData.baseEventRow).trim() !== "") {
+                            if (backendNokIds.has(String(eventLoadedData.baseEventRow))) {
+                                eventLoadedData.formatInfo = "El evento base al que apunta fue rechazado por el servidor. Debe corregir el evento base primero.";
+                                extraNokRegisters.push(eventLoadedData);
+                            } else {
+                                finalOkList.push(eventInfo);
+                            }
+                        } else {
+                            finalOkList.push(eventInfo);
+                        }
+                    });
+
+                    // Establece la lista final de registros válidos
+                    setOkList(
+                        finalOkList.map(eventInfo => {
+                            let eventLoadedData = readRange.data.find(
+                                readRegister => readRegister._row == eventInfo.eventTempId
+                            );
+
+                            eventInfo.eventTypeId = eventLoadedData.eventTypeId;
+                            eventInfo.eventName = String(eventLoadedData.eventName).trim();
+                            eventInfo.initialDatetime =
+                                (eventLoadedData.initialDatetime !== undefined && String(eventLoadedData.initialDatetime).trim() !== "")
+                                    ? eventLoadedData.initialDatetime
+                                    : '-';
+                            eventInfo.endDatetime =
+                                (eventLoadedData.endDatetime !== undefined && String(eventLoadedData.endDatetime).trim() !== "")
+                                    ? eventLoadedData.endDatetime
+                                    : '-';
+                            eventInfo.obligatory = eventLoadedData.obligatory;
+                            eventInfo.baseEventRow = eventLoadedData.baseEventRow;
+                            eventInfo.state = 'Pendiente';
+
+                            return eventInfo;
+                        })
+                    );
+
+                    // Agrega a la tabla de registros inválidos aquellos que no superaron
+                    // las validaciones del backend, más los huérfanos resultantes.
+                    setInvalidRegistersList([...invalidFormatRange, ...backendNokRegisters, ...extraNokRegisters]);
 
                 }
 
@@ -501,7 +615,7 @@ export function EventsBulkRegistering() {
      * Carga los nombres de pestaña para que sean seleccionados.
      */
     const loadSheetNames = () => {
-        
+
         // Obtiene la lista de nombres.
         let sheetNamesList = spreadsheetManipulator.getSheetNamesList();
 
@@ -526,7 +640,7 @@ export function EventsBulkRegistering() {
             const singleSheet = sheetNamesList[0];
             setSheetNameValue(singleSheet);
             if (sheetNamesSelect) sheetNamesSelect.value = singleSheet;
-            
+
             const suggestedRange = spreadsheetManipulator.getSuggestedRange(singleSheet);
             if (suggestedRange) {
                 setCellRangeName(suggestedRange);
@@ -550,7 +664,7 @@ export function EventsBulkRegistering() {
         // Obtiene y almacena el nombre del archivo.
         setFileName(file.name);
         setFileHandle(file);
-        
+
         // Limpia la pantalla.
         setError(null);
         setOkList([]);
@@ -578,7 +692,7 @@ export function EventsBulkRegistering() {
         setInvalidRegistersList([]);
         setSpreadsheetManipulator(new SpreadsheetManipulator());
         clearSpreadsheetData('events-bulk');
-        
+
         let sheetNamesSelect = document.getElementById("sheet-names");
         if (sheetNamesSelect) {
             while (sheetNamesSelect.firstChild) {
@@ -593,7 +707,7 @@ export function EventsBulkRegistering() {
 
     const handleSheetNameValueChange = event => {
         const val = event.target.value;
-        if(val !== "SELECCIONAR PESTAÑA") {
+        if (val !== "SELECCIONAR PESTAÑA") {
             setSheetNameValue(val);
             const suggestedRange = spreadsheetManipulator.getSuggestedRange(val);
             if (suggestedRange) {
@@ -637,31 +751,32 @@ export function EventsBulkRegistering() {
                     // si fue ingresada, formatea el campo para el envío al back.
                     initialDatetime:
                         eventCreationInfo.initialDatetime !== "-"
-                        ? ( 
-                            eventCreationInfo.initialDatetime.substring(6, 10) +
-                            "-" +
-                            eventCreationInfo.initialDatetime.substring(3, 5) +
-                            "-" +
-                            eventCreationInfo.initialDatetime.substring(0, 2) +
-                            "T" +
-                            eventCreationInfo.initialDatetime.substring(11, 16)
-                        ) : null,
+                            ? (
+                                eventCreationInfo.initialDatetime.substring(6, 10) +
+                                "-" +
+                                eventCreationInfo.initialDatetime.substring(3, 5) +
+                                "-" +
+                                eventCreationInfo.initialDatetime.substring(0, 2) +
+                                "T" +
+                                eventCreationInfo.initialDatetime.substring(11, 16)
+                            ) : null,
 
                     // Si la fecha final no fue ingresada, deja el campo vacío;
                     // si fue ingresada, formatea el campo para el envío al back.
                     endDatetime:
                         eventCreationInfo.endDatetime !== "-"
-                        ? (
-                            eventCreationInfo.endDatetime.substring(6, 10) +
-                            "-" +
-                            eventCreationInfo.endDatetime.substring(3, 5) +
-                            "-" +
-                            eventCreationInfo.endDatetime.substring(0, 2) +
-                            "T" +
-                            eventCreationInfo.endDatetime.substring(11, 16)
-                        ) : null,
+                            ? (
+                                eventCreationInfo.endDatetime.substring(6, 10) +
+                                "-" +
+                                eventCreationInfo.endDatetime.substring(3, 5) +
+                                "-" +
+                                eventCreationInfo.endDatetime.substring(0, 2) +
+                                "T" +
+                                eventCreationInfo.endDatetime.substring(11, 16)
+                            ) : null,
 
-                    obligatory: eventCreationInfo.obligatory.toLowerCase() == 'x' ? true : false
+                    obligatory: eventCreationInfo.obligatory.toLowerCase() == 'x' ? true : false,
+                    baseEventRow: eventCreationInfo.baseEventRow
                 }
             });
 
@@ -697,15 +812,15 @@ export function EventsBulkRegistering() {
             setError(response.data.errorDescription);
 
         else {
-            
+
             // El front inserta un símbolo en la primera columna de cada registro para indicar
             // que se registró en el sistema.
 
             // Actualiza la información de los eventos que se registraron correctamente.
             response.data.ok.forEach(eventInResponse => {
                 let matchedEvent = okList
-                .find(eventInOkList => eventInOkList.eventTempId === eventInResponse.eventTempId);
-                
+                    .find(eventInOkList => eventInOkList.eventTempId === eventInResponse.eventTempId);
+
                 matchedEvent.state = "Creado";
             });
 
@@ -729,8 +844,8 @@ export function EventsBulkRegistering() {
 
         // Define el contenido de la plantilla.
         let sheetContent = [
-            ["Código del tipo de evento", "Nombre del evento", "Fecha y hora de inicio", "Fecha y hora de fin", "Obligatorio"],
-            [1, "Introducción", "18/08/2022 10:00", "18/08/2022 12:00", "x"],
+            ["Código del tipo de evento", "Nombre del evento", "Fecha y hora de inicio", "Fecha y hora de fin", "Obligatorio", "Evento a recuperar (nro de fila)"],
+            [1, "Introducción", "18/08/2022 10:00", "18/08/2022 12:00", "x", ""],
         ];
 
         // Crea y descarga la plantilla.
@@ -762,13 +877,13 @@ export function EventsBulkRegistering() {
                 </div>
             </div>
             <form>
-                <DragAndDropFile 
-                    onFileDrop={handleFileSelection} 
+                <DragAndDropFile
+                    onFileDrop={handleFileSelection}
                     onFileRemove={handleFileRemove}
-                    accept=".xlsx,.xls,.ods" 
-                    fileName={fileName} 
+                    accept=".xlsx,.xls,.ods"
+                    fileName={fileName}
                 />
-                
+
                 <div style={{ marginTop: '15px', marginBottom: '15px' }}>
                     <button
                         type="button"
