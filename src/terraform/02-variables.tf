@@ -10,7 +10,7 @@ variable "zone" {
 
 variable "project_id" {
   type    = string
-  default = "project-dd228640-36e2-42f9-b2c"
+  default = "project-7d3969da-6978-49de-83b"
 }
 
 variable "LOADBALANCER_IP" {

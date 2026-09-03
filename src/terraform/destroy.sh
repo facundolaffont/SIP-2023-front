@@ -44,7 +44,7 @@ cd "$(dirname "$0")"
     docker run --rm -it --mount type=bind,src=./,dst=/tmp hashicorp/terraform \
         -chdir=/tmp init \
         -reconfigure \
-        --backend-config bucket="bucket-project-dd228640-36e2-42f9-b2c" \
+        --backend-config bucket="bucket-project-7d3969da-6978-49de-83b" \
         --backend-config prefix="state/dns" \
         --backend-config credentials=/tmp/gcloud-key.json
     echo "Terraform inicializado."
@@ -63,7 +63,7 @@ cd "$(dirname "$0")"
     docker run --rm -it --mount type=bind,src=./,dst=/tmp hashicorp/terraform \
         -chdir=/tmp/00-base init \
         -reconfigure \
-        --backend-config bucket="bucket-project-dd228640-36e2-42f9-b2c" \
+        --backend-config bucket="bucket-project-7d3969da-6978-49de-83b" \
         --backend-config prefix="state/base" \
         --backend-config credentials=/tmp/gcloud-key.json
     echo "Terraform inicializado."
