@@ -3,6 +3,7 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useAuth0 } from '@auth0/auth0-react';
 import { useHistory } from 'react-router-dom';
+import * as XLSX from "xlsx";
 
 // Componentes internos.
 import { PageLayout } from "../components/page-layout";
@@ -176,6 +177,31 @@ export const ShowAllEventsRegisters = () => {
 
 
 
+    const handleExportExcel = () => {
+        const flatData = eventsDetailsList.map(item => {
+            let asistenciaText = "-";
+            if (item.attendance === true) asistenciaText = "Sí";
+            else if (item.attendance === false) asistenciaText = "No";
+            else if (item.attendance) asistenciaText = item.attendance;
+
+            return {
+                "ID": item.eventId,
+                "Tipo de evento": item.eventType,
+                "Fecha y horario": item.datetime,
+                "Legajo": item.studentDossier,
+                "DNI": item.studentId,
+                "Nombre": item.studentName,
+                "Asistencia": asistenciaText,
+                "Nota": item.note || "-"
+            };
+        });
+
+        const worksheet = XLSX.utils.json_to_sheet(flatData);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "Eventos");
+        XLSX.writeFile(workbook, "detalle-eventos-cursada.xlsx");
+    };
+
     return (
         <PageLayout>
             <h1 id="page-title" className="content__title">
@@ -204,15 +230,7 @@ export const ShowAllEventsRegisters = () => {
                             type="button"
                             className="export-button"
                             style={{ marginTop: '15px' }}
-                            onClick={() => {
-                                spreadsheetManipulator.export(
-                                    document.getElementById("table-container-export"),
-                                    "Detalle de todos los eventos",
-                                    "detalle-eventos-cursada",
-                                    [],
-                                    [1, 4, 5]
-                                );
-                            }}
+                            onClick={handleExportExcel}
                         >
                             Exportar a Excel
                         </button>

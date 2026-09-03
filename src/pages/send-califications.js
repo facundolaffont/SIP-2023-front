@@ -87,11 +87,15 @@ export function SendCalifications() {
      * Envía las calificaciones por email para un evento específico,
      * previa confirmación del usuario.
      */
-    const handleSendEmails = (eventId, eventName) => {
+    const handleSendEmails = (eventId, eventName, pendingCount) => {
+        let warning = pendingCount > 0 
+            ? `\n\nATENCIÓN: Hay ${pendingCount} alumno${pendingCount !== 1 ? 's' : ''} sin registro en este evento. Si continuás, solo se enviarán correos a los alumnos que ya tienen nota o están marcados como ausentes.`
+            : "";
+
         setModalState({
             isOpen: true,
             title: "Enviar calificaciones",
-            message: `¿Estás seguro de que deseas enviar las calificaciones por email a los alumnos del evento "${eventName}"?`,
+            message: `¿Estás seguro de que deseas enviar las calificaciones por email a los alumnos del evento "${eventName}"?${warning}`,
             confirmType: "primary",
             confirmText: "Enviar",
             onConfirm: async () => {
@@ -199,9 +203,9 @@ export function SendCalifications() {
                                         <div className="send-cal__event-card__footer">
                                             {state === 'idle' && (
                                                 <button
-                                                    onClick={() => handleSendEmails(event.eventId, event.eventName)}
-                                                    disabled={event.registeredCount === 0}
-                                                    title={event.registeredCount === 0 ? 'No hay calificaciones registradas en este evento' : ''}
+                                                    onClick={() => handleSendEmails(event.eventId, event.eventName, event.pendingCount)}
+                                                    disabled={event.registeredCount === 0 && event.absentCount === 0}
+                                                    title={(event.registeredCount === 0 && event.absentCount === 0) ? 'No hay calificaciones ni ausencias registradas en este evento' : ''}
                                                 >
                                                     Enviar calificaciones por email
                                                 </button>

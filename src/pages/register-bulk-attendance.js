@@ -3,6 +3,7 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useAuth0 } from '@auth0/auth0-react';
 import { useHistory } from 'react-router-dom';
+import * as XLSX from "xlsx";
 
 // Componentes internos.
 import { PageLayout } from "../components/page-layout";
@@ -376,30 +377,6 @@ export function BulkAttendanceRegistering() {
     }
 
     /**
-     * Regenera el mapeo columna→eventId leyendo las cabeceras del Excel
-     * y comparándolas con los eventos de la cursada.
-     */
-    const rebuildColumnEventMapFromHeaders = (headerRow) => {
-        const mapping = [];
-        // headerRow[0] es "Legajo", los demás son eventos.
-        for (let i = 1; i < headerRow.length; i++) {
-            const headerText = String(headerRow[i]).trim();
-            // Busca el evento cuyo header generado coincide.
-            const matchedEvent = eventsList.find(event => {
-                return buildEventHeader(event) === headerText;
-            });
-            if (matchedEvent) {
-                mapping.push({
-                    columnIndex: i,
-                    eventId: matchedEvent.eventId,
-                    headerText: headerText,
-                });
-            }
-        }
-        return mapping;
-    };
-
-    /**
      * Manejador del evento clic en el botón "Cargar registros".
      * Parsea el Excel multi-columna y envía los legajos a validación.
      */
@@ -418,49 +395,73 @@ export function BulkAttendanceRegistering() {
 
             setError(null);
 
-            // Construye los nombres de las columnas dinámicamente.
-            // Primera columna = dossier, las demás = eventos.
-            const columnNames = ["dossier"];
+            // Determina la cantidad exacta de columnas seleccionadas usando XLSX
+            let decodedRange;
+            try {
+                decodedRange = XLSX.utils.decode_range(cellRangeName);
+            } catch (err) {
+                setError("El rango de celdas es inválido.");
+                return;
+            }
             
-            // Determina o regenera el mapeo columna→eventId.
-            let currentMapping = columnEventMap;
-            if (currentMapping.length === 0 && eventsList.length > 0) {
-                // No hay mapeo (no se bajó la plantilla desde esta sesión).
-                // Intenta reconstruirlo desde las cabeceras del Excel.
-                // Para eso, lee la primera fila (encabezados).
-                // Usamos el rango pero una fila antes.
-                const rangeMatch = cellRangeName.match(/([A-Z]+)(\d+):([A-Z]+)(\d+)/);
-                if (rangeMatch) {
-                    const headerRowNum = parseInt(rangeMatch[2]) - 1;
-                    if (headerRowNum >= 1) {
-                        const headerRange = `${rangeMatch[1]}${headerRowNum}:${rangeMatch[3]}${headerRowNum}`;
-                        const headerColumnNames = [];
-                        // Genera nombres genéricos para leer las cabeceras.
-                        for (let i = 0; i < eventsList.length + 1; i++) {
-                            headerColumnNames.push(`col_${i}`);
-                        }
-                        spreadsheetManipulator.loadRange(sheetNameValue, headerRange, headerColumnNames);
-                        const headerData = spreadsheetManipulator.getLastReadRange();
-                        if (headerData && headerData.data && headerData.data.length > 0) {
-                            const headerRow = headerColumnNames.map(cn => headerData.data[0][cn]);
-                            currentMapping = rebuildColumnEventMapFromHeaders(headerRow);
-                            setColumnEventMap(currentMapping);
+            const numCols = decodedRange.e.c - decodedRange.s.c + 1;
+            const headerRowNum = decodedRange.s.r - 1;
+            
+            let currentMapping = [];
+            const columnNames = [];
+
+            if (headerRowNum >= 0) {
+                const headerColumnNames = [];
+                for (let i = 0; i < numCols; i++) {
+                    headerColumnNames.push(`col_${i}`);
+                }
+
+                const startCell = XLSX.utils.encode_cell({ r: headerRowNum, c: decodedRange.s.c });
+                const endCell = XLSX.utils.encode_cell({ r: headerRowNum, c: decodedRange.e.c });
+                const headerRange = `${startCell}:${endCell}`;
+
+                spreadsheetManipulator.loadRange(sheetNameValue, headerRange, headerColumnNames);
+                const headerData = spreadsheetManipulator.getLastReadRange();
+
+                if (headerData && headerData.data && headerData.data.length > 0) {
+                    const headerRow = headerColumnNames.map(cn => headerData.data[0][cn]);
+                    
+                    // La primera columna siempre es Legajo
+                    columnNames.push("dossier");
+                    
+                    // El resto de las columnas se mapean estrictamente por su nombre
+                    for (let i = 1; i < headerRow.length; i++) {
+                        const headerText = String(headerRow[i] || "").trim();
+                        const matchedEvent = eventsList.find(e => buildEventHeader(e) === headerText);
+                        
+                        if (matchedEvent) {
+                            columnNames.push(`event_${matchedEvent.eventId}`);
+                            currentMapping.push({
+                                columnIndex: i,
+                                eventId: matchedEvent.eventId,
+                                headerText: headerText
+                            });
+                        } else {
+                            columnNames.push(`ignored_${i}`);
                         }
                     }
+                    
+                    setColumnEventMap(currentMapping);
+                } else {
+                    setError("No se pudo leer la fila de encabezados. Asegúrese de que exista contenido en la fila anterior al rango de datos.");
+                    return;
                 }
-            }
-
-            if (currentMapping.length === 0) {
-                setError("No se pudo determinar el mapeo de columnas a eventos. Por favor, descargue la plantilla primero.");
+            } else {
+                setError("El rango seleccionado debe comenzar al menos en la fila 2 para poder leer los encabezados en la fila 1.");
                 return;
             }
 
-            // Agrega una columna por cada evento mapeado.
-            currentMapping.forEach(mapping => {
-                columnNames.push(`event_${mapping.eventId}`);
-            });
+            if (currentMapping.length === 0) {
+                setError("No se encontraron encabezados válidos que coincidan con los eventos de la cursada en el archivo. Respete los nombres generados por la plantilla.");
+                return;
+            }
 
-            // Lee el rango de datos del Excel.
+            // Lee el rango de datos del Excel utilizando el mapa estricto
             spreadsheetManipulator.loadRange(sheetNameValue, cellRangeName, columnNames);
             let readRange = spreadsheetManipulator.getLastReadRange();
 

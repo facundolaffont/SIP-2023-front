@@ -3,6 +3,7 @@ import axios from "axios";
 import { useAuth0 } from "@auth0/auth0-react";
 import React, { useEffect, useState } from "react";
 import { useHistory } from 'react-router-dom';
+import toast from "react-hot-toast";
 
 // Imports internos.
 import { PageLayout } from "../components/page-layout";
@@ -71,6 +72,42 @@ export const ModificateCriterion = () => {
     }, [course]);
 
     const handleSubmitChanges = (index, originalEditedCriteria) => {
+        const criteriaToSave = editedCriterias[index];
+        const criterio = String(criteriaToSave.criteria.id);
+        const regularValue = parseFloat(criteriaToSave.value_to_regulate);
+        const promovidoValue = parseFloat(criteriaToSave.value_to_promote);
+
+        let isValid = true;
+        const esIntegrador = criterio === "10";
+
+        if (isNaN(promovidoValue)) isValid = false;
+        if (!esIntegrador && isNaN(regularValue)) isValid = false;
+
+        if (isValid) {
+            // Verificar el tipo de criterio seleccionado y validar los valores ingresados
+            if (criterio === "5" || criterio === "10") { // Promedio de parciales o Integrador
+                if ((!esIntegrador && (regularValue < 1 || regularValue > 10)) || promovidoValue < 0 || promovidoValue > 10 || (!esIntegrador && (regularValue > promovidoValue))) {
+                    isValid = false;
+                }
+            } else {
+                if (criterio === "4" || criterio === "2" || criterio === "6" || criterio === "1") {
+                    if ((regularValue < 0 || regularValue > 100 || promovidoValue < 0 || promovidoValue > 100) || (regularValue > promovidoValue)) {
+                        isValid = false;
+                    }
+                }
+                else {
+                    if ((regularValue < 0 || regularValue > 100 || promovidoValue < 0 || promovidoValue > 100) || (promovidoValue > regularValue)) {
+                        isValid = false;
+                    }
+                }
+            }
+        }
+
+        if (!isValid) {
+            toast.error("Valores incorrectos. Por favor, ingrese valores válidos.");
+            return;
+        }
+
         setModalState({
             isOpen: true,
             title: "Guardar cambios",
@@ -195,17 +232,19 @@ export const ModificateCriterion = () => {
                                         <td>{criteria.criteria.name}</td>
                                         <td>
                                             {isEdited ? (
-                                                <input
-                                                    type="text"
-                                                    value={editedCriterias[index].value_to_regulate}
-                                                    onChange={(e) => {
-                                                        const newEdited = { ...editedCriterias };
-                                                        newEdited[index].value_to_regulate = e.target.value;
-                                                        setEditedCriterias(newEdited);
-                                                    }}
-                                                />
+                                                String(criteria.criteria.id) !== "10" ? (
+                                                    <input
+                                                        type="text"
+                                                        value={editedCriterias[index].value_to_regulate}
+                                                        onChange={(e) => {
+                                                            const newEdited = { ...editedCriterias };
+                                                            newEdited[index].value_to_regulate = e.target.value;
+                                                            setEditedCriterias(newEdited);
+                                                        }}
+                                                    />
+                                                ) : "N/A"
                                             ) : (
-                                                criteria.value_to_regulate
+                                                String(criteria.criteria.id) !== "10" ? criteria.value_to_regulate : "N/A"
                                             )}
                                         </td>
                                         <td>
@@ -252,7 +291,7 @@ export const ModificateCriterion = () => {
                                                     <button
                                                         onClick={(event) => {
                                                             event.preventDefault();
-                                                            const newEdited = { ...editedCriterias };
+                                                            const newEdited = {};
                                                             newEdited[index] = { ...criteria };
                                                             setEditedCriterias(newEdited);
                                                         }}
