@@ -41,8 +41,6 @@ export function CalificationRegistering() {
     const [tableManualUpdateTrigger, setTableManualUpdateTrigger] = useState(true);
 
     const [error, setError] = useState(null);
-    // Estado del envío de email: 'idle' | 'sending' | 'sent' | 'error'
-    const [emailSendState, setEmailSendState] = useState('idle');
 
     const { getAccessTokenSilently } = useAuth0();
 
@@ -799,28 +797,6 @@ export function CalificationRegistering() {
 
     }
 
-    /**
-     * Envía las calificaciones por email para el evento seleccionado.
-     */
-    const handleSendEmail = async () => {
-        if (!selectedEvent) return;
-        setEmailSendState('sending');
-        try {
-            const auth0Token = await getAccessTokenSilently();
-            await axios.post(
-                `${process.env.REACT_APP_API_SERVER_URL}/api/v1/course/send-grades-email`,
-                null,
-                {
-                    params: { 'event-id': selectedEvent.eventId },
-                    headers: { Authorization: `Bearer ${auth0Token}` },
-                }
-            );
-            setEmailSendState('sent');
-        } catch (err) {
-            setEmailSendState('error');
-        }
-    };
-
     const handleToggleAllOverwrites = (e) => {
         const isChecked = e.target.checked;
         setAllOverwritesChecked(isChecked);
@@ -993,37 +969,6 @@ export function CalificationRegistering() {
                 >
                     Registrar/Sobrescribir calificaciones
                 </button>
-            )}
-
-            {/* Botón de envío de email: aparece una vez que se registraron las calificaciones */}
-            {!registerButtonEnabled && selectedEvent && (
-                <div style={{ marginTop: '1rem' }}>
-                    {emailSendState === 'idle' && (
-                        <button type="button" onClick={handleSendEmail}>
-                            Enviar calificaciones por email
-                        </button>
-                    )}
-                    {emailSendState === 'sending' && (
-                        <p className="send-email-status send-email-status--sending">
-                            Envío de calificaciones: Enviando correos en segundo plano...
-                        </p>
-                    )}
-                    {emailSendState === 'sent' && (
-                        <p className="send-email-status send-email-status--sent">
-                            Envío de calificaciones: El envío fue iniciado. Los alumnos recibirán su calificación en breve.
-                        </p>
-                    )}
-                    {emailSendState === 'error' && (
-                        <>
-                            <button type="button" onClick={handleSendEmail}>
-                                Reintentar envío
-                            </button>
-                            <p className="send-email-status send-email-status--error">
-                                Envío de calificaciones: Hubo un error. Intentá nuevamente.
-                            </p>
-                        </>
-                    )}
-                </div>
             )}
 
         </PageLayout>
