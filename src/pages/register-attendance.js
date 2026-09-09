@@ -20,7 +20,7 @@ import '../styles/register-attendance.css';
 export function AttendanceRegistering() {
 
     // #region ==== Definición de parámetros. ====
-    
+
     const [fileName, setFileName] = useState('');
     const [fileHandle, setFileHandle] = useState(null);
 
@@ -33,7 +33,7 @@ export function AttendanceRegistering() {
     const [eventId, setEventId] = useState(0);
     const [eventDescription, setEventDescription] = useState('');
     const [selectedEvent, setSelectedEvent] = useState(null);
-    
+
     const [okStudentsList, setOkStudentsList] = useState([]);
     const [notOkStudentsList, setNotOkStudentsList] = useState([]);
     const [invalidRegistersList, setInvalidRegistersList] = useState([]);
@@ -61,7 +61,7 @@ export function AttendanceRegistering() {
             setSheetNameValue(savedData.sheetNameValue || "");
             setCellRangeName(savedData.cellRangeName || "");
             setSpreadsheetManipulator(savedData.manipulator);
-            
+
             // Re-poblar inputs luego de que el DOM esté listo
             setTimeout(() => {
                 const sheetNamesList = savedData.manipulator.getSheetNamesList();
@@ -87,7 +87,7 @@ export function AttendanceRegistering() {
             }, 100);
         }
     }, []);
-    
+
     // Redirige a la página de selección de cursada, si todavía no se seleccionó una,
     // o si se actualiza la página, ya que se pierde el contexto de la selección que
     // se había hecho.
@@ -100,7 +100,7 @@ export function AttendanceRegistering() {
 
 
     // Actualiza el estado del botón de registración.
-    useEffect(() => { 
+    useEffect(() => {
 
         // Obtiene el manejador del botón de registración.
         const registerButton = document.getElementsByClassName("register-button")[0];
@@ -109,17 +109,17 @@ export function AttendanceRegistering() {
         if (registerButtonEnabled) {
             registerButton.disabled = false;
             registerButton.classList.remove("disabled");
-        
-        // Inhabilita el botón de registración.
+
+            // Inhabilita el botón de registración.
         } else {
             registerButton.disabled = true;
             registerButton.classList.add("disabled");
         }
 
     }, [registerButtonEnabled]);
-    
+
     // Obtiene la lista de eventos de la cursada.
-    useEffect(() => { 
+    useEffect(() => {
 
         // Evita que el primer render arroje una excepción porque course es null.
         if (!course) return;
@@ -128,9 +128,9 @@ export function AttendanceRegistering() {
 
             // Obtiene el token Auth0.
             const auth0Token = await getAccessTokenSilently()
-            .catch(error => {
-                throw error;
-            });
+                .catch(error => {
+                    throw error;
+                });
 
             // Obtiene los estudiantes y eventos en paralelo.
             const [studentsResponse, eventsList] = await Promise.all([
@@ -160,14 +160,14 @@ export function AttendanceRegistering() {
             // Condición que se cumple cuando el resultado de la petición HTTP no fue
             // existoso.
             if (!eventsList || !eventsList.status || eventsList.status !== 200) {
-            
+
                 if (!eventsList || !eventsList.status) {
                     showError("Error de conexión. Verificá tu internet o contactá a Soporte Técnico.");
                 } else {
                     showError("Hubo un error. Por favor, contactarse con Soporte Técnico.");
                 }
 
-            // Condición que se cumple cuando la cursada no tiene eventos asociados.
+                // Condición que se cumple cuando la cursada no tiene eventos asociados.
             } else if (eventsList.data.eventList.length === 0) {
 
                 // Redirige a la página de creación de eventos.
@@ -209,7 +209,7 @@ export function AttendanceRegistering() {
                                     year: '2-digit',
                                 }
                             ).format(new Date(eventElement.initialDateTime));
-                        const initialTime = 
+                        const initialTime =
                             Intl.DateTimeFormat(
                                 'es-AR',
                                 {
@@ -227,7 +227,7 @@ export function AttendanceRegistering() {
                                     year: '2-digit',
                                 }
                             ).format(new Date(eventElement.endDateTime));
-                        const endTime = 
+                        const endTime =
                             Intl.DateTimeFormat(
                                 'es-AR',
                                 {
@@ -237,16 +237,16 @@ export function AttendanceRegistering() {
                             ).format(new Date(eventElement.endDateTime));
                         dateTimeString =
                             initialDate.valueOf() === endDate.valueOf()
-                            ? `: ${initialDate} de ${initialTime} a ${endTime}`
-                            : `: ${initialDate} ${initialTime} - ${endDate} ${endTime}`;
+                                ? `: ${initialDate} de ${initialTime} a ${endTime}`
+                                : `: ${initialDate} ${initialTime} - ${endDate} ${endTime}`;
                     }
-                    
+
                     let mandatoryString;
                     if (eventElement.mandatory) mandatoryString = 'Asistencia obligatoria'
                     else mandatoryString = 'Asistencia no obligatoria';
 
-                    const eventDescription = 
-                            `${eventElement.type} ${nameString}(${mandatoryString})${dateTimeString}`;
+                    const eventDescription =
+                        `${eventElement.type} ${nameString}(${mandatoryString})${dateTimeString}`;
 
                     listElement.innerHTML = eventDescription;
                     listElement.value = eventElement.eventId;
@@ -257,14 +257,14 @@ export function AttendanceRegistering() {
 
         }
         getEventsList()
-        .catch(error => {
-            console.error(error);
-        });
+            .catch(error => {
+                console.error(error);
+            });
 
     }, [course]);
 
     // Actualiza las tablas.
-    useEffect(() => { 
+    useEffect(() => {
 
         // Actualiza la tabla de registros con formato incorrecto.
         let notValidFormatTable = document.getElementsByClassName(
@@ -341,7 +341,7 @@ export function AttendanceRegistering() {
 
     }, [okStudentsList, notOkStudentsList, invalidRegistersList, tableManualUpdateTrigger]);
 
-    useState(() => { 
+    useState(() => {
         const savedData = getSpreadsheetData('attendance');
         if (!savedData) {
             setSpreadsheetManipulator(new SpreadsheetManipulator());
@@ -351,7 +351,7 @@ export function AttendanceRegistering() {
     /**
      * Carga el rango en memoria y lo muestra en pantalla.
      */
-    const finishedLoading = spreadsheetManipulator => { 
+    const finishedLoading = spreadsheetManipulator => {
 
         // Lee un rango de celdas.
         spreadsheetManipulator.loadRangeSides(sheetNameValue, cellRangeName, ["Legajo", "Asistencia"]);
@@ -364,7 +364,7 @@ export function AttendanceRegistering() {
 
     }
 
-    const formatDateTime = dateTimeString => { 
+    const formatDateTime = dateTimeString => {
 
         const dateTime = new Date(dateTimeString);
         const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: 'numeric', minute: 'numeric' };
@@ -376,7 +376,7 @@ export function AttendanceRegistering() {
      * Carga el archivo de planilla en memoria y al finalizar llama
      * a la función que carga el rango en memoria y lo muestra en pantalla.
      */
-    const loadFile = event => { 
+    const loadFile = event => {
 
         // Evita que se ejecute la llamada del submit.
         event.preventDefault();
@@ -391,7 +391,7 @@ export function AttendanceRegistering() {
     /**
      * Carga los nombres de pestaña para que sean seleccionados.
      */
-    const loadSheetNames = () => { 
+    const loadSheetNames = () => {
         let sheetNamesList = spreadsheetManipulator.getSheetNamesList();
         let sheetNamesSelect = document.getElementById("sheet-names");
         if (sheetNamesSelect) {
@@ -413,7 +413,7 @@ export function AttendanceRegistering() {
             const singleSheet = sheetNamesList[0];
             setSheetNameValue(singleSheet);
             if (sheetNamesSelect) sheetNamesSelect.value = singleSheet;
-            
+
             const suggestedRange = spreadsheetManipulator.getSuggestedRange(singleSheet);
             if (suggestedRange) {
                 setCellRangeName(suggestedRange);
@@ -432,10 +432,10 @@ export function AttendanceRegistering() {
      *
      * @param {File} file Archivo seleccionado.
      */
-    const handleFileSelection = file => { 
+    const handleFileSelection = file => {
         setFileName(file.name);
         setFileHandle(file);
-        
+
         setOkStudentsList([]);
         setNotOkStudentsList([]);
         setInvalidRegistersList([]);
@@ -459,7 +459,7 @@ export function AttendanceRegistering() {
         setInvalidRegistersList([]);
         setSpreadsheetManipulator(new SpreadsheetManipulator());
         clearSpreadsheetData('attendance');
-        
+
         let sheetNamesSelect = document.getElementById("sheet-names");
         if (sheetNamesSelect) {
             while (sheetNamesSelect.firstChild) {
@@ -476,7 +476,7 @@ export function AttendanceRegistering() {
      * Manejador del evento que se genera cuando se cambia
      * el valor del campo de rango de celdas.
      */
-    const handleCellRangeName = event => { 
+    const handleCellRangeName = event => {
         const val = event.target.value.toUpperCase();
         setCellRangeName(val);
         saveSpreadsheetData('attendance', { cellRangeName: val });
@@ -486,7 +486,7 @@ export function AttendanceRegistering() {
      * Manejador del evento que se genera cuando se selecciona
      * un valor en el select de eventos.
      */
-    const handleEventSelection = event => { 
+    const handleEventSelection = event => {
 
         setEventId(Number(event.target.value));
         setEventDescription(event.target.selectedOptions[0].label);
@@ -501,7 +501,7 @@ export function AttendanceRegistering() {
      *
      * @param {Event} event Evento de clic.
      */
-    const handleRangeLoading = async event => { 
+    const handleRangeLoading = async event => {
 
         // Evita que se ejecute la llamada del submit.
         event.preventDefault();
@@ -515,12 +515,12 @@ export function AttendanceRegistering() {
 
             showError("Debe seleccionar un nombre de pestaña");
 
-        // Notifica al usuario si el rango no fue ingresado.
+            // Notifica al usuario si el rango no fue ingresado.
         } else if (cellRangeName === "") {
 
             showError("Debe ingresar un rango de celdas");
 
-        // Notifica al usuario si el rango fue ingresado con un mal formato.
+            // Notifica al usuario si el rango fue ingresado con un mal formato.
         } else if (!cellRangeName.match(/^[A-Z]{1,3}[0-9]{1,7}:[A-Z]{1,3}[0-9]{1,7}$/)) {
             showError("El campo \"Rango de celdas a cargar\" no tiene un formato válido. Debe ser \"<letras><números>:<letras><números>\"");
         } else if (eventId === 0) {
@@ -600,7 +600,7 @@ export function AttendanceRegistering() {
                 .catch(error => error);
 
             if (!studentsCheckedInfo || !studentsCheckedInfo.status || studentsCheckedInfo.status !== 200) {
-                
+
                 if (!studentsCheckedInfo || !studentsCheckedInfo.status) {
                     showError("Error de conexión. Verificá tu internet o contactá a Soporte Técnico.");
                 } else {
@@ -634,8 +634,8 @@ export function AttendanceRegistering() {
                             studentInfo.name = student.name;
                             studentInfo.attendance =
                                 String(studentLoadedData.attendance).trim() !== ''
-                                ? 'x'
-                                : '';
+                                    ? 'x'
+                                    : '';
                             studentInfo._row = studentLoadedData._row;
 
                             // Agrega el estado de registración en sistema.
@@ -649,7 +649,7 @@ export function AttendanceRegistering() {
 
                 // Luego del ciclo React, muestra los registros que no pasaron
                 // el control en el backend.
-                if(studentsCheckedInfo.data.nok !== undefined) {
+                if (studentsCheckedInfo.data.nok !== undefined) {
                     setNotOkStudentsList(
                         studentsCheckedInfo.data.nok.map(
                             dossierInfo => {
@@ -681,7 +681,7 @@ export function AttendanceRegistering() {
      * Manejador del evento clic en el botón de registración
      * masiva de asistencia de alumnos.
      */
-    const handleRegistering = async () => { 
+    const handleRegistering = async () => {
 
         // Inhabilita el botón de registración.
         setRegisterButtonEnabled(false);
@@ -693,8 +693,8 @@ export function AttendanceRegistering() {
                     dossier: studentInfo.dossier,
                     attendance:
                         studentInfo.attendance == 'x'
-                        ? true
-                        : false
+                            ? true
+                            : false
                     ,
                 }
             });
@@ -725,14 +725,14 @@ export function AttendanceRegistering() {
 
         // Si el código HTML no fue OK...
         if (!response || !response.status || response.status !== 200) {
-            
+
             if (!response || !response.status) {
                 showError("Error de conexión. Verificá tu internet o contactá a Soporte Técnico.");
             } else {
                 showError("Hubo un error. Por favor, contactarse con Soporte Técnico.");
             }
 
-        // Si el código HTML fue OK...
+            // Si el código HTML fue OK...
         } else {
 
             // Actualiza la información de los estudiantes que se registraron correctamente.
@@ -747,7 +747,7 @@ export function AttendanceRegistering() {
                 response.data.nok.forEach(notRegisteredStudentInfo => {
                     let notRegisteredStudent = okStudentsList
                         .find(student => student.dossier === notRegisteredStudentInfo.dossier);
-                    switch(notRegisteredStudentInfo.errorCode) {
+                    switch (notRegisteredStudentInfo.errorCode) {
                         case 1: notRegisteredStudent.state = "No registrado: el legajo no existe en sistema.";
                             break;
                         case 2: notRegisteredStudent.state = "No registrado: el legajo ya estaba registrado.";
@@ -767,9 +767,9 @@ export function AttendanceRegistering() {
      * Manejador del evento de cambio del campo de selección
      * de nombre de pestaña.
      */
-    const handleSheetNameValueChange = event => { 
+    const handleSheetNameValueChange = event => {
         const val = event.target.value;
-        if(val !== "SELECCIONAR PESTAÑA") {
+        if (val !== "SELECCIONAR PESTAÑA") {
             setSheetNameValue(val);
             const suggestedRange = spreadsheetManipulator.getSuggestedRange(val);
             if (suggestedRange) {
@@ -786,7 +786,7 @@ export function AttendanceRegistering() {
         }
     }
 
-    const handleTemplateDownload = () => { 
+    const handleTemplateDownload = () => {
         spreadsheetManipulator.create(
             "Plantilla de carga de asistencia",
             "registro-asistencias",
@@ -799,7 +799,7 @@ export function AttendanceRegistering() {
 
     return (
         <PageLayout>
-            <h1 id="page-title" className="content__title">Registrar asistencias</h1>
+            <h1 id="page-title" className="content__title">Registrar asistencia</h1>
             <h2 className="selected-course-info">
                 {
                     course !== null && `Cursada seleccionada: (${course.getSubjectCode()}) ${course.getSubject()}, comisión ${course.getCommission()}, año ${course.getYear()}`
@@ -809,11 +809,11 @@ export function AttendanceRegistering() {
                 }
             </h2>
             <form onSubmit={loadFile}>
-                <DragAndDropFile 
-                    onFileDrop={handleFileSelection} 
+                <DragAndDropFile
+                    onFileDrop={handleFileSelection}
                     onFileRemove={handleFileRemove}
-                    accept=".xlsx,.xls,.ods" 
-                    fileName={fileName} 
+                    accept=".xlsx,.xls,.ods"
+                    fileName={fileName}
                 />
                 <div style={{ marginTop: '15px', marginBottom: '15px' }}>
                     <button

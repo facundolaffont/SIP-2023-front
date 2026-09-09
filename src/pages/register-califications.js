@@ -64,7 +64,7 @@ export function CalificationRegistering() {
             setSheetNameValue(savedData.sheetNameValue || "");
             setCellRangeName(savedData.cellRangeName || "");
             setSpreadsheetManipulator(savedData.manipulator);
-            
+
             // Re-poblar inputs luego de que el DOM esté listo
             setTimeout(() => {
                 const sheetNamesList = savedData.manipulator.getSheetNamesList();
@@ -406,7 +406,7 @@ export function CalificationRegistering() {
             const singleSheet = sheetNamesList[0];
             setSheetNameValue(singleSheet);
             if (sheetNamesSelect) sheetNamesSelect.value = singleSheet;
-            
+
             const suggestedRange = spreadsheetManipulator.getSuggestedRange(singleSheet);
             if (suggestedRange) {
                 setCellRangeName(suggestedRange);
@@ -456,7 +456,7 @@ export function CalificationRegistering() {
         setAllOverwritesChecked(false);
         setSpreadsheetManipulator(new SpreadsheetManipulator());
         clearSpreadsheetData('califications');
-        
+
         let sheetNamesSelect = document.getElementById("sheet-names");
         if (sheetNamesSelect) {
             while (sheetNamesSelect.firstChild) {
@@ -733,7 +733,7 @@ export function CalificationRegistering() {
             } else {
                 showError("Hubo un error. Por favor, contactarse con Soporte Técnico.");
             }
-        // Si la respuesta del backend fue satisfactoria...
+            // Si la respuesta del backend fue satisfactoria...
         } else {
 
             // El front inserta un símbolo en la primera columna de cada registro para indicar
@@ -840,7 +840,7 @@ export function CalificationRegistering() {
 
     return (
         <PageLayout>
-            <h1 id="page-title" className="content__title">Registrar/Sobrescribir calificaciones</h1>
+            <h1 id="page-title" className="content__title">Registrar/sobrescribir calificaciones</h1>
             <h2 className="selected-course-info">
                 {
                     course !== null && `Cursada seleccionada: (${course.getSubjectCode()}) ${course.getSubject()}, comisión ${course.getCommission()}, año ${course.getYear()}`
@@ -850,11 +850,11 @@ export function CalificationRegistering() {
                 }
             </h2>
             <form onSubmit={loadFile}>
-                <DragAndDropFile 
-                    onFileDrop={handleFileSelection} 
+                <DragAndDropFile
+                    onFileDrop={handleFileSelection}
                     onFileRemove={handleFileRemove}
-                    accept=".xlsx,.xls,.ods" 
-                    fileName={fileName} 
+                    accept=".xlsx,.xls,.ods"
+                    fileName={fileName}
                 />
                 <div style={{ marginTop: '15px', marginBottom: '15px' }}>
                     <button

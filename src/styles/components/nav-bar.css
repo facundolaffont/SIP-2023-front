@@ -114,6 +114,8 @@
 
 .dropdown .nav-bar__tab {
   margin-right: 0;
+  justify-content: flex-start;
+  text-align: left;
 }
 
 .dropdown .nav-bar__tab--active {

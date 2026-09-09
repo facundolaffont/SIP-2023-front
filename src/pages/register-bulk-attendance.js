@@ -21,7 +21,7 @@ import '../styles/register-bulk-attendance.css';
 export function BulkAttendanceRegistering() {
 
     // #region ==== Definición de parámetros. ====
-    
+
     const [fileName, setFileName] = useState('');
     const [fileHandle, setFileHandle] = useState(null);
 
@@ -62,7 +62,7 @@ export function BulkAttendanceRegistering() {
             setSheetNameValue(savedData.sheetNameValue || "");
             setCellRangeName(savedData.cellRangeName || "");
             setSpreadsheetManipulator(savedData.manipulator);
-            
+
             // Re-poblar inputs luego de que el DOM esté listo
             setTimeout(() => {
                 const sheetNamesList = savedData.manipulator.getSheetNamesList();
@@ -88,9 +88,9 @@ export function BulkAttendanceRegistering() {
             }, 100);
         }
     }, []);
-    
+
     // #endregion ==== Definición de parámetros. ====
-    
+
     // Redirige si no hay cursada seleccionada.
     useEffect(() => {
         if (!course) history.push(`/profile?course-missing&redirect=${window.location.pathname}`);
@@ -99,7 +99,7 @@ export function BulkAttendanceRegistering() {
 
 
     // Estado del botón de registración.
-    useEffect(() => { 
+    useEffect(() => {
         const registerButton = document.getElementsByClassName("register-button")[0];
         if (registerButtonEnabled) {
             registerButton.disabled = false;
@@ -109,14 +109,14 @@ export function BulkAttendanceRegistering() {
             registerButton.classList.add("disabled");
         }
     }, [registerButtonEnabled]);
-    
+
     // Obtiene la lista de eventos de clase de la cursada.
-    useEffect(() => { 
+    useEffect(() => {
         if (!course) return;
 
         const getEventsList = async () => {
             const auth0Token = await getAccessTokenSilently()
-            .catch(error => { throw error; });
+                .catch(error => { throw error; });
 
             const [studentsResponse, response] = await Promise.all([
                 axios.get(
@@ -150,11 +150,11 @@ export function BulkAttendanceRegistering() {
             }
         }
         getEventsList()
-        .catch(error => { console.error(error); });
+            .catch(error => { console.error(error); });
     }, [course]);
 
     // Actualiza las tablas.
-    useEffect(() => { 
+    useEffect(() => {
 
         // Tabla de registros con formato incorrecto.
         let notValidFormatTable = document.getElementsByClassName("not-valid-format-table")[0];
@@ -225,7 +225,7 @@ export function BulkAttendanceRegistering() {
     }, [okStudentsList, notOkStudentsList, invalidRegistersList, tableManualUpdateTrigger]);
 
     // Inicializa SpreadsheetManipulator.
-    useState(() => { 
+    useState(() => {
         const savedData = getSpreadsheetData('bulk-attendance');
         if (!savedData) {
             setSpreadsheetManipulator(new SpreadsheetManipulator());
@@ -249,7 +249,7 @@ export function BulkAttendanceRegistering() {
     /**
      * Descarga la plantilla Excel multi-evento.
      */
-    const handleTemplateDownload = () => { 
+    const handleTemplateDownload = () => {
         if (eventsList.length === 0) {
             showError("No hay eventos de clase cargados en la cursada.");
             return;
@@ -283,7 +283,7 @@ export function BulkAttendanceRegistering() {
     /**
      * Carga los nombres de pestaña del Excel subido.
      */
-    const loadSheetNames = () => { 
+    const loadSheetNames = () => {
         let sheetNamesList = spreadsheetManipulator.getSheetNamesList();
         let sheetNamesSelect = document.getElementById("sheet-names");
         if (sheetNamesSelect) {
@@ -305,7 +305,7 @@ export function BulkAttendanceRegistering() {
             const singleSheet = sheetNamesList[0];
             setSheetNameValue(singleSheet);
             if (sheetNamesSelect) sheetNamesSelect.value = singleSheet;
-            
+
             const suggestedRange = spreadsheetManipulator.getSuggestedRange(singleSheet);
             if (suggestedRange) {
                 setCellRangeName(suggestedRange);
@@ -318,13 +318,13 @@ export function BulkAttendanceRegistering() {
         }
     }
 
-    const handleFileSelection = file => { 
+    const handleFileSelection = file => {
         setFileName(file.name);
         setFileHandle(file);
         setOkStudentsList([]);
         setNotOkStudentsList([]);
         setInvalidRegistersList([]);
-        
+
         spreadsheetManipulator.loadFile(file, () => {
             loadSheetNames();
             saveSpreadsheetData('bulk-attendance', {
@@ -344,7 +344,7 @@ export function BulkAttendanceRegistering() {
         setInvalidRegistersList([]);
         setSpreadsheetManipulator(new SpreadsheetManipulator());
         clearSpreadsheetData('bulk-attendance');
-        
+
         let sheetNamesSelect = document.getElementById("sheet-names");
         if (sheetNamesSelect) {
             while (sheetNamesSelect.firstChild) {
@@ -357,15 +357,15 @@ export function BulkAttendanceRegistering() {
         }
     };
 
-    const handleCellRangeName = event => { 
+    const handleCellRangeName = event => {
         const val = event.target.value.toUpperCase();
         setCellRangeName(val);
         saveSpreadsheetData('bulk-attendance', { cellRangeName: val });
     }
 
-    const handleSheetNameValueChange = event => { 
+    const handleSheetNameValueChange = event => {
         const val = event.target.value;
-        if(val !== "SELECCIONAR PESTAÑA") {
+        if (val !== "SELECCIONAR PESTAÑA") {
             setSheetNameValue(val);
             const suggestedRange = spreadsheetManipulator.getSuggestedRange(val);
             if (suggestedRange) {
@@ -386,7 +386,7 @@ export function BulkAttendanceRegistering() {
      * Manejador del evento clic en el botón "Cargar registros".
      * Parsea el Excel multi-columna y envía los legajos a validación.
      */
-    const handleRangeLoading = async event => { 
+    const handleRangeLoading = async event => {
 
         event.preventDefault();
         setRegisterButtonEnabled(true);
@@ -407,10 +407,10 @@ export function BulkAttendanceRegistering() {
                 showError("El rango de celdas es inválido.");
                 return;
             }
-            
+
             const numCols = decodedRange.e.c - decodedRange.s.c + 1;
             const headerRowNum = decodedRange.s.r - 1;
-            
+
             let currentMapping = [];
             const columnNames = [];
 
@@ -429,15 +429,15 @@ export function BulkAttendanceRegistering() {
 
                 if (headerData && headerData.data && headerData.data.length > 0) {
                     const headerRow = headerColumnNames.map(cn => headerData.data[0][cn]);
-                    
+
                     // La primera columna siempre es Legajo
                     columnNames.push("dossier");
-                    
+
                     // El resto de las columnas se mapean estrictamente por su nombre
                     for (let i = 1; i < headerRow.length; i++) {
                         const headerText = String(headerRow[i] || "").trim();
                         const matchedEvent = eventsList.find(e => buildEventHeader(e) === headerText);
-                        
+
                         if (matchedEvent) {
                             columnNames.push(`event_${matchedEvent.eventId}`);
                             currentMapping.push({
@@ -449,7 +449,7 @@ export function BulkAttendanceRegistering() {
                             columnNames.push(`ignored_${i}`);
                         }
                     }
-                    
+
                     setColumnEventMap(currentMapping);
                 } else {
                     showError("No se pudo leer la fila de encabezados. Asegúrese de que exista contenido en la fila anterior al rango de datos.");
@@ -588,7 +588,7 @@ export function BulkAttendanceRegistering() {
      * Manejador del evento clic en el botón "Registrar asistencias".
      * Envía los datos de asistencia masiva al backend.
      */
-    const handleRegistering = async () => { 
+    const handleRegistering = async () => {
 
         if (!bulkAttendanceData) return;
 
@@ -641,7 +641,7 @@ export function BulkAttendanceRegistering() {
 
     return (
         <PageLayout>
-            <h1 id="page-title" className="content__title">Registrar asistencias masivamente</h1>
+            <h1 id="page-title" className="content__title">Registrar asistencia masivamente</h1>
             <h2 className="selected-course-info">
                 {
                     course !== null && `Cursada seleccionada: (${course.getSubjectCode()}) ${course.getSubject()}, comisión ${course.getCommission()}, año ${course.getYear()}`
@@ -651,13 +651,13 @@ export function BulkAttendanceRegistering() {
                 }
             </h2>
             <form onSubmit={(e) => e.preventDefault()}>
-                <DragAndDropFile 
-                    onFileDrop={handleFileSelection} 
+                <DragAndDropFile
+                    onFileDrop={handleFileSelection}
                     onFileRemove={handleFileRemove}
-                    accept=".xlsx,.xls,.ods" 
-                    fileName={fileName} 
+                    accept=".xlsx,.xls,.ods"
+                    fileName={fileName}
                 />
-                
+
                 <div style={{ marginTop: '15px', marginBottom: '15px' }}>
                     <button
                         type="button"

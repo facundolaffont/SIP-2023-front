@@ -23,7 +23,7 @@ export const NavBarTabs = () => {
     useEffect(() => {
         const checkRole = async () => {
             if (isAuthenticated) {
-                
+
                 // Obtiene y almacena los claims del token.
                 const idTokenClaims = await getIdTokenClaims();
                 const roles =
@@ -73,48 +73,33 @@ export const NavBarTabs = () => {
                                 <div className="dropdown" style={{ top: dropdownTopStyle }}>
                                     <NavBarTab
                                         path="/register-events-bulk"
-                                        label="Crear eventos"
+                                        label="Registrar eventos"
                                     />
-                                    {/*
-                                    <NavBarTab
-                                        path="/register-event"
-                                        label="Crear evento"
-                                    />
-                                    */}
                                     <NavBarTab
                                         path="/register-students"
-                                        label="Registrar/Sobreescribir estudiantes"
+                                        label="Registrar/sobrescribir estudiantes"
                                     />
-                                    {/*
                                     <NavBarTab
-                                        path="/register-students-in-course"
-                                        label="Vincular estudiantes con cursada"
+                                        path="/register-groups"
+                                        label="Registrar/sobrecribir grupos de estudiantes"
                                     />
-                                    */}
                                     <NavBarTab
                                         path="/register-attendance"
-                                        label="Registrar asistencias"
+                                        label="Registrar asistencia"
                                     />
                                     <NavBarTab
                                         path="/register-bulk-attendance"
-                                        label="Registrar asistencias masivamente"
+                                        label="Registrar asistencia masivamente"
                                     />
-                                    {/*<NavBarTab
-                                        path="/register-course-attendance"
-                                        label="Registrar asistencias del curso"
-                                    />*/}
                                     <NavBarTab
                                         path="/register-califications"
-                                        label="Registrar/sobrescribir calificaciones individuales"
+                                        label="Registrar/sobrescribir calificaciones"
                                     />
                                     <NavBarTab
                                         path="/register-group-califications"
                                         label="Registrar/sobrescribir calificaciones por grupos"
                                     />
-                                    <NavBarTab
-                                        path="/register-groups"
-                                        label="Registrar/Sobreescribir grupos de estudiantes"
-                                    />
+
                                 </div>
                             )}
                         </div>
@@ -128,14 +113,14 @@ export const NavBarTabs = () => {
                             <span>Eliminaciones</span>
                             {showEliminationsDropdown && (
                                 <div className="dropdown" style={{ top: dropdownTopStyle }}>
-                                    
+
                                     <NavBarTab
                                         path="/eliminate-califications"
-                                        label="Eliminar/Transferir calificaciones"
+                                        label="Eliminar/transferir calificaciones"
                                     />
                                     {<NavBarTab
                                         path="/eliminate-attendance"
-                                        label="Eliminar/Transferir asistencias"
+                                        label="Eliminar/transferir asistencias"
                                     />}
                                 </div>
                             )}
@@ -265,7 +250,7 @@ export const NavBarTabs = () => {
                             )}
                         </div>
                     )}
-                    
+
                     {/* Rutas en común para administradores y súper administradores */}
                     {(isSuperAdmin || isAdmin) && (
                         <div

@@ -58,9 +58,9 @@ export function StudentRegistering() {
     useEffect(() => {
         const urlParams = new URLSearchParams(window.location.search);
         if (urlParams.get("reason") === "no-students") {
-            toast("No hay estudiantes registrados. Debe registrar al menos un estudiante para poder continuar.", { id: 'no-students-toast' });
+            toast("Se ha redirigido a registrar estudiantes. Debe registrar al menos un estudiante para poder continuar.", { id: 'no-students-toast' });
         } else if (urlParams.get("reason") === "no-students-for-groups") {
-            toast("No hay estudiantes registrados. Se requieren estudiantes para poder conformar los grupos.", { id: 'no-students-groups-toast' });
+            toast("Se ha redirigido a registrar estudiantes. Se requieren estudiantes para poder conformar los grupos.", { id: 'no-students-groups-toast' });
         }
     }, []);
 
@@ -528,7 +528,7 @@ export function StudentRegistering() {
 
     return (
         <PageLayout>
-            <h1 id="page-title" className="content__title">Registrar estudiantes</h1>
+            <h1 id="page-title" className="content__title">Registrar/sobrescribir estudiantes</h1>
             <h2 className="selected-course-info">
                 {course !== null && `Cursada seleccionada: (${course.getSubjectCode()}) ${course.getSubject()}, comisión ${course.getCommission()}, año ${course.getYear()}`}
                 {course === null && 'Sin cursada seleccionada'}

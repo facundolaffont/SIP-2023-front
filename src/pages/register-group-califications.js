@@ -69,7 +69,7 @@ export function GroupCalificationRegistering() {
             setSheetNameValue(savedData.sheetNameValue || "");
             setCellRangeName(savedData.cellRangeName || "");
             setSpreadsheetManipulator(savedData.manipulator);
-            
+
             // Re-poblar inputs luego de que el DOM esté listo
             setTimeout(() => {
                 const sheetNamesList = savedData.manipulator.getSheetNamesList();
@@ -256,7 +256,7 @@ export function GroupCalificationRegistering() {
             const singleSheet = sheetNamesList[0];
             setSheetNameValue(singleSheet);
             if (sheetNamesSelect) sheetNamesSelect.value = singleSheet;
-            
+
             const suggestedRange = spreadsheetManipulator.getSuggestedRange(singleSheet);
             if (suggestedRange) {
                 setCellRangeName(suggestedRange);
@@ -298,7 +298,7 @@ export function GroupCalificationRegistering() {
         setAllOverwritesChecked(false);
         setSpreadsheetManipulator(new SpreadsheetManipulator());
         clearSpreadsheetData('group-califications');
-        
+
         let sheetNamesSelect = document.getElementById("sheet-names");
         if (sheetNamesSelect) {
             while (sheetNamesSelect.firstChild) {
@@ -364,9 +364,9 @@ export function GroupCalificationRegistering() {
             spreadsheetManipulator.loadRange(sheetNameValue, cellRangeName, ["groupName", "calification"]);
             let readRange = spreadsheetManipulator.getLastReadRange();
 
-            let validFormatRange = []; 
-            let invalidFormatRange = []; 
-            let flattenedReadData = []; 
+            let validFormatRange = [];
+            let invalidFormatRange = [];
+            let flattenedReadData = [];
 
             readRange.data.forEach(row => {
                 let invalidFormat = false;
@@ -574,7 +574,7 @@ export function GroupCalificationRegistering() {
             let comment = "Números del 1 al 10, o A/A-/D, o dejar en blanco para indicar ausencia.";
             let sheetComments = [["A2", comment]];
             let sheetContent = [["Grupo", "Calificación"]];
-            
+
             groups.forEach(g => {
                 sheetContent.push([g.groupName, ""]);
             });
@@ -598,17 +598,17 @@ export function GroupCalificationRegistering() {
 
     return (
         <PageLayout>
-            <h1 id="page-title" className="content__title">Registrar/Sobrescribir calificaciones por grupos</h1>
+            <h1 id="page-title" className="content__title">Registrar/sobrescribir calificaciones por grupos</h1>
             <h2 className="selected-course-info">
                 {course !== null && `Cursada seleccionada: (${course.getSubjectCode()}) ${course.getSubject()}, comisión ${course.getCommission()}, año ${course.getYear()}`}
                 {course === null && 'Sin cursada seleccionada'}
             </h2>
             <form onSubmit={loadFile}>
-                <DragAndDropFile 
-                    onFileDrop={handleFileSelection} 
+                <DragAndDropFile
+                    onFileDrop={handleFileSelection}
                     onFileRemove={handleFileRemove}
-                    accept=".xlsx,.xls,.ods" 
-                    fileName={fileName} 
+                    accept=".xlsx,.xls,.ods"
+                    fileName={fileName}
                 />
                 <div style={{ marginTop: '15px', marginBottom: '15px' }}>
                     <button
@@ -622,10 +622,10 @@ export function GroupCalificationRegistering() {
 
                 <p>Nombre de la pestaña en la planilla</p>
                 <select id="sheet-names" onChange={handleSheetNameValueChange} required></select>
-                
+
                 <p>Rango de celdas a cargar (excluir encabezados)</p>
                 <input type="text" id="cell-range" placeholder="Ejemplo para cargar los primeros dos registros: A2:B3" onChange={handleCellRangeName} required />
-                
+
                 <label htmlFor="events-select"><p>Evento</p></label>
                 <select id="events-select" onChange={handleEventSelection} required></select>
                 <div id="eventos-container"></div>
@@ -637,7 +637,7 @@ export function GroupCalificationRegistering() {
 
             <div><table className="not-valid-format-table table-container not-displayed"></table></div>
             <div><table className="not-ok-students-table table-container not-displayed"></table></div>
-            
+
             {duplicatedStudentsList.length > 0 && (
                 <div className="duplicated-students-table-container table-container">
                     <table className="duplicated-students-table">
@@ -669,11 +669,11 @@ export function GroupCalificationRegistering() {
                     </table>
                 </div>
             )}
-            
+
             <div className="ok-students-table-container table-container not-displayed">
                 <table className="ok-students-table"></table>
             </div>
-            
+
             {(okStudentsList.length > 0 || duplicatedStudentsList.length > 0) && (
                 <button
                     type="button"

@@ -56,7 +56,7 @@ export function EventsBulkRegistering() {
     useEffect(() => {
         const urlParams = new URLSearchParams(window.location.search);
         if (urlParams.get("reason") === "no-events") {
-            toast("No hay eventos creados. Debe crear al menos un evento para poder continuar.", { id: 'no-events-toast' });
+            toast("Se ha redirigido a registrar eventos. Debe crear al menos un evento para poder continuar.", { id: 'no-events-toast' });
         }
     }, []);
 
@@ -833,7 +833,7 @@ export function EventsBulkRegistering() {
     return (
         <PageLayout>
             <h1 id="page-title" className="content__title">
-                Crear eventos
+                Registrar eventos
             </h1>
             <h2 className="selected-course-info">
                 {

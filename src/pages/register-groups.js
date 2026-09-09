@@ -62,7 +62,7 @@ export function GroupRegistering() {
     useEffect(() => {
         const urlParams = new URLSearchParams(window.location.search);
         if (urlParams.get("reason") === "no-groups") {
-            toast("No hay grupos creados. Debe registrar al menos un grupo para poder continuar.", { id: 'no-groups-toast' });
+            toast("Se ha redirigido a registrar grupos. Debe registrar al menos un grupo para poder continuar.", { id: 'no-groups-toast' });
         }
     }, []);
 
@@ -82,7 +82,7 @@ export function GroupRegistering() {
                     `${process.env.REACT_APP_API_SERVER_URL}/api/v1/course/get-students?courseId=${course.getId()}`,
                     { headers: { Authorization: `Bearer ${token}` } }
                 );
-                
+
                 const studentsList = studentsResponse.data.studentsList || [];
                 if (studentsList.length === 0) {
                     history.push(`/register-students?reason=no-students-for-groups`);
@@ -558,7 +558,7 @@ export function GroupRegistering() {
 
     return (
         <PageLayout>
-            <h1 id="page-title" className="content__title">Registrar grupos de estudiantes</h1>
+            <h1 id="page-title" className="content__title">Registrar/sobrescribir grupos de estudiantes</h1>
             <h2 className="selected-course-info">
                 {course !== null && `Cursada seleccionada: (${course.getSubjectCode()}) ${course.getSubject()}, comisión ${course.getCommission()}, año ${course.getYear()}`}
                 {course === null && 'Sin cursada seleccionada'}

@@ -17,10 +17,8 @@ import { HomePageSuperAdmin } from "./pages/home-page-super-admin";
 import { CreateProfessor } from "./pages/create-professor";
 import { CreateUser } from "./pages/create-user";
 import { CreateCourse } from "./pages/create-course";
-import { SearchProfessor } from "./pages/search-professor";
 import { SearchUser } from "./pages/search-user";
 import { ChangePasswordForm } from "./pages/change-password";
-import { DownProfessor } from "./pages/down-professor";
 import { DownUser } from "./pages/down-user";
 import { AssignRole } from "./pages/assign-role";
 import { AttendanceRegistering } from "./pages/register-attendance";
@@ -36,7 +34,6 @@ import { ModificateCourse } from "./pages/modificate-course";
 import { EventDetail } from "./pages/event-detail";
 import { EventsBulkRegistering } from "./pages/register-events-bulk";
 import { SearchStudent } from "./pages/search-student";
-import { SearchEvent } from "./pages/search-event";
 import { ListCourses } from "./pages/list-courses";
 import { ListCourseStudents } from "./pages/list-course-students";
 import { ListCourseEvents } from "./pages/list-course-events";
@@ -68,7 +65,7 @@ export const App = () => {
                 if (isAuthenticated) {
                     const idTokenClaims = await getIdTokenClaims();
                     const roles = idTokenClaims[`${process.env.REACT_APP_AUTH0_AUDIENCE}/roles`];
-                    
+
                     setIsSuperAdmin(roles?.includes("SuperAdministrador") || false);
                     setIsAdmin(roles?.includes("Administrador") || false);
                     setIsProfessor(roles?.includes("Docente") || false);
@@ -83,7 +80,7 @@ export const App = () => {
                 setIsCheckingRoles(false);
             }
         };
-        
+
         if (!isLoading) {
             checkRole();
         }
@@ -106,16 +103,16 @@ export const App = () => {
                 <meta property="og:description" content="Sistema para la Gestión de Asignaturas." />
                 <meta property="og:url" content="https://spgda.fl.com.ar/" />
             </Helmet>
-            
-            <Toaster 
+
+            <Toaster
                 position="bottom-center"
                 toastOptions={{
                     duration: 4000,
                     style: {
                         fontFamily: 'var(--font-primary)',
-                        fontSize: '18px',     
-                        padding: '16px 24px', 
-                        maxWidth: '600px', 
+                        fontSize: '18px',
+                        padding: '16px 24px',
+                        maxWidth: '600px',
                         borderRadius: '8px',
                         boxShadow: '0 8px 24px rgba(0, 0, 0, 0.5)',
                     },
@@ -160,8 +157,8 @@ export const App = () => {
                                 {icon}
                                 {message}
                                 {t.type !== 'loading' && (
-                                    <button 
-                                        className="toast-close-btn" 
+                                    <button
+                                        className="toast-close-btn"
                                         onClick={() => toast.dismiss(t.id)}
                                         title="Cerrar"
                                     >
@@ -175,7 +172,7 @@ export const App = () => {
             </Toaster>
 
             <Switch>
-                
+
                 {/* Rutas públicas. */}
                 <Route path="/" exact component={HomePage} />
                 <Route path="/callback" component={CallbackPage} />
