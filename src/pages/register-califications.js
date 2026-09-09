@@ -12,6 +12,7 @@ import { useSelectedCourse } from "../contexts/course/course-provider.js";
 import CourseDTO from "../contexts/course/course-d-t-o";
 import { useSpreadsheetContext } from "../contexts/spreadsheet/spreadsheet-provider.js";
 import { DragAndDropFile } from "../components/drag-and-drop-file.js";
+import { toast } from 'react-hot-toast';
 
 // Imports de estilos.
 import '../styles/register-califications.css';
@@ -40,7 +41,14 @@ export function CalificationRegistering() {
 
     const [tableManualUpdateTrigger, setTableManualUpdateTrigger] = useState(true);
 
-    const [error, setError] = useState(null);
+    const showError = (message) => {
+        setOkStudentsList([]);
+        setNotOkStudentsList([]);
+        setInvalidRegistersList([]);
+        setDuplicatedStudentsList([]);
+        setAllOverwritesChecked(false);
+        toast.error(message);
+    };
 
     const { getAccessTokenSilently } = useAuth0();
 
@@ -88,7 +96,7 @@ export function CalificationRegistering() {
     // se había hecho.
     useEffect(() => {
 
-        if (!course) history.push('/profile?course-missing');
+        if (!course) history.push(`/profile?course-missing&redirect=${window.location.pathname}`);
 
     }, []);
 
@@ -109,32 +117,42 @@ export function CalificationRegistering() {
                     throw error;
                 });
 
-            // Obtiene los eventos de evaluación de la cursada.
-            const eventsList = await axios.get(
-                `${process.env.REACT_APP_API_SERVER_URL}/api/v1/course/get-evaluation-events`,
-                {
-                    params: {
-                        'course-id': course.getId(),
-                    },
-                    headers: {
-                        Authorization: `Bearer ${auth0Token}`,
-                    },
+            // Obtiene los estudiantes y los eventos de evaluación en paralelo.
+            const [studentsResponse, eventsList] = await Promise.all([
+                axios.get(
+                    `${process.env.REACT_APP_API_SERVER_URL}/api/v1/course/get-students?courseId=${course.getId()}`,
+                    { headers: { Authorization: `Bearer ${auth0Token}` } }
+                ).catch(error => error),
+                axios.get(
+                    `${process.env.REACT_APP_API_SERVER_URL}/api/v1/course/get-evaluation-events`,
+                    {
+                        params: {
+                            'course-id': course.getId(),
+                        },
+                        headers: {
+                            Authorization: `Bearer ${auth0Token}`,
+                        },
+                    }
+                ).catch(error => error)
+            ]);
+
+            // Chequear si hay estudiantes
+            if (studentsResponse && (studentsResponse.status === 404 || (studentsResponse.data && studentsResponse.data.studentsList && studentsResponse.data.studentsList.length === 0))) {
+                history.push(`/register-students?reason=no-students`);
+                return;
+            }
+
+            if (!eventsList || !eventsList.status || eventsList.status !== 200) {
+                if (!eventsList || !eventsList.status) {
+                    showError("Error de conexión. Verificá tu internet o contactá a Soporte Técnico.");
+                } else {
+                    showError("Hubo un error. Por favor, contactarse con Soporte Técnico.");
                 }
-            )
-                .then(okReponse => okReponse)
-                .catch(error => error.response);
-
-            if (eventsList.status !== 200) {
-
-                // Guarda el mensaje de error traído del back al usuario, y
-                // en el próximo renderizado se mostrará el mensaje.
-                setError("Hubo un error. Por favor, contactarse con Soporte Técnico.");
-
             } else if (eventsList.data.eventList.length === 0) {
 
                 // Redirige a la página de selección de eventos, si la cursada no tiene eventos
                 // asociados.
-                history.push('/profile?no-events');
+                history.push(`/register-events-bulk?reason=no-events`);
 
             } else {
 
@@ -220,37 +238,7 @@ export function CalificationRegistering() {
 
     }, [course]);
 
-    // Actualiza el mensaje de error que se mostrará al usuario.
-    useEffect(() => {
 
-        // Obtiene el contenedor principal del mensaje de error.
-        const msgContainer = document.getElementsByClassName("info-msg-container")[0];
-
-        if (error === null) {
-
-            msgContainer.classList.add("not-displayed");
-
-        } else {
-
-            // Oculta las tablas.
-            setOkStudentsList([]);
-            setNotOkStudentsList([]);
-            setInvalidRegistersList([]);
-            setDuplicatedStudentsList([]);
-            setAllOverwritesChecked(false);
-
-            // Obtiene el elemento HTML que contendrá el texto del mensaje.
-            const errorMsgTextContainer = document.getElementsByClassName("info-msg-description")[0];
-
-            // Guarda el mensaje.
-            errorMsgTextContainer.innerHTML = error;
-
-            // Muestra el mensaje.
-            msgContainer.classList.remove("not-displayed");
-
-        }
-
-    }, [error]);
 
     // Actualiza las tablas.
     useEffect(() => {
@@ -441,7 +429,6 @@ export function CalificationRegistering() {
         setFileName(file.name);
         setFileHandle(file);
 
-        setError(null);
         setOkStudentsList([]);
         setNotOkStudentsList([]);
         setInvalidRegistersList([]);
@@ -462,7 +449,6 @@ export function CalificationRegistering() {
         setFileHandle(null);
         setSheetNameValue("");
         setCellRangeName("");
-        setError(null);
         setOkStudentsList([]);
         setNotOkStudentsList([]);
         setInvalidRegistersList([]);
@@ -522,29 +508,23 @@ export function CalificationRegistering() {
 
         // Notifica al usuario si no se seleccionó el nombre de la pestaña
         // de la planilla.
-        if (sheetNameValue === "") {
+        if (sheetNameValue === "" || sheetNameValue === "SELECCIONAR PESTAÑA") {
 
-            setError("Debe seleccionar un nombre de pestaña.");
+            showError("Debe seleccionar un nombre de pestaña");
 
             // Notifica al usuario si el rango no fue ingresado.
         } else if (cellRangeName === "") {
 
-            setError("El campo 'Rango de celdas a cargar' no puede estar vacío.");
+            showError("Debe ingresar un rango de celdas");
 
             // Notifica al usuario si el rango fue ingresado con un mal formato.
-        } else if (!cellRangeName.match("[A-Z]+[0-9]+:[A-Z]+[0-9]+")) {
-
-            setError("El campo 'Rango de celdas a cargar' no tiene un formato válido; debe ser '&lt;letras&gt;&lt;números&gt;:&lt;letras&gt;&lt;números&gt;'.");
-
-            // Notifica al usuario si no se seleccionó un evento.
+        } else if (!cellRangeName.match(/^[A-Z]{1,3}[0-9]{1,7}:[A-Z]{1,3}[0-9]{1,7}$/)) {
+            showError("El campo \"Rango de celdas a cargar\" no tiene un formato válido. Debe ser \"<letras><números>:<letras><números>\"");
         } else if (eventId === 0) {
 
-            setError("El campo 'Evento' no contiene un evento seleccionado.");
+            showError("Debe seleccionar un evento");
 
         } else {
-
-            // Limpia el eventual mensaje de error que se encuentre en pantalla.
-            setError(null);
 
             // Lee un rango de celdas.
             spreadsheetManipulator.loadRange(sheetNameValue, cellRangeName, [
@@ -624,14 +604,14 @@ export function CalificationRegistering() {
                     }
                 )
                 .then(okReponse => okReponse)
-                .catch(error => error.response);
+                .catch(error => error);
 
-            if (studentsCheckedInfo.status !== 200) {
-
-                // Guarda el mensaje de error traído del back al usuario, y
-                // en el próximo renderizado se mostrará el mensaje.
-                setError("Hubo un error. Por favor, contactarse con Soporte Técnico.");
-
+            if (!studentsCheckedInfo || !studentsCheckedInfo.status || studentsCheckedInfo.status !== 200) {
+                if (!studentsCheckedInfo || !studentsCheckedInfo.status) {
+                    showError("Error de conexión. Verificá tu internet o contactá a Soporte Técnico.");
+                } else {
+                    showError("Hubo un error. Por favor, contactarse con Soporte Técnico.");
+                }
             } else {
 
                 setInvalidRegistersList(
@@ -747,13 +727,13 @@ export function CalificationRegistering() {
             .catch(error => error);
 
         // Si la respuesta del backend no fue satisfactoria...
-        if (response.status !== 200) {
-
-            // Guarda el mensaje de error traído del back al usuario y,
-            // en el próximo renderizado, se mostrará el mensaje.
-            setError("Hubo un error. Por favor, contactarse con Soporte Técnico.");
-
-            // Si la respuesta del backend fue satisfactoria...
+        if (!response || !response.status || response.status !== 200) {
+            if (!response || !response.status) {
+                showError("Error de conexión. Verificá tu internet o contactá a Soporte Técnico.");
+            } else {
+                showError("Hubo un error. Por favor, contactarse con Soporte Técnico.");
+            }
+        // Si la respuesta del backend fue satisfactoria...
         } else {
 
             // El front inserta un símbolo en la primera columna de cada registro para indicar
@@ -869,11 +849,6 @@ export function CalificationRegistering() {
                     course === null && 'Sin cursada seleccionada'
                 }
             </h2>
-            <div className="info-msg-container not-displayed">
-                <div className="info-msg-desc-container">
-                    <p className="info-msg-description"></p>
-                </div>
-            </div>
             <form onSubmit={loadFile}>
                 <DragAndDropFile 
                     onFileDrop={handleFileSelection} 

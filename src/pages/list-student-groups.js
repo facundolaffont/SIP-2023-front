@@ -40,7 +40,7 @@ export const ListStudentGroups = () => {
     // Redirige a la página de selección de cursada, si todavía no se seleccionó una.
     useEffect(() => {
         if (!course) {
-            history.push('/profile?course-missing');
+            history.push(`/profile?course-missing&redirect=${window.location.pathname}`);
         } else {
             fetchStudentGroups();
         }

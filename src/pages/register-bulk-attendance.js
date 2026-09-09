@@ -13,6 +13,7 @@ import { useSelectedCourse } from "../contexts/course/course-provider.js";
 import CourseDTO from "../contexts/course/course-d-t-o";
 import { useSpreadsheetContext } from "../contexts/spreadsheet/spreadsheet-provider.js";
 import { DragAndDropFile } from "../components/drag-and-drop-file.js";
+import { toast } from 'react-hot-toast';
 
 // Estilos.
 import '../styles/register-bulk-attendance.css';
@@ -40,7 +41,12 @@ export function BulkAttendanceRegistering() {
 
     const [tableManualUpdateTrigger, setTableManualUpdateTrigger] = useState(true);
 
-    const [error, setError] = useState(null);
+    const showError = (message) => {
+        setOkStudentsList([]);
+        setNotOkStudentsList([]);
+        setInvalidRegistersList([]);
+        toast.error(message);
+    };
 
     const { getAccessTokenSilently } = useAuth0();
 
@@ -87,23 +93,10 @@ export function BulkAttendanceRegistering() {
     
     // Redirige si no hay cursada seleccionada.
     useEffect(() => {
-        if (!course) history.push('/profile?course-missing');
+        if (!course) history.push(`/profile?course-missing&redirect=${window.location.pathname}`);
     }, []);
 
-    // Actualiza el mensaje de error.
-    useEffect(() => { 
-        const msgContainer = document.getElementsByClassName("info-msg-container")[0];
-        if (error === null) {
-            msgContainer.classList.add("not-displayed");
-        } else {
-            setOkStudentsList([]);
-            setNotOkStudentsList([]);
-            setInvalidRegistersList([]);
-            const errorMsgTextContainer = document.getElementsByClassName("info-msg-description")[0];
-            errorMsgTextContainer.innerHTML = error;
-            msgContainer.classList.remove("not-displayed");
-        }
-    }, [error]);
+
 
     // Estado del botón de registración.
     useEffect(() => { 
@@ -125,24 +118,39 @@ export function BulkAttendanceRegistering() {
             const auth0Token = await getAccessTokenSilently()
             .catch(error => { throw error; });
 
-            const response = await axios.get(
-                `${process.env.REACT_APP_API_SERVER_URL}/api/v1/course/get-class-events`,
-                {
-                    params: { 'course-id': course.getId() },
-                    headers: { Authorization: `Bearer ${auth0Token}` },
-                }
-            );
+            const [studentsResponse, response] = await Promise.all([
+                axios.get(
+                    `${process.env.REACT_APP_API_SERVER_URL}/api/v1/course/get-students?courseId=${course.getId()}`,
+                    { headers: { Authorization: `Bearer ${auth0Token}` } }
+                ).catch(error => error),
+                axios.get(
+                    `${process.env.REACT_APP_API_SERVER_URL}/api/v1/course/get-class-events`,
+                    {
+                        params: { 'course-id': course.getId() },
+                        headers: { Authorization: `Bearer ${auth0Token}` },
+                    }
+                ).catch(error => error)
+            ]);
 
-            if (response.status !== 200) {
-                setError("Hubo un error al obtener los eventos. Por favor, contactarse con Soporte Técnico.");
+            if (studentsResponse && (studentsResponse.status === 404 || (studentsResponse.data && studentsResponse.data.studentsList && studentsResponse.data.studentsList.length === 0))) {
+                history.push(`/register-students?reason=no-students`);
+                return;
+            }
+
+            if (!response || !response.status || response.status !== 200) {
+                if (!response || !response.status) {
+                    showError("Error de conexión. Verificá tu internet o contactá a Soporte Técnico.");
+                } else {
+                    showError("Hubo un error al obtener los eventos. Por favor, contactarse con Soporte Técnico.");
+                }
             } else if (response.data.eventList.length === 0) {
-                history.push('/profile?no-events');
+                history.push(`/register-events-bulk?reason=no-events`);
             } else {
                 setEventsList(response.data.eventList);
             }
         }
         getEventsList()
-        .catch(error => error.response);
+        .catch(error => { console.error(error); });
     }, [course]);
 
     // Actualiza las tablas.
@@ -243,7 +251,7 @@ export function BulkAttendanceRegistering() {
      */
     const handleTemplateDownload = () => { 
         if (eventsList.length === 0) {
-            setError("No hay eventos de clase cargados en la cursada.");
+            showError("No hay eventos de clase cargados en la cursada.");
             return;
         }
 
@@ -313,7 +321,6 @@ export function BulkAttendanceRegistering() {
     const handleFileSelection = file => { 
         setFileName(file.name);
         setFileHandle(file);
-        setError(null);
         setOkStudentsList([]);
         setNotOkStudentsList([]);
         setInvalidRegistersList([]);
@@ -332,7 +339,6 @@ export function BulkAttendanceRegistering() {
         setFileHandle(null);
         setSheetNameValue("");
         setCellRangeName("");
-        setError(null);
         setOkStudentsList([]);
         setNotOkStudentsList([]);
         setInvalidRegistersList([]);
@@ -385,22 +391,20 @@ export function BulkAttendanceRegistering() {
         event.preventDefault();
         setRegisterButtonEnabled(true);
 
-        if (sheetNameValue === "") {
-            setError("Debe seleccionar un nombre de pestaña.");
+        if (sheetNameValue === "" || sheetNameValue === "SELECCIONAR PESTAÑA") {
+            showError("Debe seleccionar un nombre de pestaña");
         } else if (cellRangeName === "") {
-            setError("El campo 'Rango de celdas a cargar' no puede estar vacío.");
-        } else if (!cellRangeName.match("[A-Z]+[0-9]+:[A-Z]+[0-9]+")) {
-            setError("El campo 'Rango de celdas a cargar' no tiene un formato válido; debe ser '<letras><números>:<letras><números>'.");
+            showError("Debe ingresar un rango de celdas");
+        } else if (!cellRangeName.match(/^[A-Z]{1,3}[0-9]{1,7}:[A-Z]{1,3}[0-9]{1,7}$/)) {
+            showError("El campo \"Rango de celdas a cargar\" no tiene un formato válido. Debe ser \"<letras><números>:<letras><números>\"");
         } else {
-
-            setError(null);
 
             // Determina la cantidad exacta de columnas seleccionadas usando XLSX
             let decodedRange;
             try {
                 decodedRange = XLSX.utils.decode_range(cellRangeName);
             } catch (err) {
-                setError("El rango de celdas es inválido.");
+                showError("El rango de celdas es inválido.");
                 return;
             }
             
@@ -448,16 +452,16 @@ export function BulkAttendanceRegistering() {
                     
                     setColumnEventMap(currentMapping);
                 } else {
-                    setError("No se pudo leer la fila de encabezados. Asegúrese de que exista contenido en la fila anterior al rango de datos.");
+                    showError("No se pudo leer la fila de encabezados. Asegúrese de que exista contenido en la fila anterior al rango de datos.");
                     return;
                 }
             } else {
-                setError("El rango seleccionado debe comenzar al menos en la fila 2 para poder leer los encabezados en la fila 1.");
+                showError("El rango seleccionado debe comenzar al menos en la fila 2 para poder leer los encabezados en la fila 1.");
                 return;
             }
 
             if (currentMapping.length === 0) {
-                setError("No se encontraron encabezados válidos que coincidan con los eventos de la cursada en el archivo. Respete los nombres generados por la plantilla.");
+                showError("No se encontraron encabezados válidos que coincidan con los eventos de la cursada en el archivo. Respete los nombres generados por la plantilla.");
                 return;
             }
 
@@ -502,10 +506,14 @@ export function BulkAttendanceRegistering() {
                     }
                 )
                 .then(okResponse => okResponse)
-                .catch(error => error.response);
+                .catch(error => error);
 
-            if (studentsCheckedInfo.status !== 200) {
-                setError("Hubo un error. Por favor, contactarse con Soporte Técnico.");
+            if (!studentsCheckedInfo || !studentsCheckedInfo.status || studentsCheckedInfo.status !== 200) {
+                if (!studentsCheckedInfo || !studentsCheckedInfo.status) {
+                    showError("Error de conexión. Verificá tu internet o contactá a Soporte Técnico.");
+                } else {
+                    showError("Hubo un error. Por favor, contactarse con Soporte Técnico.");
+                }
             } else {
 
                 setInvalidRegistersList(invalidFormatRange);
@@ -601,8 +609,12 @@ export function BulkAttendanceRegistering() {
             .then(response => response)
             .catch(error => error);
 
-        if (response.status !== 200) {
-            setError("Hubo un error. Por favor, contactarse con Soporte Técnico.");
+        if (!response || !response.status || response.status !== 200) {
+            if (!response || !response.status) {
+                showError("Error de conexión. Verificá tu internet o contactá a Soporte Técnico.");
+            } else {
+                showError("Hubo un error. Por favor, contactarse con Soporte Técnico.");
+            }
         } else {
 
             // Actualiza el estado de los estudiantes registrados exitosamente.
@@ -638,11 +650,6 @@ export function BulkAttendanceRegistering() {
                     course === null && 'Sin cursada seleccionada'
                 }
             </h2>
-            <div className="info-msg-container not-displayed">
-                <div className="info-msg-desc-container">
-                    <p className="info-msg-description"></p>
-                </div>
-            </div>
             <form onSubmit={(e) => e.preventDefault()}>
                 <DragAndDropFile 
                     onFileDrop={handleFileSelection} 

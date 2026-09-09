@@ -19,7 +19,7 @@ export function CreateCriterion() {
   // se había hecho.
   useEffect(() => {
 
-    if (!course) history.push('/profile?course-missing');
+    if (!course) history.push(`/profile?course-missing&redirect=${window.location.pathname}`);
 
   }, []);
 

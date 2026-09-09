@@ -46,7 +46,7 @@ export function SendCalifications() {
 
     // Redirige si no hay cursada seleccionada.
     useEffect(() => {
-        if (!course) history.push('/profile?course-missing');
+        if (!course) history.push(`/profile?course-missing&redirect=${window.location.pathname}`);
     }, []);
 
     // Carga el resumen de emails al montar.

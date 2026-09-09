@@ -4,6 +4,7 @@ import axios from "axios";
 import { useAuth0 } from "@auth0/auth0-react";
 import { useHistory } from "react-router-dom";
 import { VictoryPie, VictoryLabel } from "victory";
+import { toast } from 'react-hot-toast';
 
 // Componentes internos.
 import { PageLayout } from "../components/page-layout.js";
@@ -20,7 +21,9 @@ export const ShowEventsSummary = () => {
 
     const { getAccessTokenSilently } = useAuth0();
 
-    const [error, setError] = useState(null);
+    const showError = (message) => {
+        toast.error(message);
+    };
     const [loading, setLoading] = useState(true);
 
     const [spreadsheetManipulator, setSpreadsheetManipulator] = useState(null);
@@ -51,39 +54,11 @@ export const ShowEventsSummary = () => {
     // se había hecho.
     useEffect(() => {
 
-        if (!course) history.push('/profile?course-missing');
+        if (!course) history.push(`/profile?course-missing&redirect=${window.location.pathname}`);
 
     }, [course]);
 
-    // Actualiza el mensaje de error que se mostrará al usuario.
-    useEffect(() => {
 
-        // Obtiene el contenedor principal del mensaje de error.
-        const msgContainer = document.getElementsByClassName("info-msg-container")[0];
-
-        if (error === null) {
-
-            msgContainer.classList.add("not-displayed");
-
-        } else {
-
-            // // Oculta las tablas.
-            // setOkList([]);
-            // setNotOkList([]);
-            // setInvalidRegistersList([]);
-
-            // Obtiene el elemento HTML que contendrá el texto del mensaje.
-            const errorMsgTextContainer = document.getElementsByClassName("info-msg-description")[0];
-
-            // Guarda el mensaje.
-            errorMsgTextContainer.innerHTML = error;
-
-            // Muestra el mensaje.
-            msgContainer.classList.remove("not-displayed");
-
-        }
-
-    }, [error]);
 
     // Obtiene el resumen de los eventos, respecto de la cursada seleccionada.
     useEffect(() => {
@@ -171,12 +146,12 @@ export const ShowEventsSummary = () => {
             .catch(
                 error => {
 
-                    //error.response
-                    
-                    // Guarda el mensaje de error traído del back al usuario, y
-                    // en el próximo renderizado se mostrará el mensaje.
-                    setError("Hubo un error. Por favor, contactarse con Soporte Técnico.");
                     setLoading(false);
+                    if (!error.response) {
+                        showError("Error de conexión. Verificá tu internet o contactá a Soporte Técnico.");
+                    } else {
+                        showError("Hubo un error. Por favor, contactarse con Soporte Técnico.");
+                    }
 
                 }
             );
@@ -461,11 +436,6 @@ export const ShowEventsSummary = () => {
                     course === null && 'Sin cursada seleccionada'
                 }
             </h2>
-            <div className="info-msg-container not-displayed">
-                <div className="info-msg-desc-container">
-                    <p className="info-msg-description"></p>
-                </div>
-            </div>
             
             {loading ? (
                 <LoadingState message="Cargando resumen de eventos, por favor espere..." />

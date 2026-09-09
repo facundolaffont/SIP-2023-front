@@ -62,7 +62,7 @@ export const ListCourseEvents = () => {
 
     // Redirige a la página de selección de cursada, si todavía no se seleccionó una.
     useEffect(() => {
-        if (!course) history.push('/profile?course-missing');
+        if (!course) history.push(`/profile?course-missing&redirect=${window.location.pathname}`);
     }, []);
 
     // Obtiene los eventos de la cursada seleccionada.

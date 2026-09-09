@@ -12,6 +12,7 @@ import { useSelectedCourse } from "../contexts/course/course-provider.js";
 import CourseDTO from "../contexts/course/course-d-t-o";
 import { useSpreadsheetContext } from "../contexts/spreadsheet/spreadsheet-provider.js";
 import { DragAndDropFile } from "../components/drag-and-drop-file.js";
+import { toast } from 'react-hot-toast';
 
 // Imports de estilos.
 import '../styles/register-califications.css';
@@ -40,7 +41,14 @@ export function GroupCalificationRegistering() {
 
     const [tableManualUpdateTrigger, setTableManualUpdateTrigger] = useState(true);
 
-    const [error, setError] = useState(null);
+    const showError = (message) => {
+        setOkStudentsList([]);
+        setNotOkStudentsList([]);
+        setInvalidRegistersList([]);
+        setDuplicatedStudentsList([]);
+        setAllOverwritesChecked(false);
+        toast.error(message);
+    };
 
     const { getAccessTokenSilently } = useAuth0();
 
@@ -50,7 +58,7 @@ export function GroupCalificationRegistering() {
 
     // Redirige a la página de selección de cursada, si todavía no se seleccionó una.
     useEffect(() => {
-        if (!course) history.push('/profile?course-missing');
+        if (!course) history.push(`/profile?course-missing&redirect=${window.location.pathname}`);
     }, []);
 
     // Restaura el estado desde el contexto
@@ -92,23 +100,33 @@ export function GroupCalificationRegistering() {
     useEffect(() => {
         if (!course) return;
 
-        const getEventsList = async () => {
+        const getGroupsAndEvents = async () => {
             const auth0Token = await getAccessTokenSilently()
                 .catch(error => { throw error; });
 
-            const eventsList = await axios.get(
-                `${process.env.REACT_APP_API_SERVER_URL}/api/v1/course/get-evaluation-events`,
-                {
-                    params: { 'course-id': course.getId() },
-                    headers: { Authorization: `Bearer ${auth0Token}` },
-                }
-            ).catch(error => error.response);
+            try {
+                const [groupsResponse, eventsResponse] = await Promise.all([
+                    axios.get(
+                        `${process.env.REACT_APP_API_SERVER_URL}/api/v1/course/get-student-groups`,
+                        { params: { courseId: course.getId() }, headers: { Authorization: `Bearer ${auth0Token}` } }
+                    ),
+                    axios.get(
+                        `${process.env.REACT_APP_API_SERVER_URL}/api/v1/course/get-evaluation-events`,
+                        { params: { 'course-id': course.getId() }, headers: { Authorization: `Bearer ${auth0Token}` } }
+                    )
+                ]);
 
-            if (eventsList.status !== 200) {
-                setError("Hubo un error. Por favor, contactarse con Soporte Técnico.");
-            } else if (eventsList.data.eventList.length === 0) {
-                history.push('/profile?no-events');
-            } else {
+                if (!groupsResponse.data.groups || groupsResponse.data.groups.length === 0) {
+                    history.push(`/register-groups?reason=no-groups`);
+                    return;
+                }
+
+                if (eventsResponse.data.eventList.length === 0) {
+                    history.push(`/register-events-bulk?reason=no-events`);
+                    return;
+                }
+
+                const eventsList = eventsResponse;
                 let eventsSelect = document.getElementById("events-select");
                 while (eventsSelect.firstChild) {
                     eventsSelect.removeChild(eventsSelect.firstChild);
@@ -138,28 +156,16 @@ export function GroupCalificationRegistering() {
                     listElement.value = eventElement.eventId;
                     eventsSelect.appendChild(listElement);
                 });
+            } catch (error) {
+                if (!error.response) {
+                    showError("Error de conexión. Verificá tu internet o contactá a Soporte Técnico.");
+                } else {
+                    showError("Hubo un error. Por favor, contactarse con Soporte Técnico.");
+                }
             }
         }
-        getEventsList();
+        getGroupsAndEvents();
     }, [course]);
-
-    // Actualiza el mensaje de error que se mostrará al usuario.
-    useEffect(() => {
-        const msgContainer = document.getElementsByClassName("info-msg-container")[0];
-        if (error === null) {
-            msgContainer.classList.add("not-displayed");
-        } else {
-            setOkStudentsList([]);
-            setNotOkStudentsList([]);
-            setInvalidRegistersList([]);
-            setDuplicatedStudentsList([]);
-            setAllOverwritesChecked(false);
-
-            const errorMsgTextContainer = document.getElementsByClassName("info-msg-description")[0];
-            errorMsgTextContainer.innerHTML = error;
-            msgContainer.classList.remove("not-displayed");
-        }
-    }, [error]);
 
     // Actualiza las tablas.
     useEffect(() => {
@@ -266,7 +272,6 @@ export function GroupCalificationRegistering() {
     const handleFileSelection = file => {
         setFileName(file.name);
         setFileHandle(file);
-        setError(null);
         setOkStudentsList([]);
         setNotOkStudentsList([]);
         setInvalidRegistersList([]);
@@ -286,7 +291,6 @@ export function GroupCalificationRegistering() {
         setFileHandle(null);
         setSheetNameValue("");
         setCellRangeName("");
-        setError(null);
         setOkStudentsList([]);
         setNotOkStudentsList([]);
         setInvalidRegistersList([]);
@@ -322,16 +326,15 @@ export function GroupCalificationRegistering() {
         event.preventDefault();
         setRegisterButtonEnabled(true);
 
-        if (sheetNameValue === "") {
-            setError("Debe seleccionar un nombre de pestaña.");
+        if (sheetNameValue === "" || sheetNameValue === "SELECCIONAR PESTAÑA") {
+            showError("Debe seleccionar un nombre de pestaña");
         } else if (cellRangeName === "") {
-            setError("El campo 'Rango de celdas a cargar' no puede estar vacío.");
-        } else if (!cellRangeName.match("[A-Z]+[0-9]+:[A-Z]+[0-9]+")) {
-            setError("El campo 'Rango de celdas a cargar' no tiene un formato válido; debe ser '<letras><números>:<letras><números>'.");
+            showError("Debe ingresar un rango de celdas");
+        } else if (!cellRangeName.match(/^[A-Z]{1,3}[0-9]{1,7}:[A-Z]{1,3}[0-9]{1,7}$/)) {
+            showError("El campo \"Rango de celdas a cargar\" no tiene un formato válido. Debe ser \"<letras><números>:<letras><números>\"");
         } else if (eventId === 0) {
-            setError("El campo 'Evento' no contiene un evento seleccionado.");
+            showError("Debe seleccionar un evento");
         } else {
-            setError(null);
 
             // Fetch groups to map groupName -> dossiers
             const auth0Token = await getAccessTokenSilently();
@@ -341,7 +344,17 @@ export function GroupCalificationRegistering() {
                     params: { courseId: course.getId() },
                     headers: { Authorization: `Bearer ${auth0Token}` },
                 }
-            );
+            ).catch(error => error);
+
+            if (!groupsResponse || !groupsResponse.status || groupsResponse.status !== 200) {
+                if (!groupsResponse || !groupsResponse.status) {
+                    showError("Error de conexión. Verificá tu internet o contactá a Soporte Técnico.");
+                } else {
+                    showError("Hubo un error. Por favor, contactarse con Soporte Técnico.");
+                }
+                return;
+            }
+
             const existingGroups = groupsResponse.data.groups || [];
             const groupNameToDossiers = {};
             existingGroups.forEach(g => {
@@ -405,10 +418,14 @@ export function GroupCalificationRegistering() {
                 `${process.env.REACT_APP_API_SERVER_URL}/api/v1/course/check-califications-dossiers-in-event`,
                 { eventId: eventId, dossiersList: validDossiersArray },
                 { headers: { Authorization: `Bearer ${auth0Token}` } }
-            ).catch(error => error.response);
+            ).catch(error => error);
 
-            if (studentsCheckedInfo.status !== 200) {
-                setError("Hubo un error. Por favor, contactarse con Soporte Técnico.");
+            if (!studentsCheckedInfo || !studentsCheckedInfo.status || studentsCheckedInfo.status !== 200) {
+                if (!studentsCheckedInfo || !studentsCheckedInfo.status) {
+                    showError("Error de conexión. Verificá tu internet o contactá a Soporte Técnico.");
+                } else {
+                    showError("Hubo un error. Por favor, contactarse con Soporte Técnico.");
+                }
             } else {
                 setInvalidRegistersList(invalidFormatRange);
 
@@ -479,8 +496,12 @@ export function GroupCalificationRegistering() {
             { headers: { Authorization: `Bearer ${auth0Token}` } }
         ).catch(error => error);
 
-        if (response.status !== 200) {
-            setError("Hubo un error. Por favor, contactarse con Soporte Técnico.");
+        if (!response || !response.status || response.status !== 200) {
+            if (!response || !response.status) {
+                showError("Error de conexión. Verificá tu internet o contactá a Soporte Técnico.");
+            } else {
+                showError("Hubo un error. Por favor, contactarse con Soporte Técnico.");
+            }
         } else {
             let updatedDuplicated = [...duplicatedStudentsList];
             response.data.ok.forEach(registeredStudentDossier => {
@@ -582,11 +603,6 @@ export function GroupCalificationRegistering() {
                 {course !== null && `Cursada seleccionada: (${course.getSubjectCode()}) ${course.getSubject()}, comisión ${course.getCommission()}, año ${course.getYear()}`}
                 {course === null && 'Sin cursada seleccionada'}
             </h2>
-            <div className="info-msg-container not-displayed">
-                <div className="info-msg-desc-container">
-                    <p className="info-msg-description"></p>
-                </div>
-            </div>
             <form onSubmit={loadFile}>
                 <DragAndDropFile 
                     onFileDrop={handleFileSelection} 

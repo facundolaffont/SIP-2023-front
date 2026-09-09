@@ -52,7 +52,7 @@ export const EventDetail = () => {
 
     // #region ==== Definición de useEffect. ====
     useEffect(() => {
-        if (!course) history.push('/profile?course-missing');
+        if (!course) history.push(`/profile?course-missing&redirect=${window.location.pathname}`);
     }, []);
 
     // Búsqueda automáticamente con el eventId obtenido de la URL.

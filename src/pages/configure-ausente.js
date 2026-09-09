@@ -19,7 +19,7 @@ export function ConfigureAusente() {
 
     useEffect(() => {
         if (!course) {
-            history.push('/profile?course-missing');
+            history.push(`/profile?course-missing&redirect=${window.location.pathname}`);
             return;
         }
 

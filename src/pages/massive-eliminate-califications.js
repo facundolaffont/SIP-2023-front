@@ -44,7 +44,7 @@ export function CalificationsMassiveElimination() {
     const history = useHistory();
 
     useEffect(() => {
-        if (!course) history.push('/profile?course-missing');
+        if (!course) history.push(`/profile?course-missing&redirect=${window.location.pathname}`);
     }, []);
 
 // EFECTO: Cargar la lista de eventos al iniciar

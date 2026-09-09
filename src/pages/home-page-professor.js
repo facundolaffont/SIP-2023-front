@@ -2,6 +2,8 @@
 import React, { useEffect, useState } from "react";
 import axios from 'axios';
 import { useAuth0 } from '@auth0/auth0-react';
+import { useHistory } from 'react-router-dom';
+import { toast } from 'react-hot-toast';
 
 // Imports internos.
 import { PageLayout } from "../components/page-layout";
@@ -19,6 +21,7 @@ import aulaBackground from "../img/AULA1.jpg";
 export const HomePageProfessor = () => {
     const { getAccessTokenSilently } = useAuth0();
     const [, changeCourse] = useSelectedCourse(true);
+    const history = useHistory();
     /** @type {CourseDTO} */ const course = useSelectedCourse(false);
 
     const urlSearchParams = new URLSearchParams(window.location.search);
@@ -37,6 +40,20 @@ export const HomePageProfessor = () => {
         // Cuando la imagen termine de descargar en segundo plano, actualizamos el estado para mostrarla
         img.onload = () => setBgLoaded(true);
     }, []);
+
+    useEffect(() => {
+        if (courseMissing) toast("Debe seleccionar una cursada para operar en la página en la que quiso ingresar.", { id: 'course-missing-toast' });
+        else if (noEvents) toast("La cursada seleccionada no tiene eventos. Primero debe crear al menos un evento.", { id: 'no-events-toast' });
+        else if (noStudents) toast("La cursada seleccionada no tiene estudiantes registrados. Primero debe registrar al menos un estudiante.", { id: 'no-students-toast' });
+    }, [courseMissing, noEvents, noStudents]);
+
+    const handleCourseSelection = (cursada) => {
+        changeCourse(CourseDTO.createFrom(cursada));
+        const redirectUrl = urlSearchParams.get("redirect");
+        if (redirectUrl) {
+            history.push(redirectUrl);
+        }
+    };
 
     useEffect(() => {
 
@@ -91,30 +108,6 @@ export const HomePageProfessor = () => {
                     course === null && 'Sin cursada seleccionada'
                 }
             </h2>
-            {courseMissing && (
-                <div className="info-msg-container">
-                    <div className="info-msg-desc-container">
-                        <p className="info-msg-description">Debe seleccionar una cursada para operar en la página en la que quiso ingresar.</p>
-                        <p className="info-msg-description">Seleccione una cursada y diríjase nuevamente a dicha página.</p>
-                    </div>
-                </div>
-            )}
-            {noEvents && (
-                <div className="info-msg-container">
-                    <div className="info-msg-desc-container">
-                        <p className="info-msg-description">La cursada seleccionada no tiene eventos.</p>
-                        <p className="info-msg-description">Primero debe crear al menos un evento.</p>
-                    </div>
-                </div>
-            )}
-            {noStudents && (
-                <div className="info-msg-container">
-                    <div className="info-msg-desc-container">
-                        <p className="info-msg-description">La cursada seleccionada no tiene estudiantes registrados.</p>
-                        <p className="info-msg-description">Primero debe registrar al menos un estudiante.</p>
-                    </div>
-                </div>
-            )}
             <div className="cursadas-grid">
                 {coursesList.length > 0 && (
                     <div className="cuadro-cursada-grid cuadro-cursada-header">
@@ -128,7 +121,7 @@ export const HomePageProfessor = () => {
                     <div
                         key={index}
                         className="cuadro-cursada-grid"
-                        onClick={() => changeCourse(CourseDTO.createFrom(cursada))}
+                        onClick={() => handleCourseSelection(cursada)}
                     >
                         <div className="cursada-col cursada-carrera">
                             {cursada.nombreCarrera}

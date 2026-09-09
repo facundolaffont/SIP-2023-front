@@ -13,6 +13,7 @@ import { useSelectedCourse } from "../contexts/course/course-provider.js";
 import CourseDTO from "../contexts/course/course-d-t-o";
 import { useSpreadsheetContext } from "../contexts/spreadsheet/spreadsheet-provider.js";
 import { DragAndDropFile } from "../components/drag-and-drop-file.js";
+import { toast } from 'react-hot-toast';
 
 // Estilos.
 import "../styles/components/table.css";
@@ -32,7 +33,12 @@ export function CourseStudentRegistering() {
     const [invalidRegistersList, setInvalidRegistersList] = useState([]);
     const [tableManualUpdateTrigger, setTableManualUpdateTrigger] = useState(true);
 
-    const [error, setError] = useState(null);
+    const showError = (message) => {
+        setOkList([]);
+        setNotOkList([]);
+        setInvalidRegistersList([]);
+        toast.error(message);
+    };
 
     const { getAccessTokenSilently } = useAuth0();
 
@@ -80,7 +86,7 @@ export function CourseStudentRegistering() {
     // se había hecho.
     useEffect(() => {
 
-        if (!course) history.push('/profile?course-missing');
+        if (!course) history.push(`/profile?course-missing&redirect=${window.location.pathname}`);
 
     }, []);
 
@@ -171,35 +177,7 @@ export function CourseStudentRegistering() {
 
     }, [okList, notOkList, invalidRegistersList, tableManualUpdateTrigger]);
 
-    // Actualiza el mensaje de error que se mostrará al usuario.
-    useEffect(() => {
 
-        // Obtiene el contenedor principal del mensaje de error.
-        const msgContainer = document.getElementsByClassName("info-msg-container")[0];
-
-        if (error === null) {
-
-            msgContainer.classList.add("not-displayed");
-
-        } else {
-
-            // Oculta las tablas.
-            setOkList([]);
-            setNotOkList([]);
-            setInvalidRegistersList([]);
-
-            // Obtiene el elemento HTML que contendrá el texto del mensaje.
-            const errorMsgTextContainer = document.getElementsByClassName("info-msg-description")[0];
-
-            // Guarda el mensaje.
-            errorMsgTextContainer.innerHTML = error;
-
-            // Muestra el mensaje.
-            msgContainer.classList.remove("not-displayed");
-
-        }
-
-    }, [error]);
 
     /**
      * Manejador del evento clic en el botón de carga de archivo a memoria.
@@ -214,19 +192,13 @@ export function CourseStudentRegistering() {
         // Evita que se ejecute la llamada del submit.
         event.preventDefault();
 
-        // Notifica al usuario si el rango no fue ingresado.
-        if (cellRangeName === "") {
-
-            setError("El campo 'Rango de celdas a cargar' no puede estar vacío.");
-
-        } else if (!cellRangeName.match("[A-Z]+[0-9]+:[A-Z]+[0-9]+")) {
-
-            setError("El campo 'Rango de celdas a cargar' no tiene un formato válido; debe ser '&lt;letras&gt;&lt;números&gt;:&lt;letras&gt;&lt;números&gt;'.");
-
+        if (sheetNameValue === "" || sheetNameValue === "SELECCIONAR PESTAÑA") {
+            showError("Debe seleccionar un nombre de pestaña");
+        } else if (cellRangeName === "") {
+            showError("Debe ingresar un rango de celdas");
+        } else if (!cellRangeName.match(/^[A-Z]{1,3}[0-9]{1,7}:[A-Z]{1,3}[0-9]{1,7}$/)) {
+            showError("El campo \"Rango de celdas a cargar\" no tiene un formato válido. Debe ser \"<letras><números>:<letras><números>\"");
         } else {
-
-            // Limpia el eventual mensaje de error que se encuentre en pantalla.
-            setError(null);
 
             // Lee un rango de celdas.
             spreadsheetManipulator.loadRange(sheetNameValue, cellRangeName, [
@@ -325,15 +297,14 @@ export function CourseStudentRegistering() {
                     }
                 )
                 .then(okReponse => okReponse)
-                .catch(error => error.response);
+                .catch(error => error);
 
-            // Si la petición no fue exitosa, guarda el mensaje de error,
-            // traído del back al usuario, y en el próximo renderizado se
-            // mostrará el mensaje.
-            if (checkedInfo.status !== 200) {
-                setError("Hubo un error. Por favor, contactarse con Soporte Técnico.");
-
-                // Si la petición fue exitosa, muestra la información traída del back.
+            if (!checkedInfo || !checkedInfo.status || checkedInfo.status !== 200) {
+                if (!checkedInfo || !checkedInfo.status) {
+                    showError("Error de conexión. Verificá tu internet o contactá a Soporte Técnico.");
+                } else {
+                    showError("Hubo un error. Por favor, contactarse con Soporte Técnico.");
+                }
             } else {
 
                 // Muestra la lista de registros, leídos de la planilla, con formato
@@ -450,7 +421,6 @@ export function CourseStudentRegistering() {
         setFileHandle(file);
 
         // Limpia la pantalla.
-        setError(null);
         setOkList([]);
         setNotOkList([]);
         setInvalidRegistersList([]);
@@ -567,14 +537,12 @@ export function CourseStudentRegistering() {
             .then(response => response)
             .catch(error => error);
 
-        // 6.A
-        if (response.status !== 200) {
-
-            // 6.A.1
-            // Guarda el mensaje de error traído del back al usuario y,
-            // en el próximo renderizado, se mostrará el mensaje.
-            setError("Hubo un error. Por favor, contactarse con Soporte Técnico.");
-
+        if (!response || !response.status || response.status !== 200) {
+            if (!response || !response.status) {
+                showError("Error de conexión. Verificá tu internet o contactá a Soporte Técnico.");
+            } else {
+                showError("Hubo un error. Por favor, contactarse con Soporte Técnico.");
+            }
         } else {
 
             // 3
@@ -631,11 +599,6 @@ export function CourseStudentRegistering() {
                     course === null && 'Sin cursada seleccionada'
                 }
             </h2>
-            <div className="info-msg-container not-displayed">
-                <div className="info-msg-desc-container">
-                    <p className="info-msg-description"></p>
-                </div>
-            </div>
             <form>
                 <DragAndDropFile
                     onFileDrop={handleFileSelection}

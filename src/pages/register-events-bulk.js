@@ -4,6 +4,7 @@ import axios from "axios";
 import { useAuth0 } from "@auth0/auth0-react";
 import React, { useEffect } from "react";
 import { useHistory } from 'react-router-dom';
+import toast from "react-hot-toast";
 
 // Componentes internos.
 import { PageLayout } from "../components/page-layout.js";
@@ -39,13 +40,25 @@ export function EventsBulkRegistering() {
 
     const [tableManualUpdateTrigger, setTableManualUpdateTrigger] = useState(true);
 
-    const [error, setError] = useState(null);
+    const showError = (message) => {
+        setOkList([]);
+        setNotOkList([]);
+        setInvalidRegistersList([]);
+        toast.error(message);
+    };
 
     const { getAccessTokenSilently } = useAuth0();
 
     /** @type {CourseDTO} */ const course = useSelectedCourse(false);
     const history = useHistory();
     const { getSpreadsheetData, saveSpreadsheetData, clearSpreadsheetData } = useSpreadsheetContext();
+
+    useEffect(() => {
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get("reason") === "no-events") {
+            toast("No hay eventos creados. Debe crear al menos un evento para poder continuar.", { id: 'no-events-toast' });
+        }
+    }, []);
 
     // Restaura el estado desde el contexto
     useEffect(() => {
@@ -87,7 +100,7 @@ export function EventsBulkRegistering() {
     // se había hecho.
     useEffect(() => {
 
-        if (!course) history.push('/profile?course-missing');
+        if (!course) history.push(`/profile?course-missing&redirect=${window.location.pathname}`);
 
     }, []);
 
@@ -184,53 +197,22 @@ export function EventsBulkRegistering() {
                         Authorization: `Bearer ${auth0Token}`,
                     },
                 }
-            )
-                .then(response => response)
-                .catch(error => error.response);
+            ).catch(error => error);
 
-            // Si la petición al back no finalizó correctamente, se establece el mensaje de error
-            // que se le mostrará al usuario; si no, se guardan los códigos de tipo de evento.
-            if (response.status !== 200)
-                setError("Hubo un error. Por favor, contactarse con Soporte Técnico.");
-            else { setEventTypeList(response.data.eventTypesList); }
+            if (!response || !response.status || response.status !== 200) {
+                if (!response || !response.status) {
+                    showError("Error de conexión. Verificá tu internet o contactá a Soporte Técnico.");
+                } else {
+                    showError("Hubo un error. Por favor, contactarse con Soporte Técnico.");
+                }
+            } else { setEventTypeList(response.data.eventTypesList); }
 
         }
         getEventTypeList();
 
     }, []);
 
-    /**
-     * Actualiza el mensaje de error que se mostrará al usuario cuando hay un nuevo
-     * mensaje.
-     */
-    useEffect(() => {
 
-        // Obtiene el contenedor principal del mensaje de error.
-        const msgContainer = document.getElementsByClassName("info-msg-container")[0];
-
-        if (error === null) {
-
-            msgContainer.classList.add("not-displayed");
-
-        } else {
-
-            // Oculta las tablas.
-            setOkList([]);
-            setNotOkList([]);
-            setInvalidRegistersList([]);
-
-            // Obtiene el elemento HTML que contendrá el texto del mensaje.
-            const errorMsgTextContainer = document.getElementsByClassName("info-msg-description")[0];
-
-            // Guarda el mensaje.
-            errorMsgTextContainer.innerHTML = error;
-
-            // Muestra el mensaje.
-            msgContainer.classList.remove("not-displayed");
-
-        }
-
-    }, [error]);
 
     // Inicializa el objeto que manipula las planillas.
     useState(() => {
@@ -258,26 +240,19 @@ export function EventsBulkRegistering() {
 
         // Notifica al usuario si no se seleccionó el nombre de la pestaña
         // de la planilla.
-        if (sheetNameValue === "") {
+        if (sheetNameValue === "" || sheetNameValue === "SELECCIONAR PESTAÑA") {
 
-            setError("Debe seleccionar un nombre de pestaña.");
+            showError("Debe seleccionar un nombre de pestaña");
 
             // Notifica al usuario si el rango no fue ingresado.
         } else if (cellRangeName === "") {
 
-            setError("El campo 'Rango de celdas a cargar' no puede estar vacío.");
+            showError("Debe ingresar un rango de celdas");
 
             // Notifica al usuario si el rango de celdas no tiene formato válido.
-        } else if (!cellRangeName.match("[A-Z]+[0-9]+:[A-Z]+[0-9]+")) {
-
-            setError("El campo 'Rango de celdas a cargar' no tiene un formato válido; debe ser '&lt;letras&gt;&lt;números&gt;:&lt;letras&gt;&lt;números&gt;'.");
-
-            // Condición que se cumple si se pasaron correctamente todas las validaciones de
-            // formato de los datos de entrada en la interfaz gráfica.
+        } else if (!cellRangeName.match(/^[A-Z]{1,3}[0-9]{1,7}:[A-Z]{1,3}[0-9]{1,7}$/)) {
+            showError("El campo \"Rango de celdas a cargar\" no tiene un formato válido. Debe ser \"<letras><números>:<letras><números>\"");
         } else {
-
-            // Limpia el eventual mensaje de error que se encuentre en pantalla.
-            setError(null);
 
             // Habilita el botón de registrar eventos.
             const registerButton = document.getElementsByClassName("register-button")[0];
@@ -521,19 +496,17 @@ export function EventsBulkRegistering() {
                         }
                     )
                     .then(okReponse => okReponse)
-                    .catch(error => error.response);
+                    .catch(error => error);
 
-                // Si la petición al back no finalizó correctamente, se establece el mensaje de error
-                // que se le mostrará al usuario.
-                if (checkedInfo.status === 500)
-                    setError("Hubo un error. Por favor, contactarse con Soporte Técnico.");
-                else if (checkedInfo.status !== 200)
-                    setError(checkedInfo.data.errorDescription);
-
-                // Si la petición al back finalizó correctamente, se establecen los registros de formato
-                // inválido, si los hubiere, así como también los de formato válido, para que sean mostrados
-                // en la próxima actualización del componente de React.
-                else {
+                if (!checkedInfo || !checkedInfo.status || checkedInfo.status !== 200) {
+                    if (!checkedInfo || !checkedInfo.status) {
+                        showError("Error de conexión. Verificá tu internet o contactá a Soporte Técnico.");
+                    } else if (checkedInfo.status === 500) {
+                        showError("Hubo un error. Por favor, contactarse con Soporte Técnico.");
+                    } else {
+                        showError(checkedInfo.data.errorDescription);
+                    }
+                } else {
 
                     let backendNokRegisters = [];
                     if (checkedInfo.data.nok && checkedInfo.data.nok.length > 0) {
@@ -666,7 +639,6 @@ export function EventsBulkRegistering() {
         setFileHandle(file);
 
         // Limpia la pantalla.
-        setError(null);
         setOkList([]);
         setNotOkList([]);
         setInvalidRegistersList([]);
@@ -686,7 +658,6 @@ export function EventsBulkRegistering() {
         setFileHandle(null);
         setSheetNameValue("");
         setCellRangeName("");
-        setError(null);
         setOkList([]);
         setNotOkList([]);
         setInvalidRegistersList([]);
@@ -802,16 +773,17 @@ export function EventsBulkRegistering() {
                 }
             )
             .then(response => response)
-            .catch(error => error.response);
+            .catch(error => error);
 
-        // Si la petición al back no finalizó correctamente, se establece el mensaje de error
-        // que se le mostrará al usuario.
-        if (response.status === 500)
-            setError("Hubo un error. Por favor, contactarse con Soporte Técnico.");
-        else if (response.status !== 200)
-            setError(response.data.errorDescription);
-
-        else {
+        if (!response || !response.status || response.status !== 200) {
+            if (!response || !response.status) {
+                showError("Error de conexión. Verificá tu internet o contactá a Soporte Técnico.");
+            } else if (response.status === 500) {
+                showError("Hubo un error. Por favor, contactarse con Soporte Técnico.");
+            } else {
+                showError(response.data.errorDescription);
+            }
+        } else {
 
             // El front inserta un símbolo en la primera columna de cada registro para indicar
             // que se registró en el sistema.
@@ -871,11 +843,6 @@ export function EventsBulkRegistering() {
                     course === null && 'Sin cursada seleccionada'
                 }
             </h2>
-            <div className="info-msg-container not-displayed">
-                <div className="info-msg-desc-container">
-                    <p className="info-msg-description"></p>
-                </div>
-            </div>
             <form>
                 <DragAndDropFile
                     onFileDrop={handleFileSelection}

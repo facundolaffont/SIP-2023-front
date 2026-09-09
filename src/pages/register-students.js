@@ -4,6 +4,7 @@ import axios from "axios";
 import { useAuth0 } from "@auth0/auth0-react";
 import React, { useEffect } from "react";
 import { useHistory } from 'react-router-dom';
+import toast from "react-hot-toast";
 
 // Componentes internos.
 import { PageLayout } from "../components/page-layout";
@@ -35,17 +36,33 @@ export function StudentRegistering() {
 
     // Para manejar duplicados
     const [duplicatedList, setDuplicatedList] = useState([]);
-    const [allOverwritesChecked, setAllOverwritesChecked] = useState(false); 
+    const [allOverwritesChecked, setAllOverwritesChecked] = useState(false);
 
     const [tableManualUpdateTrigger, setTableManualUpdateTrigger] = useState(true);
 
-    const [error, setError] = useState(null);
+    const showError = (message) => {
+        setOkList([]);
+        setNotOkList([]);
+        setInvalidRegistersList([]);
+        setDuplicatedList([]);
+        setAllOverwritesChecked(false);
+        toast.error(message);
+    };
 
     const { getAccessTokenSilently } = useAuth0();
-    
+
     /** @type {CourseDTO} */ const course = useSelectedCourse(false);
     const history = useHistory();
     const { getSpreadsheetData, saveSpreadsheetData, clearSpreadsheetData } = useSpreadsheetContext();
+
+    useEffect(() => {
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get("reason") === "no-students") {
+            toast("No hay estudiantes registrados. Debe registrar al menos un estudiante para poder continuar.", { id: 'no-students-toast' });
+        } else if (urlParams.get("reason") === "no-students-for-groups") {
+            toast("No hay estudiantes registrados. Se requieren estudiantes para poder conformar los grupos.", { id: 'no-students-groups-toast' });
+        }
+    }, []);
 
     // Restaura el estado desde el contexto
     useEffect(() => {
@@ -55,7 +72,7 @@ export function StudentRegistering() {
             setSheetNameValue(savedData.sheetNameValue || "");
             setCellRangeName(savedData.cellRangeName || "");
             setSpreadsheetManipulator(savedData.manipulator);
-            
+
             // Re-poblar inputs luego de que el DOM esté listo
             setTimeout(() => {
                 const sheetNamesList = savedData.manipulator.getSheetNamesList();
@@ -87,13 +104,13 @@ export function StudentRegistering() {
     // se había hecho.
     useEffect(() => {
 
-        if (!course) history.push('/profile?course-missing');
+        if (!course) history.push(`/profile?course-missing&redirect=${window.location.pathname}`);
 
     }, []);
 
-    useEffect(() => { 
+    useEffect(() => {
         const registerButton = document.getElementsByClassName("register-button")[0];
-        if(registerButton) {
+        if (registerButton) {
             if (registerButtonEnabled) {
                 registerButton.disabled = false;
                 registerButton.classList.remove("disabled");
@@ -104,7 +121,7 @@ export function StudentRegistering() {
         }
     }, [registerButtonEnabled]);
 
-    useEffect(() => { 
+    useEffect(() => {
         let notValidFormatTable = document.getElementsByClassName("not-valid-format-table")[0];
         if (invalidRegistersList.length !== 0) {
             HTMLTableManipulator.insertDataIntoTable(
@@ -140,7 +157,7 @@ export function StudentRegistering() {
                 okStudentsTable,
                 {
                     columnNames: [
-                        "_row:Fila", "state:Estado", "dossier:Legajo", "id:DNI", 
+                        "_row:Fila", "state:Estado", "dossier:Legajo", "id:DNI",
                         "name:Nombre", "email:Email", "allPreviousSubjectsApproved:Correlativas", "alreadyStudied:Recursante"
                     ],
                     tableRows: okList,
@@ -153,35 +170,19 @@ export function StudentRegistering() {
 
     }, [okList, notOkList, invalidRegistersList, tableManualUpdateTrigger]);
 
-    useEffect(() => { 
-        const msgContainer = document.getElementsByClassName("info-msg-container")[0];
-        if (error === null) {
-            msgContainer.classList.add("not-displayed");
-        } else {
-            setOkList([]);
-            setNotOkList([]);
-            setInvalidRegistersList([]);
-            setDuplicatedList([]); 
-            setAllOverwritesChecked(false);
 
-            const errorMsgTextContainer = document.getElementsByClassName("info-msg-description")[0];
-            errorMsgTextContainer.innerHTML = error;
-            msgContainer.classList.remove("not-displayed");
-        }
-    }, [error]);
 
-    useState(() => { 
+    useState(() => {
         const savedData = getSpreadsheetData('register-students');
         if (!savedData) {
             setSpreadsheetManipulator(new SpreadsheetManipulator());
         }
     }, []);
 
-    const handleFileSelection = file => { 
+    const handleFileSelection = file => {
         setFileName(file.name);
         setFileHandle(file);
 
-        setError(null);
         setOkList([]);
         setNotOkList([]);
         setInvalidRegistersList([]);
@@ -202,7 +203,6 @@ export function StudentRegistering() {
         setFileHandle(null);
         setSheetNameValue("");
         setCellRangeName("");
-        setError(null);
         setOkList([]);
         setNotOkList([]);
         setInvalidRegistersList([]);
@@ -210,7 +210,7 @@ export function StudentRegistering() {
         setAllOverwritesChecked(false);
         setSpreadsheetManipulator(new SpreadsheetManipulator());
         clearSpreadsheetData('register-students');
-        
+
         let sheetNamesSelect = document.getElementById("sheet-names");
         if (sheetNamesSelect) {
             while (sheetNamesSelect.firstChild) {
@@ -238,16 +238,17 @@ export function StudentRegistering() {
         setAllOverwritesChecked(newList.length > 0 && newList.every(s => s.overwrite));
     };
 
-    const handleRangeLoading = async event => { 
+    const handleRangeLoading = async event => {
         event.preventDefault();
         setRegisterButtonEnabled(true);
 
-        if (cellRangeName === "") {
-            setError("El campo 'Rango de celdas a cargar' no puede estar vacío.");
-        } else if (!cellRangeName.match("[A-Z]+[0-9]+:[A-Z]+[0-9]+")) {
-            setError("El campo 'Rango de celdas a cargar' no tiene un formato válido...");
+        if (sheetNameValue === "" || sheetNameValue === "SELECCIONAR PESTAÑA") {
+            showError("Debe seleccionar un nombre de pestaña");
+        } else if (cellRangeName === "") {
+            showError("Debe ingresar un rango de celdas");
+        } else if (!cellRangeName.match(/^[A-Z]{1,3}[0-9]{1,7}:[A-Z]{1,3}[0-9]{1,7}$/)) {
+            showError("El campo \"Rango de celdas a cargar\" no tiene un formato válido. Debe ser \"<letras><números>:<letras><números>\"");
         } else {
-            setError(null);
 
             spreadsheetManipulator.loadRange(sheetNameValue, cellRangeName, [
                 "dossier", "id", "name", "email", "allPreviousSubjectsApproved",
@@ -262,7 +263,7 @@ export function StudentRegistering() {
                 let emailRegEx = /^[a-zA-Z0-9.!#$%&'*+\/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/;
                 let properNameRegEx = /[a-zA-Z ]+/;
                 let invalidFormat = false;
-                
+
                 if (isNaN(row.dossier) || row.dossier <= 0) {
                     row.formatInfo = "El legajo no es un entero positivo."; invalidFormat = true;
                 } else if (isNaN(row.id) || row.id <= 0) {
@@ -274,14 +275,14 @@ export function StudentRegistering() {
                 } else {
                     let duplicateMask = 0;
                     for (const element of readRange.data) {
-                        if(row._row !== element._row) {
-                            if(row.dossier === element.dossier) duplicateMask |= 1;
-                            if(row.id === element.id) duplicateMask |= 2;
-                            if(row.email === element.email) duplicateMask |= 4;
+                        if (row._row !== element._row) {
+                            if (row.dossier === element.dossier) duplicateMask |= 1;
+                            if (row.id === element.id) duplicateMask |= 2;
+                            if (row.email === element.email) duplicateMask |= 4;
                         }
                     }
-                    if(duplicateMask) invalidFormat = true;
-                    switch(duplicateMask) {
+                    if (duplicateMask) invalidFormat = true;
+                    switch (duplicateMask) {
                         case 1: row.formatInfo = "El legajo está duplicado."; break;
                         case 2: row.formatInfo = "El DNI está duplicado."; break;
                         case 3: row.formatInfo = "El legajo y DNI están duplicados."; break;
@@ -310,10 +311,14 @@ export function StudentRegistering() {
                 `${process.env.REACT_APP_API_SERVER_URL}/api/v1/students/new-students-check`,
                 { courseId: course.getId(), studentsList: newStudentsArray },
                 { headers: { Authorization: `Bearer ${auth0Token}` } }
-            ).then(okReponse => okReponse).catch(error => error.response);
+            ).then(okReponse => okReponse).catch(error => error);
 
-            if (checkedInfo.status !== 200) {
-                setError("Hubo un error. Por favor, contactarse con Soporte Técnico.");
+            if (!checkedInfo || !checkedInfo.status || checkedInfo.status !== 200) {
+                if (!checkedInfo || !checkedInfo.status) {
+                    showError("Error de conexión. Verificá tu internet o contactá a Soporte Técnico.");
+                } else {
+                    showError("Hubo un error. Por favor, contactarse con Soporte Técnico.");
+                }
             } else {
                 setInvalidRegistersList(invalidFormatRange);
 
@@ -322,7 +327,7 @@ export function StudentRegistering() {
                     let studentLoadedData = readRange.data.find(r => r.dossier == dossier);
                     let existingStudent = checkedInfo.data.existingStudents.find(s => s.dossier === dossier);
                     let isExisting = !!existingStudent;
-                    
+
                     return {
                         dossier: dossier,
                         _row: studentLoadedData._row,
@@ -344,7 +349,7 @@ export function StudentRegistering() {
                 if (checkedInfo.data.nok !== undefined) {
                     checkedInfo.data.nok.forEach(dossierInfo => {
                         let studentLoadedData = readRange.data.find(r => r.dossier == dossierInfo.dossier);
-                        
+
                         // En tu servicio, errorCode === 1 significa "Ya vinculado con la cursada".
                         if (dossierInfo.errorCode === 1) {
                             duplicateListData.push({
@@ -355,9 +360,9 @@ export function StudentRegistering() {
                                 email: studentLoadedData.email.trim(),
                                 alreadyStudied: dossierInfo.oldAlreadyStudied ? 'x' : '',
                                 allPreviousSubjectsApproved: String(studentLoadedData.allPreviousSubjectsApproved).trim().length !== 0 ? 'P' : false,
-                                
+
                                 // Datos viejos desde el back
-                                oldRecursante: dossierInfo.oldAlreadyStudied ? 'x' : '', 
+                                oldRecursante: dossierInfo.oldAlreadyStudied ? 'x' : '',
                                 oldCorrelativas: dossierInfo.oldAllPreviousSubjectsApproved ? 'P' : '',
                                 oldName: dossierInfo.oldName,
                                 oldDni: dossierInfo.oldDni,
@@ -384,7 +389,7 @@ export function StudentRegistering() {
 
                 notOkListData = notOkListData.sort((a, b) => parseInt(a._row) - parseInt(b._row));
                 setNotOkList(notOkListData);
-                
+
                 duplicateListData = duplicateListData.sort((a, b) => parseInt(a._row) - parseInt(b._row));
                 setDuplicatedList(duplicateListData);
                 setAllOverwritesChecked(false);
@@ -392,7 +397,7 @@ export function StudentRegistering() {
         }
     };
 
-    const loadSheetNames = () => { 
+    const loadSheetNames = () => {
         let sheetNamesList = spreadsheetManipulator.getSheetNamesList();
         let sheetNamesSelect = document.getElementById("sheet-names");
         if (sheetNamesSelect) {
@@ -414,7 +419,7 @@ export function StudentRegistering() {
             const singleSheet = sheetNamesList[0];
             setSheetNameValue(singleSheet);
             if (sheetNamesSelect) sheetNamesSelect.value = singleSheet;
-            
+
             const suggestedRange = spreadsheetManipulator.getSuggestedRange(singleSheet);
             if (suggestedRange) {
                 setCellRangeName(suggestedRange);
@@ -427,9 +432,9 @@ export function StudentRegistering() {
         }
     }
 
-    const handleSheetNameValueChange = event => { 
+    const handleSheetNameValueChange = event => {
         const val = event.target.value;
-        if(val !== "SELECCIONAR PESTAÑA") {
+        if (val !== "SELECCIONAR PESTAÑA") {
             setSheetNameValue(val);
             const suggestedRange = spreadsheetManipulator.getSuggestedRange(val);
             if (suggestedRange) {
@@ -446,13 +451,13 @@ export function StudentRegistering() {
         }
     };
 
-    const handleCellRangeName = event => { 
+    const handleCellRangeName = event => {
         const val = event.target.value.toUpperCase();
         setCellRangeName(val);
         saveSpreadsheetData('register-students', { cellRangeName: val });
     };
 
-    const handleRegistering = async () => { 
+    const handleRegistering = async () => {
         setRegisterButtonEnabled(false);
 
         // MODIFICADO: Unimos Lista OK + Duplicados marcados para sobreescribir.
@@ -478,11 +483,15 @@ export function StudentRegistering() {
             { headers: { Authorization: `Bearer ${auth0Token}` } }
         ).then(okResponse => okResponse).catch(error => error);
 
-        if (response.status !== 200) {
-            setError("Hubo un error. Por favor, contactarse con Soporte Técnico.");
+        if (!response || !response.status || response.status !== 200) {
+            if (!response || !response.status) {
+                showError("Error de conexión. Verificá tu internet o contactá a Soporte Técnico.");
+            } else {
+                showError("Hubo un error. Por favor, contactarse con Soporte Técnico.");
+            }
         } else {
             let updatedDuplicated = [...duplicatedList];
-            
+
             response.data.ok.forEach(registeredStudentDossier => {
                 let okStudent = okList.find(s => s.dossier === registeredStudentDossier);
                 if (okStudent) okStudent.state = "Registrado";
@@ -492,7 +501,7 @@ export function StudentRegistering() {
                     dupStudent.state = "Sobrescrito exitosamente";
                 }
             });
-            
+
             setDuplicatedList(updatedDuplicated);
 
             if (response.data.nok !== undefined) {
@@ -505,10 +514,11 @@ export function StudentRegistering() {
             }
 
             setTableManualUpdateTrigger(!tableManualUpdateTrigger);
+
         }
     };
 
-    const handleTemplateDownload = () => { 
+    const handleTemplateDownload = () => {
         let sheetContent = [
             ["Legajo", "DNI", "Nombre", "Mail", "Correlativas"],
             [192656, 24977506, "WALTER JAVIER ALAMO", "walterjalamo@hotmail.com", "P"],
@@ -520,22 +530,18 @@ export function StudentRegistering() {
         <PageLayout>
             <h1 id="page-title" className="content__title">Registrar estudiantes</h1>
             <h2 className="selected-course-info">
-                { course !== null && `Cursada seleccionada: (${course.getSubjectCode()}) ${course.getSubject()}, comisión ${course.getCommission()}, año ${course.getYear()}` }
-                { course === null && 'Sin cursada seleccionada' }
+                {course !== null && `Cursada seleccionada: (${course.getSubjectCode()}) ${course.getSubject()}, comisión ${course.getCommission()}, año ${course.getYear()}`}
+                {course === null && 'Sin cursada seleccionada'}
             </h2>
-            
-            <div className="info-msg-container not-displayed">
-                <div className="info-msg-desc-container"><p className="info-msg-description"></p></div>
-            </div>
-            
+
             <form>
-                <DragAndDropFile 
-                    onFileDrop={handleFileSelection} 
+                <DragAndDropFile
+                    onFileDrop={handleFileSelection}
                     onFileRemove={handleFileRemove}
-                    accept=".xlsx,.xls,.ods" 
-                    fileName={fileName} 
+                    accept=".xlsx,.xls,.ods"
+                    fileName={fileName}
                 />
-                
+
                 <div style={{ marginTop: '15px', marginBottom: '15px' }}>
                     <button
                         type="button"
@@ -548,10 +554,10 @@ export function StudentRegistering() {
 
                 <p>Nombre de la pestaña en la planilla</p>
                 <select id="sheet-names" onChange={handleSheetNameValueChange} required></select>
-                
+
                 <p>Rango de celdas a cargar (excluir encabezados)</p>
                 <input type="text" id="cell-range" placeholder="Ejemplo para cargar los primeros dos registros: A2:E3" onChange={handleCellRangeName} required />
-                
+
                 <button type="submit" className="load-button" onClick={handleRangeLoading}>Cargar registros</button>
             </form>
 
@@ -586,7 +592,7 @@ export function StudentRegistering() {
                                 <tr key={index} className={index % 2 !== 0 ? "even-row" : ""}>
                                     <td><input type="checkbox" checked={student.overwrite} onChange={() => handleToggleOverwrite(student.dossier)} /></td>
                                     <td>{student._row} - {student.dossier}</td>
-                                    
+
                                     {/* Comparamos visualmente si hay cambios. Si son iguales, solo muestra uno. */}
                                     <td>
                                         {student.oldDni === student.id ? student.id : <>{student.oldDni} ➔ <b>{student.id}</b></>}
@@ -597,7 +603,7 @@ export function StudentRegistering() {
                                     <td>
                                         {student.oldEmail === student.email ? student.email : <>{student.oldEmail} ➔ <b>{student.email}</b></>}
                                     </td>
-                                    
+
                                     <td>
                                         {(student.oldRecursante === 'x' ? 'Sí' : 'No')} ➔ {(student.alreadyStudied === 'x' ? 'Sí' : 'No')}
                                     </td>

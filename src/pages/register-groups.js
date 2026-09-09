@@ -42,7 +42,15 @@ export function GroupRegistering() {
 
     const [tableManualUpdateTrigger, setTableManualUpdateTrigger] = useState(true);
 
-    const [error, setError] = useState(null);
+    const showError = (message) => {
+        setOkList([]);
+        setNokList([]);
+        setInvalidRegistersList([]);
+        setDuplicatedList([]);
+        setWithoutGroupList([]);
+        setAllOverwritesChecked(false);
+        toast.error(message);
+    };
 
     const { getAccessTokenSilently } = useAuth0();
 
@@ -50,9 +58,17 @@ export function GroupRegistering() {
     const history = useHistory();
     const { getSpreadsheetData, saveSpreadsheetData, clearSpreadsheetData } = useSpreadsheetContext();
 
+    // Revisa si vino redirigido por falta de grupos
+    useEffect(() => {
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get("reason") === "no-groups") {
+            toast("No hay grupos creados. Debe registrar al menos un grupo para poder continuar.", { id: 'no-groups-toast' });
+        }
+    }, []);
+
     // Redirige a la página de selección de cursada, si todavía no se seleccionó una.
     useEffect(() => {
-        if (!course) history.push('/profile?course-missing');
+        if (!course) history.push(`/profile?course-missing&redirect=${window.location.pathname}`);
     }, []);
 
     // Redirige a la página de inicio si la cursada no tiene estudiantes registrados.
@@ -69,14 +85,16 @@ export function GroupRegistering() {
                 
                 const studentsList = studentsResponse.data.studentsList || [];
                 if (studentsList.length === 0) {
-                    history.push('/profile?no-students');
+                    history.push(`/register-students?reason=no-students-for-groups`);
                 }
             } catch (error) {
                 // Si la API devuelve un error de tipo Not Found o EmptyQueryException
                 if (error.response && error.response.status === 404) {
-                    history.push('/profile?no-students');
+                    history.push(`/register-students?reason=no-students-for-groups`);
+                } else if (!error.response) {
+                    showError("Error de conexión. Verificá tu internet o contactá a Soporte Técnico.");
                 } else {
-                    setError("Hubo un error al verificar los estudiantes. Por favor, contactarse con Soporte Técnico.");
+                    showError("Hubo un error al verificar los estudiantes. Por favor, contactarse con Soporte Técnico.");
                 }
             }
         };
@@ -178,23 +196,7 @@ export function GroupRegistering() {
 
     }, [okList, nokList, invalidRegistersList, tableManualUpdateTrigger]);
 
-    useEffect(() => {
-        const msgContainer = document.getElementsByClassName("info-msg-container")[0];
-        if (error === null) {
-            msgContainer.classList.add("not-displayed");
-        } else {
-            setOkList([]);
-            setNokList([]);
-            setInvalidRegistersList([]);
-            setDuplicatedList([]);
-            setWithoutGroupList([]);
-            setAllOverwritesChecked(false);
 
-            const errorMsgTextContainer = document.getElementsByClassName("info-msg-description")[0];
-            errorMsgTextContainer.innerHTML = error;
-            msgContainer.classList.remove("not-displayed");
-        }
-    }, [error]);
 
     useState(() => {
         const savedData = getSpreadsheetData('groups');
@@ -207,7 +209,6 @@ export function GroupRegistering() {
         setFileName(file.name);
         setFileHandle(file);
 
-        setError(null);
         setOkList([]);
         setNokList([]);
         setInvalidRegistersList([]);
@@ -229,7 +230,6 @@ export function GroupRegistering() {
         setFileHandle(null);
         setSheetNameValue("");
         setCellRangeName("");
-        setError(null);
         setOkList([]);
         setNokList([]);
         setInvalidRegistersList([]);
@@ -270,12 +270,13 @@ export function GroupRegistering() {
         event.preventDefault();
         setRegisterButtonEnabled(true);
 
-        if (cellRangeName === "") {
-            setError("El campo 'Rango de celdas a cargar' no puede estar vacío.");
-        } else if (!cellRangeName.match("[A-Z]+[0-9]+:[A-Z]+[0-9]+")) {
-            setError("El campo 'Rango de celdas a cargar' no tiene un formato válido...");
+        if (sheetNameValue === "" || sheetNameValue === "SELECCIONAR PESTAÑA") {
+            showError("Debe seleccionar un nombre de pestaña");
+        } else if (cellRangeName === "") {
+            showError("Debe ingresar un rango de celdas");
+        } else if (!cellRangeName.match(/^[A-Z]{1,3}[0-9]{1,7}:[A-Z]{1,3}[0-9]{1,7}$/)) {
+            showError("El campo \"Rango de celdas a cargar\" no tiene un formato válido. Debe ser \"<letras><números>:<letras><números>\"");
         } else {
-            setError(null);
 
             const rangeObj = XLSX.utils.decode_range(cellRangeName);
             const colCount = rangeObj.e.c - rangeObj.s.c + 1;
@@ -286,7 +287,7 @@ export function GroupRegistering() {
             } else if (colCount === 3) {
                 columnsMapping = ["dossier", "name", "groupName"];
             } else {
-                setError(`El rango seleccionado tiene ${colCount} columnas. Debe tener 2 (sin nombres) o 3 (con nombres).`);
+                showError(`El rango seleccionado tiene ${colCount} columnas. Debe tener 2 (sin nombres) o 3 (con nombres).`);
                 return;
             }
 
@@ -331,10 +332,14 @@ export function GroupRegistering() {
                 `${process.env.REACT_APP_API_SERVER_URL}/api/v1/course/check-student-groups`,
                 { courseId: course.getId(), groupEntries: groupEntriesArray },
                 { headers: { Authorization: `Bearer ${auth0Token}` } }
-            ).then(okResponse => okResponse).catch(error => error.response);
+            ).then(okResponse => okResponse).catch(error => error);
 
-            if (checkedInfo.status !== 200) {
-                setError("Hubo un error. Por favor, contactarse con Soporte Técnico.");
+            if (!checkedInfo || !checkedInfo.status || checkedInfo.status !== 200) {
+                if (!checkedInfo || !checkedInfo.status) {
+                    showError("Error de conexión. Verificá tu internet o contactá a Soporte Técnico.");
+                } else {
+                    showError("Hubo un error. Por favor, contactarse con Soporte Técnico.");
+                }
             } else {
                 setInvalidRegistersList(invalidFormatRange);
 
@@ -472,8 +477,12 @@ export function GroupRegistering() {
             { headers: { Authorization: `Bearer ${auth0Token}` } }
         ).then(okResponse => okResponse).catch(error => error);
 
-        if (response.status !== 200) {
-            setError("Hubo un error. Por favor, contactarse con Soporte Técnico.");
+        if (!response || !response.status || response.status !== 200) {
+            if (!response || !response.status) {
+                showError("Error de conexión. Verificá tu internet o contactá a Soporte Técnico.");
+            } else {
+                showError("Hubo un error. Por favor, contactarse con Soporte Técnico.");
+            }
         } else {
             let updatedDuplicated = [...duplicatedList];
 
@@ -499,6 +508,7 @@ export function GroupRegistering() {
             }
 
             setTableManualUpdateTrigger(!tableManualUpdateTrigger);
+
         }
     };
 
@@ -553,10 +563,6 @@ export function GroupRegistering() {
                 {course !== null && `Cursada seleccionada: (${course.getSubjectCode()}) ${course.getSubject()}, comisión ${course.getCommission()}, año ${course.getYear()}`}
                 {course === null && 'Sin cursada seleccionada'}
             </h2>
-
-            <div className="info-msg-container not-displayed">
-                <div className="info-msg-desc-container"><p className="info-msg-description"></p></div>
-            </div>
 
             <form>
                 <DragAndDropFile
