@@ -282,12 +282,21 @@ export function GroupRegistering() {
             const colCount = rangeObj.e.c - rangeObj.s.c + 1;
 
             let columnsMapping = [];
+            let expectedHeaders = [];
             if (colCount === 2) {
+                expectedHeaders = ["legajo", "grupo"];
                 columnsMapping = ["dossier", "groupName"];
             } else if (colCount === 3) {
+                expectedHeaders = ["legajo", "nombre", "grupo"];
                 columnsMapping = ["dossier", "name", "groupName"];
             } else {
                 showError(`El rango seleccionado tiene ${colCount} columnas. Debe tener 2 (sin nombres) o 3 (con nombres).`);
+                return;
+            }
+
+            const headerValidation = spreadsheetManipulator.validateHeaders(sheetNameValue, cellRangeName, expectedHeaders);
+            if (!headerValidation.isValid) {
+                showError(`Formato de planilla inválido. ${headerValidation.error}`);
                 return;
             }
 
@@ -585,8 +594,8 @@ export function GroupRegistering() {
                 <p>Nombre de la pestaña en la planilla</p>
                 <select id="sheet-names" onChange={handleSheetNameValueChange} required></select>
 
-                <p>Rango de celdas a cargar (excluir encabezados)</p>
-                <input type="text" id="cell-range" placeholder="Ejemplo para cargar los primeros tres registros: A2:B4" onChange={handleCellRangeName} required />
+                <p>Rango de celdas a cargar (incluyendo la fila de encabezados)</p>
+                <input type="text" id="cell-range" placeholder="Ejemplo para cargar los primeros tres registros: A1:B4" onChange={handleCellRangeName} required />
 
                 <button type="submit" className="load-button" onClick={handleRangeLoading}>Cargar registros</button>
             </form>

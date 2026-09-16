@@ -160,7 +160,11 @@ class SpreadsheetManipulator {
                 columnNames: columnNames,
                 data: [],
             }
-            for (let R = sheetJSRangeCells.s.r; R <= sheetJSRangeCells.e.r; ++R) {
+            
+            // Avanza una fila porque la primera debe ser de encabezados.
+            const startRow = sheetJSRangeCells.s.r + 1;
+
+            for (let R = startRow; R <= sheetJSRangeCells.e.r; ++R) {
                 
                 // Obtiene los datos de la celda de la primera columna.
                 const a1FirstColumnCellAddress = XLSX.utils.encode_cell({
@@ -194,6 +198,47 @@ class SpreadsheetManipulator {
     }
 
     /**
+     * Valida que la primera fila del rango seleccionado coincida con los encabezados esperados.
+     * 
+     * @param {String} sheetName Nombre de la pestaña.
+     * @param {String} A1CellRange Rango, en notación A1 (incluyendo fila de encabezados).
+     * @param {Array.<String>} expectedHeaders Arreglo con los nombres de las columnas esperadas.
+     * @returns {Object} Un objeto { isValid: boolean, error: string }
+     */
+    validateHeaders(sheetName, A1CellRange, expectedHeaders) {
+        if (!this.#loadedWorkbook) return { isValid: false, error: "No hay planilla cargada." };
+        const sheet = this.#loadedWorkbook.Sheets[sheetName];
+        if (!sheet) return { isValid: false, error: "La pestaña no existe." };
+
+        const range = XLSX.utils.decode_range(A1CellRange);
+        
+        let foundHeaders = [];
+        for (let C = range.s.c; C <= range.e.c; ++C) {
+            const cellAddress = XLSX.utils.encode_cell({ r: range.s.r, c: C });
+            const cell = sheet[cellAddress];
+            foundHeaders.push(cell && cell.v !== undefined ? String(cell.v).trim().toLowerCase() : "");
+        }
+
+        if (foundHeaders.length !== expectedHeaders.length) {
+            return { 
+                isValid: false, 
+                error: `Cantidad de columnas incorrecta. Se esperaban ${expectedHeaders.length} columnas, pero se encontraron ${foundHeaders.length}.`
+            };
+        }
+
+        for (let i = 0; i < expectedHeaders.length; i++) {
+            if (foundHeaders[i] !== expectedHeaders[i].trim().toLowerCase()) {
+                return { 
+                    isValid: false, 
+                    error: `Columna incorrecta. Se esperaba "${expectedHeaders[i]}" pero se encontró "${foundHeaders[i]}". Columnas esperadas: ${expectedHeaders.join(", ")}.`
+                };
+            }
+        }
+
+        return { isValid: true };
+    }
+
+    /**
      * Carga un rango en una variable interna.
      * 
      * Precondiciones: la cantidad de columnas en {@link A1CellRange} debe ser igual que
@@ -219,7 +264,11 @@ class SpreadsheetManipulator {
                 data: [],
             }
             let columnNamesArrayIndex;
-            for (let R = sheetJSRangeCells.s.r; R <= sheetJSRangeCells.e.r; ++R) {
+
+            // Avanza una fila porque la primera debe ser de encabezados.
+            const startRow = sheetJSRangeCells.s.r + 1;
+
+            for (let R = startRow; R <= sheetJSRangeCells.e.r; ++R) {
 
                 const row = {};
                 columnNamesArrayIndex = 0;
@@ -297,10 +346,7 @@ class SpreadsheetManipulator {
             range.s.c = minCol;
             range.e.c = maxCol;
 
-            // Ignora la primera fila (encabezados) asumiendo que siempre hay uno, solo si hay más de una fila
-            if (range.s.r < range.e.r) {
-                range.s.r += 1; 
-            }
+            // Eliminamos la exclusión automática de la fila de encabezados, ahora se incluyen.
 
             return XLSX.utils.encode_range(range);
         }
@@ -311,6 +357,11 @@ class SpreadsheetManipulator {
      * @returns {Array.<String>} La lista de nombres de pestañas de la planilla cargada.
      */
     getSheetNamesList() { return this.#loadedWorkbook.SheetNames; }
+
+    /**
+     * @returns {Object} La planilla cargada en memoria.
+     */
+    getWorkbook() { return this.#loadedWorkbook; }
 
     /**
      * @returns {lastReadRangeType} Un arreglo de filas del último rango leído.

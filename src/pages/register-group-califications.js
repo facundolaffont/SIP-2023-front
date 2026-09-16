@@ -335,6 +335,12 @@ export function GroupCalificationRegistering() {
         } else if (eventId === 0) {
             showError("Debe seleccionar un evento");
         } else {
+            const expectedHeaders = ["grupo", "calificación"];
+            const headerValidation = spreadsheetManipulator.validateHeaders(sheetNameValue, cellRangeName, expectedHeaders);
+            if (!headerValidation.isValid) {
+                showError(`Formato de planilla inválido. ${headerValidation.error}`);
+                return;
+            }
 
             // Fetch groups to map groupName -> dossiers
             const auth0Token = await getAccessTokenSilently();
@@ -623,8 +629,8 @@ export function GroupCalificationRegistering() {
                 <p>Nombre de la pestaña en la planilla</p>
                 <select id="sheet-names" onChange={handleSheetNameValueChange} required></select>
 
-                <p>Rango de celdas a cargar (excluir encabezados)</p>
-                <input type="text" id="cell-range" placeholder="Ejemplo para cargar los primeros dos registros: A2:B3" onChange={handleCellRangeName} required />
+                <p>Rango de celdas a cargar (incluyendo la fila de encabezados)</p>
+                <input type="text" id="cell-range" placeholder="Ejemplo para cargar los primeros dos registros: A1:B3" onChange={handleCellRangeName} required />
 
                 <label htmlFor="events-select"><p>Evento</p></label>
                 <select id="events-select" onChange={handleEventSelection} required></select>

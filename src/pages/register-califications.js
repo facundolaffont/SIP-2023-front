@@ -525,6 +525,12 @@ export function CalificationRegistering() {
             showError("Debe seleccionar un evento");
 
         } else {
+            const expectedHeaders = ["legajo", "calificación"];
+            const headerValidation = spreadsheetManipulator.validateHeaders(sheetNameValue, cellRangeName, expectedHeaders);
+            if (!headerValidation.isValid) {
+                showError(`Formato de planilla inválido. ${headerValidation.error}`);
+                return;
+            }
 
             // Lee un rango de celdas.
             spreadsheetManipulator.loadRange(sheetNameValue, cellRangeName, [
@@ -873,11 +879,11 @@ export function CalificationRegistering() {
                     required
                 >
                 </select>
-                <p>Rango de celdas a cargar (excluir encabezados)</p>
+                <p>Rango de celdas a cargar (incluyendo la fila de encabezados)</p>
                 <input
                     type="text"
                     id="cell-range"
-                    placeholder="Ejemplo para cargar los primeros dos registros: A2:B3"
+                    placeholder="Ejemplo para cargar los primeros dos registros: A1:B3"
                     onChange={handleCellRangeName}
                     required
                 />

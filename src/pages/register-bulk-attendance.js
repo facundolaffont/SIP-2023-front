@@ -409,56 +409,52 @@ export function BulkAttendanceRegistering() {
             }
 
             const numCols = decodedRange.e.c - decodedRange.s.c + 1;
-            const headerRowNum = decodedRange.s.r - 1;
+            const headerRowNum = decodedRange.s.r;
 
             let currentMapping = [];
             const columnNames = [];
 
-            if (headerRowNum >= 0) {
-                const headerColumnNames = [];
-                for (let i = 0; i < numCols; i++) {
-                    headerColumnNames.push(`col_${i}`);
-                }
-
-                const startCell = XLSX.utils.encode_cell({ r: headerRowNum, c: decodedRange.s.c });
-                const endCell = XLSX.utils.encode_cell({ r: headerRowNum, c: decodedRange.e.c });
-                const headerRange = `${startCell}:${endCell}`;
-
-                spreadsheetManipulator.loadRange(sheetNameValue, headerRange, headerColumnNames);
-                const headerData = spreadsheetManipulator.getLastReadRange();
-
-                if (headerData && headerData.data && headerData.data.length > 0) {
-                    const headerRow = headerColumnNames.map(cn => headerData.data[0][cn]);
-
-                    // La primera columna siempre es Legajo
-                    columnNames.push("dossier");
-
-                    // El resto de las columnas se mapean estrictamente por su nombre
-                    for (let i = 1; i < headerRow.length; i++) {
-                        const headerText = String(headerRow[i] || "").trim();
-                        const matchedEvent = eventsList.find(e => buildEventHeader(e) === headerText);
-
-                        if (matchedEvent) {
-                            columnNames.push(`event_${matchedEvent.eventId}`);
-                            currentMapping.push({
-                                columnIndex: i,
-                                eventId: matchedEvent.eventId,
-                                headerText: headerText
-                            });
-                        } else {
-                            columnNames.push(`ignored_${i}`);
-                        }
-                    }
-
-                    setColumnEventMap(currentMapping);
-                } else {
-                    showError("No se pudo leer la fila de encabezados. Asegúrese de que exista contenido en la fila anterior al rango de datos.");
-                    return;
-                }
-            } else {
-                showError("El rango seleccionado debe comenzar al menos en la fila 2 para poder leer los encabezados en la fila 1.");
-                return;
+            const headerColumnNames = [];
+            for (let i = 0; i < numCols; i++) {
+                headerColumnNames.push(`col_${i}`);
             }
+
+            const startCell = XLSX.utils.encode_cell({ r: headerRowNum, c: decodedRange.s.c });
+            const endCell = XLSX.utils.encode_cell({ r: headerRowNum, c: decodedRange.e.c });
+            const headerRange = `${startCell}:${endCell}`;
+
+            // Usa loadRangeSides o loadRange para leer la fila de encabezados.
+            // Para la fila de encabezados, loadRange avanza una fila, por lo que NO podemos usar loadRange.
+            // Wait, spreadsheetManipulator.loadRange avanza una fila! Si headerRange es A1:E1, loadRange intentará leer desde A2 hasta E1, lo cual no tiene sentido y fallará.
+            // Mejor leemos los encabezados manualmente de la hoja sin usar loadRange:
+            const sheet = spreadsheetManipulator.getWorkbook().Sheets[sheetNameValue];
+            const headerRow = [];
+            for (let c = decodedRange.s.c; c <= decodedRange.e.c; ++c) {
+                const cellAddr = XLSX.utils.encode_cell({ r: headerRowNum, c: c });
+                const cell = sheet[cellAddr];
+                headerRow.push(cell && cell.v !== undefined ? cell.v : "");
+            }
+
+            // La primera columna siempre es Legajo
+            columnNames.push("dossier");
+
+            // El resto de las columnas se mapean estrictamente por su nombre
+            for (let i = 1; i < headerRow.length; i++) {
+                const headerText = String(headerRow[i] || "").trim();
+                const matchedEvent = eventsList.find(e => buildEventHeader(e) === headerText);
+
+                if (matchedEvent) {
+                    columnNames.push(`event_${matchedEvent.eventId}`);
+                    currentMapping.push({
+                        columnIndex: i,
+                        eventId: matchedEvent.eventId,
+                        headerText: headerText
+                    });
+                } else {
+                    columnNames.push(`ignored_${i}`);
+                }
+            }
+            setColumnEventMap(currentMapping);
 
             if (currentMapping.length === 0) {
                 showError("No se encontraron encabezados válidos que coincidan con los eventos de la cursada en el archivo. Respete los nombres generados por la plantilla.");
@@ -675,11 +671,11 @@ export function BulkAttendanceRegistering() {
                     required
                 >
                 </select>
-                <p>Rango de celdas a cargar (excluir encabezados)</p>
+                <p>Rango de celdas a cargar (incluyendo la fila de encabezados)</p>
                 <input
                     type="text"
                     id="cell-range"
-                    placeholder="Ejemplo: A2:D50"
+                    placeholder="Ejemplo: A1:D50"
                     onChange={handleCellRangeName}
                     required
                 />

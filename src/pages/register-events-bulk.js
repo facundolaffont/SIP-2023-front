@@ -253,6 +253,19 @@ export function EventsBulkRegistering() {
         } else if (!cellRangeName.match(/^[A-Z]{1,3}[0-9]{1,7}:[A-Z]{1,3}[0-9]{1,7}$/)) {
             showError("El campo \"Rango de celdas a cargar\" no tiene un formato válido. Debe ser \"<letras><números>:<letras><números>\"");
         } else {
+            const expectedHeaders = [
+                "código del tipo de evento", 
+                "nombre del evento", 
+                "fecha y hora de inicio", 
+                "fecha y hora de fin", 
+                "obligatorio", 
+                "evento a recuperar (nro de fila)"
+            ];
+            const headerValidation = spreadsheetManipulator.validateHeaders(sheetNameValue, cellRangeName, expectedHeaders);
+            if (!headerValidation.isValid) {
+                showError(`Formato de planilla inválido. ${headerValidation.error}`);
+                return;
+            }
 
             // Habilita el botón de registrar eventos.
             const registerButton = document.getElementsByClassName("register-button")[0];
@@ -868,11 +881,11 @@ export function EventsBulkRegistering() {
                     required
                 >
                 </select>
-                <p>Rango de celdas a cargar (excluir encabezados)</p>
+                <p>Rango de celdas a cargar (incluyendo la fila de encabezados)</p>
                 <input
                     type="text"
                     id="cell-range"
-                    placeholder="Ejemplo para cargar los primeros dos registros: A2:E3"
+                    placeholder="Ejemplo para cargar los primeros dos registros: A1:F3"
                     onChange={handleCellRangeName}
                     required
                 />

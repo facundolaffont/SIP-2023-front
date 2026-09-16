@@ -249,6 +249,12 @@ export function StudentRegistering() {
         } else if (!cellRangeName.match(/^[A-Z]{1,3}[0-9]{1,7}:[A-Z]{1,3}[0-9]{1,7}$/)) {
             showError("El campo \"Rango de celdas a cargar\" no tiene un formato válido. Debe ser \"<letras><números>:<letras><números>\"");
         } else {
+            const expectedHeaders = ["legajo", "dni", "nombre", "mail", "correlativas"];
+            const headerValidation = spreadsheetManipulator.validateHeaders(sheetNameValue, cellRangeName, expectedHeaders);
+            if (!headerValidation.isValid) {
+                showError(`Formato de planilla inválido. ${headerValidation.error}`);
+                return;
+            }
 
             spreadsheetManipulator.loadRange(sheetNameValue, cellRangeName, [
                 "dossier", "id", "name", "email", "allPreviousSubjectsApproved",
@@ -555,8 +561,8 @@ export function StudentRegistering() {
                 <p>Nombre de la pestaña en la planilla</p>
                 <select id="sheet-names" onChange={handleSheetNameValueChange} required></select>
 
-                <p>Rango de celdas a cargar (excluir encabezados)</p>
-                <input type="text" id="cell-range" placeholder="Ejemplo para cargar los primeros dos registros: A2:E3" onChange={handleCellRangeName} required />
+                <p>Rango de celdas a cargar (incluyendo la fila de encabezados)</p>
+                <input type="text" id="cell-range" placeholder="Ejemplo para cargar los primeros dos registros: A1:E3" onChange={handleCellRangeName} required />
 
                 <button type="submit" className="load-button" onClick={handleRangeLoading}>Cargar registros</button>
             </form>
