@@ -82,6 +82,41 @@ export default class CourseDTO {
         );
     }
 
+    /**
+     * Serializa la instancia a JSON.
+     * Necesario porque los campos privados no son serializados por defecto.
+     * @returns {Object}
+     */
+    toJSON() {
+        return {
+            id: this.#id,
+            subjectCode: this.#subjectCode,
+            subject: this.#subject,
+            career: this.#career,
+            commission: this.#commission,
+            year: this.#year,
+            permission: this.#permission
+        };
+    }
+
+    /**
+     * Crea una instancia a partir de un objeto parseado de JSON.
+     * @param {Object} obj
+     * @returns {CourseDTO}
+     */
+    static fromJSON(obj) {
+        if (!obj) return null;
+        return new CourseDTO(
+            obj.id,
+            obj.subjectCode,
+            obj.subject,
+            obj.career,
+            obj.commission,
+            obj.year,
+            obj.permission
+        );
+    }
+
     getId() {
         return this.#id;
     }

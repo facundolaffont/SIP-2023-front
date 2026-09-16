@@ -5,6 +5,7 @@ export const LogoutButton = () => {
   const { logout } = useAuth0();
 
   const handleLogout = () => {
+    localStorage.removeItem("selectedCourse");
     logout({
       logoutParams: {
         returnTo: window.location.origin,

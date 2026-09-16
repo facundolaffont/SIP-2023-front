@@ -31,11 +31,16 @@ export const SpreadsheetProvider = ({ children }) => {
         });
     };
 
+    const clearAllSpreadsheetData = () => {
+        setPageSpreadsheets({});
+    };
+
     return (
         <SpreadsheetContext.Provider value={{
             saveSpreadsheetData,
             getSpreadsheetData,
             clearSpreadsheetData,
+            clearAllSpreadsheetData,
             pageSpreadsheets
         }}>
             {children}
