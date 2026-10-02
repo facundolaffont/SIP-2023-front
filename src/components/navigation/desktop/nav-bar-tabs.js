@@ -1,12 +1,14 @@
 import { useAuth0 } from "@auth0/auth0-react";
 import React, { useState, useEffect } from "react";
 import { NavBarTab } from "./nav-bar-tab";
+import { useSelectedCourse } from "../../../contexts/course/course-provider";
 
 export const NavBarTabs = () => {
     const { isAuthenticated, getIdTokenClaims } = useAuth0();
     const [isSuperAdmin, setIsSuperAdmin] = useState(false);
     const [isAdmin, setIsAdmin] = useState(false);
     const [isProfessor, setIsProfessor] = useState(false);
+    const course = useSelectedCourse(false);
     const [showRegistrationsDropdown, setShowRegistrationsDropdown] = useState(false);
     const [showListingsDropdown, setShowListingsDropdown] = useState(false);
     const [showUsersManagementDropdown, setShowUsersManagementDropdown] = useState(false);
@@ -61,8 +63,15 @@ export const NavBarTabs = () => {
             {isAuthenticated && (
                 <>
 
+                    {/* Link directo al dashboard (solo si hay cursada seleccionada) */}
+                    {isProfessor && course && (
+                        <div className="nav-bar__tab">
+                            <NavBarTab path="/course-dashboard" label={<><span style={{marginRight: '8px', fontSize: '1.1em'}}>📊</span>Dashboard</>} />
+                        </div>
+                    )}
+
                     {/* Rutas para docentes */}
-                    {isProfessor && (
+                    {isProfessor && course && (
                         <div
                             className="nav-bar__tab"
                             onMouseEnter={(event) => handleMouseEnter(event, setShowRegistrationsDropdown)}
@@ -104,7 +113,7 @@ export const NavBarTabs = () => {
                             )}
                         </div>
                     )}
-                    {isProfessor && (
+                    {isProfessor && course && (
                         <div
                             className="nav-bar__tab"
                             onMouseEnter={(event) => handleMouseEnter(event, setShowEliminationsDropdown)}
@@ -126,7 +135,7 @@ export const NavBarTabs = () => {
                             )}
                         </div>
                     )}
-                    {isProfessor && (
+                    {isProfessor && course && (
                         <div
                             className="nav-bar__tab"
                             onMouseEnter={(event) => handleMouseEnter(event, setShowListingsDropdown)}
@@ -183,7 +192,7 @@ export const NavBarTabs = () => {
                             )}
                         </div>
                     )}
-                    {isProfessor && (
+                    {isProfessor && course && (
                         <div
                             className="nav-bar__tab"
                             onMouseEnter={(event) => handleMouseEnter(event, setShowCalificationCriterionsDropdown)}

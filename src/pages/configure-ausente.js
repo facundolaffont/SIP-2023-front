@@ -115,7 +115,7 @@ export function ConfigureAusente() {
             <div className="configure-ausente-list">
                 <h3 className="configure-ausente-subtitle">Categorías de eventos a tener en cuenta:</h3>
                 {eventTypes
-                    .filter(type => !type.eventTypeName.startsWith('Recuperatorio') && type.eventTypeName !== 'Final')
+                    .filter(type => !type.eventTypeName.startsWith('Recuperatorio') && type.eventTypeName !== 'Final' && type.eventTypeName !== 'Integrador')
                     .sort((a, b) => {
                         const order = ['Parcial', 'Trabajo práctico', 'Autoevaluación', 'Integrador', 'Clase'];
                         let indexA = order.indexOf(a.eventTypeName);

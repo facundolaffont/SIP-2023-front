@@ -4,7 +4,7 @@ import { useAuth0 } from "@auth0/auth0-react";
 import React, { useEffect, useState } from "react";
 import { useHistory } from 'react-router-dom';
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faPencilAlt, faCheck, faTimes } from "@fortawesome/free-solid-svg-icons";
+import { faPencilAlt, faCheck, faTimes, faEye } from "@fortawesome/free-solid-svg-icons";
 import toast from "react-hot-toast";
 
 // Imports internos.
@@ -19,12 +19,10 @@ import "../styles/final-condition.css";
 
 const ConditionEditor = ({ studentLegajo, currentCondition, onConfirm, getCondicionFinalTexto, isEditing, onEditStart, onCancel }) => {
     const [tempValue, setTempValue] = useState("");
-    const [errorMessage, setErrorMessage] = useState("");
 
     useEffect(() => {
         if (isEditing) {
-            setTempValue(currentCondition || "");
-            setErrorMessage("");
+            setTempValue(currentCondition || "A"); // Default fallback
         }
     }, [isEditing, currentCondition]);
 
@@ -33,36 +31,29 @@ const ConditionEditor = ({ studentLegajo, currentCondition, onConfirm, getCondic
     };
 
     const handleConfirm = () => {
-        if (tempValue === "" || ["P", "R", "L", "A"].includes(tempValue)) {
-            onConfirm(studentLegajo, tempValue !== "" ? tempValue : undefined);
-        } else {
-            setErrorMessage("Solo se permiten las letras 'P', 'R', 'A' o 'L'");
+        if (["P", "R", "L", "A"].includes(tempValue)) {
+            onConfirm(studentLegajo, tempValue);
         }
     };
 
     const handleCancel = () => {
         onCancel();
-        setErrorMessage("");
     };
 
     return (
         <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "4px", height: "100%" }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "6px" }}>
                 {isEditing ? (
-                    <input
-                        type="text"
+                    <select
                         value={tempValue}
-                        style={{ width: "40px", height: "28px", textAlign: "center", textTransform: "uppercase", boxSizing: "border-box", margin: 0, padding: "4px" }}
-                        onChange={(e) => {
-                            const newValue = e.target.value.trim().toUpperCase();
-                            setTempValue(newValue);
-                            if (newValue === "" || ["P", "R", "L", "A"].includes(newValue)) {
-                                setErrorMessage("");
-                            } else {
-                                setErrorMessage("Solo se permiten las letras 'P', 'R', 'A' o 'L'");
-                            }
-                        }}
-                    />
+                        onChange={(e) => setTempValue(e.target.value)}
+                        style={{ height: "28px", minWidth: "115px", boxSizing: "border-box", margin: 0, padding: "2px 24px 2px 4px", fontSize: "13px" }}
+                    >
+                        <option value="P">P - Promueve</option>
+                        <option value="R">R - Regular</option>
+                        <option value="L">L - Libre</option>
+                        <option value="A">A - Ausente</option>
+                    </select>
                 ) : (
                     <span>{getCondicionFinalTexto(currentCondition)}</span>
                 )}
@@ -73,28 +64,36 @@ const ConditionEditor = ({ studentLegajo, currentCondition, onConfirm, getCondic
                 )}
                 {isEditing && (
                     <div className="edit-buttons-container" style={{ display: "flex", alignItems: "center", margin: 0, gap: "4px" }}>
-                        <button onClick={handleConfirm} className="confirm-btn" title="Confirmar" style={{ display: "flex", alignItems: "center", justifyContent: "center", padding: 0, minWidth: "26px", width: "26px", height: "26px" }}>
-                            <FontAwesomeIcon icon={faCheck} style={{ fontSize: "14px" }} />
+                        <button onClick={handleConfirm} className="confirm-btn" title="Confirmar" style={{ display: "flex", alignItems: "center", justifyContent: "center", padding: 0, minWidth: "24px", width: "24px", height: "24px" }}>
+                            <FontAwesomeIcon icon={faCheck} style={{ fontSize: "12px" }} />
                         </button>
-                        <button onClick={handleCancel} className="cancel-btn" title="Cancelar" style={{ display: "flex", alignItems: "center", justifyContent: "center", padding: 0, minWidth: "26px", width: "26px", height: "26px" }}>
-                            <FontAwesomeIcon icon={faTimes} style={{ fontSize: "14px" }} />
+                        <button onClick={handleCancel} className="cancel-btn" title="Cancelar" style={{ display: "flex", alignItems: "center", justifyContent: "center", padding: 0, minWidth: "24px", width: "24px", height: "24px" }}>
+                            <FontAwesomeIcon icon={faTimes} style={{ fontSize: "12px" }} />
                         </button>
                     </div>
                 )}
             </div>
-            {errorMessage && isEditing &&
-                <p style={{ color: "black", fontWeight: "bold", fontSize: "12px", margin: "0" }}>{errorMessage}</p>}
         </div>
     );
 };
 
 const ObservationEditor = ({ studentLegajo, currentObservation, onConfirm, isEditing, onEditStart, onCancel }) => {
     const [tempValue, setTempValue] = useState("");
+    const [showPopover, setShowPopover] = useState(false);
     const containerRef = React.useRef(null);
+    const popoverRef = React.useRef(null);
+    const textareaRef = React.useRef(null);
 
     useEffect(() => {
         if (isEditing) {
             setTempValue(currentObservation || "");
+            // Adjust height initially when editing starts
+            if (textareaRef.current) {
+                textareaRef.current.style.height = "auto";
+                textareaRef.current.style.height = textareaRef.current.scrollHeight + "px";
+            }
+        } else {
+            setShowPopover(false);
         }
     }, [isEditing, currentObservation]);
 
@@ -103,6 +102,25 @@ const ObservationEditor = ({ studentLegajo, currentObservation, onConfirm, isEdi
             containerRef.current.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'end' });
         }
     }, [isEditing]);
+
+    const handleClickOutside = (event) => {
+        if (popoverRef.current && !popoverRef.current.contains(event.target)) {
+            setShowPopover(false);
+        }
+    };
+
+    useEffect(() => {
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, []);
+
+    const handleTextChange = (e) => {
+        setTempValue(e.target.value);
+        if (textareaRef.current) {
+            textareaRef.current.style.height = 'auto';
+            textareaRef.current.style.height = textareaRef.current.scrollHeight + 'px';
+        }
+    };
 
     const handleEdit = () => {
         onEditStart();
@@ -117,30 +135,56 @@ const ObservationEditor = ({ studentLegajo, currentObservation, onConfirm, isEdi
     };
 
     return (
-        <div ref={containerRef} style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "6px", minWidth: isEditing ? "250px" : "auto", height: "100%" }}>
+        <div ref={containerRef} style={{ display: "flex", alignItems: "flex-start", justifyContent: "center", gap: "6px", minWidth: isEditing ? "250px" : "150px", height: "100%", padding: "4px 0" }}>
             {isEditing ? (
-                <input
-                    type="text"
+                <textarea
+                    ref={textareaRef}
                     value={tempValue}
-                    onChange={(e) => setTempValue(e.target.value)}
-                    style={{ flex: 1, width: "100%", minWidth: "200px", boxSizing: "border-box", padding: "4px 8px", margin: 0, height: "28px" }}
+                    onChange={handleTextChange}
+                    rows={1}
+                    style={{ flex: 1, width: "100%", minWidth: "200px", boxSizing: "border-box", padding: "6px 8px", margin: 0, resize: "none", overflow: "hidden", fontSize: "14px", fontFamily: "inherit" }}
                 />
             ) : (
-                <span>{currentObservation || ""}</span>
+                <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+                    <span 
+                        style={{ 
+                            maxWidth: "150px", 
+                            whiteSpace: "nowrap", 
+                            overflow: "hidden", 
+                            textOverflow: "ellipsis", 
+                            display: "inline-block",
+                            paddingTop: "4px"
+                        }}
+                    >
+                        {currentObservation || ""}
+                    </span>
+                    {currentObservation && (
+                        <div className="popover-wrapper" ref={popoverRef} style={{ display: "inline-block", position: "relative" }}>
+                            <button className="popover-trigger" onClick={() => setShowPopover(!showPopover)} title="Ver más" style={{ marginTop: "2px" }}>
+                                <FontAwesomeIcon icon={faEye} />
+                            </button>
+                            {showPopover && (
+                                <div className="popover-box" style={{ minWidth: "200px", maxWidth: "300px" }}>
+                                    <p style={{ margin: 0, whiteSpace: "pre-wrap", textAlign: "left", fontSize: "14px", color: "#333", wordBreak: "break-word" }}>{currentObservation}</p>
+                                </div>
+                            )}
+                        </div>
+                    )}
+                </div>
             )}
 
             {!isEditing && (
-                <button onClick={handleEdit} className="edit-action-btn" title="Editar" style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <button onClick={handleEdit} className="edit-action-btn" title="Editar" style={{ display: "flex", alignItems: "center", justifyContent: "center", marginTop: "2px" }}>
                     <FontAwesomeIcon icon={faPencilAlt} />
                 </button>
             )}
             {isEditing && (
-                <div className="edit-buttons-container" style={{ display: "flex", alignItems: "center", margin: 0, gap: "4px" }}>
-                    <button onClick={handleConfirm} className="confirm-btn" title="Confirmar" style={{ display: "flex", alignItems: "center", justifyContent: "center", padding: 0, minWidth: "26px", width: "26px", height: "26px" }}>
-                        <FontAwesomeIcon icon={faCheck} style={{ fontSize: "14px" }} />
+                <div className="edit-buttons-container" style={{ display: "flex", flexDirection: "column", alignItems: "center", margin: 0, gap: "4px" }}>
+                    <button onClick={handleConfirm} className="confirm-btn" title="Confirmar" style={{ display: "flex", alignItems: "center", justifyContent: "center", padding: 0, minWidth: "24px", width: "24px", height: "24px" }}>
+                        <FontAwesomeIcon icon={faCheck} style={{ fontSize: "12px" }} />
                     </button>
-                    <button onClick={handleCancel} className="cancel-btn" title="Cancelar" style={{ display: "flex", alignItems: "center", justifyContent: "center", padding: 0, minWidth: "26px", width: "26px", height: "26px" }}>
-                        <FontAwesomeIcon icon={faTimes} style={{ fontSize: "14px" }} />
+                    <button onClick={handleCancel} className="cancel-btn" title="Cancelar" style={{ display: "flex", alignItems: "center", justifyContent: "center", padding: 0, minWidth: "24px", width: "24px", height: "24px" }}>
+                        <FontAwesomeIcon icon={faTimes} style={{ fontSize: "12px" }} />
                     </button>
                 </div>
             )}

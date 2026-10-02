@@ -42,7 +42,7 @@
   /* responsive */
 
   height: 80px;
-  max-width: 90%;
+  max-width: 98%;
 
   padding: 0 24px;
   margin: 0;
@@ -51,6 +51,7 @@
 .nav-bar__brand {
   display: flex;
   align-items: center;
+  margin-right: 40px;
 
   height: 100%;
 }
@@ -102,10 +103,8 @@
 }
 
 .nav-bar__tab--active {
-  border-bottom: 4px solid var(--indigo);
-  padding: 12px 0 8px;
-  border-bottom: 4px solid var(--indigo);
-  padding: 12px 0 8px;
+  border-bottom: 2px solid var(--indigo);
+  padding: 12px 0 10px;
 }
 
 .nav-bar__tab:hover {

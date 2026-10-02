@@ -52,6 +52,8 @@ export const HomePageProfessor = () => {
         const redirectUrl = urlSearchParams.get("redirect");
         if (redirectUrl) {
             history.push(redirectUrl);
+        } else {
+            history.push("/course-dashboard");
         }
     };
 

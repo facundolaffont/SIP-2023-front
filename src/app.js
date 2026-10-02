@@ -51,20 +51,42 @@ import { GroupRegistering } from "./pages/register-groups";
 import { GroupCalificationRegistering } from "./pages/register-group-califications";
 import { ListStudentGroups } from "./pages/list-student-groups";
 import { ModificateGroup } from "./pages/modificate-group";
+import { CourseDashboard } from "./pages/course-dashboard";
+
 export const App = () => {
     const { isLoading, isAuthenticated, getIdTokenClaims } = useAuth0();
     const [isSuperAdmin, setIsSuperAdmin] = useState(false);
     const [isAdmin, setIsAdmin] = useState(false);
     const [isProfessor, setIsProfessor] = useState(false);
     const [isCheckingRoles, setIsCheckingRoles] = useState(true);
+    const { logout, getAccessTokenSilently } = useAuth0();
 
     // Determina el rol del usuario.
     useEffect(() => {
         const checkRole = async () => {
             try {
                 if (isAuthenticated) {
-                    const idTokenClaims = await getIdTokenClaims();
-                    const roles = idTokenClaims[`${process.env.REACT_APP_AUTH0_AUDIENCE}/roles`];
+                    let idTokenClaims = await getIdTokenClaims();
+                    let roles = idTokenClaims[`${process.env.REACT_APP_AUTH0_AUDIENCE}/roles`];
+
+                    // Si no tiene roles, intentamos forzar una renovación del token salteando el caché.
+                    // Esto "auto-arregla" el token si el problema era un caché viejo (ej. al cambiar de entorno).
+                    if (roles === undefined) {
+                        try {
+                            await getAccessTokenSilently({ ignoreCache: true });
+                            idTokenClaims = await getIdTokenClaims();
+                            roles = idTokenClaims[`${process.env.REACT_APP_AUTH0_AUDIENCE}/roles`];
+                        } catch (refreshError) {
+                            console.error("Error forzando refresh del token:", refreshError);
+                        }
+                    }
+
+                    // Si incluso después de forzar el refresh sigue sin tener roles, 
+                    // significa que la sesión es inválida. Cerramos sesión automáticamente (invisible para el usuario).
+                    if (roles === undefined) {
+                        logout({ returnTo: window.location.origin });
+                        return;
+                    }
 
                     setIsSuperAdmin(roles?.includes("SuperAdministrador") || false);
                     setIsAdmin(roles?.includes("Administrador") || false);
@@ -180,6 +202,7 @@ export const App = () => {
 
                 {/* Rutas para docentes. */}
                 {isProfessor && <ProtectedRoute path="/profile" component={HomePageProfessor} />}
+                {isProfessor && <ProtectedRoute path="/course-dashboard" component={CourseDashboard} />}
                 {isProfessor && <ProtectedRoute path="/register-attendance" component={AttendanceRegistering} />}
                 {isProfessor && <ProtectedRoute path="/register-bulk-attendance" component={BulkAttendanceRegistering} />}
                 {isProfessor && <ProtectedRoute path="/register-course-attendance" component={CourseAttendanceRegistering} />}
